@@ -220,3 +220,35 @@ ordering, or thread timing.
 - Reactive updates for new code: hook `DataObserver.writeEvents: Flow<DataWriteEvent>`,
   not `LaunchedEffect(reload())`.
 - New entities use `Long` minor units for money. Do not use `Double`.
+
+
+
+## 21. Clarification — pool calculation (2026-09-14)
+
+The daily pool at the start of day D is:
+
+    poolAtStartOf(D) =
+        capacity
+        − reservationsTotal
+        − sum(allocation entries with date < D)
+
+It does NOT subtract raw transaction amounts. Raw amounts are only used for
+period-level displays like "spent this month". The daily ledger works
+exclusively in allocation entries.
+
+Consequence: for a 90.00 WEEK expense on Friday (allocation 30/30/30 to
+Fri/Sat/Sun):
+
+- On Saturday's opening, only Friday's 30.00 has been deducted from the pool,
+  not the full 90.00.
+- This matches the user's mental model: the weekly expense "costs" 30 today,
+  not 90.
+
+`periodRemaining` (the value shown on the dashboard summary card) still uses
+raw period spent:
+
+    periodRemaining = capacity − periodSpentRaw − periodReserved
+
+Both numbers coexist. The daily engine uses allocations; the summary card uses
+raw amounts. They total to the same figure at period end because all
+allocations are clipped to the period.
