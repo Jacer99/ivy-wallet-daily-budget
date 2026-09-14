@@ -202,3 +202,21 @@ ordering, or thread timing.
 - Recalculation idempotent
 - Deterministic for identical source data
 - Historical changes propagate forward to all affected dates
+
+
+
+## 20. Repository-specific decisions (verified 2026-09-14)
+
+- Uncategorized transactions: INCLUDED in budget by default. Exclusion is
+  opt-in via category rules only.
+- Account eligibility: NOT `AccountEntity.includeInBalance`. New config field
+  `includedAccountIds` in `DynamicBudgetConfigEntity`. Empty list = all accounts.
+- Reservation paid late: converted expense uses the ACTUAL payment date. No
+  backdating. Allocation mode is chosen at conversion time.
+- Salary cycle month-end: period is always payday-of-current-month → day before
+  payday-of-next-month. Feb 31 → clipped to Feb 28/29 for that cycle only.
+- Do NOT extend `BudgetEntity` (per-category budget, different concept).
+- Do NOT extend `PlannedPaymentRuleEntity` (periodic rules, different concept).
+- Reactive updates for new code: hook `DataObserver.writeEvents: Flow<DataWriteEvent>`,
+  not `LaunchedEffect(reload())`.
+- New entities use `Long` minor units for money. Do not use `Double`.
