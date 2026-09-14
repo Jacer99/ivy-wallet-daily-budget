@@ -252,3 +252,29 @@ raw period spent:
 Both numbers coexist. The daily engine uses allocations; the summary card uses
 raw amounts. They total to the same figure at period end because all
 allocations are clipped to the period.
+
+
+
+## 22. Ivy boundary decisions (2026-09-14)
+
+- Money conversion: Ivy stores `Double`; the engine uses `Long` minor units.
+  Conversion happens only in the mapper. Ivy's schema is not modified.
+
+- Currency exponent is per-currency:
+  3 → TND, BHD, IQD, JOD, KWD, OMR, LYD
+  2 → USD, EUR, GBP, MAD, EGP, SAR, AED, and most others
+  0 → JPY, KRW, VND
+  Each transaction's currency comes from its `asset.code`.
+  Cross-currency conversion is out of scope for v1; the mapper filters to the
+  configured currency only.
+
+- Date extraction: `Instant` → `LocalDate` uses the user's timezone. The
+  ZoneId is a parameter of the mapper, never a global constant.
+
+- `settled` field:
+  settled = true  → real expense, included in the engine
+  settled = false → planned/upcoming, not counted as spent
+
+- Transaction repository:
+  Ivy's `TransactionRepository` is used for reads. It is not replaced.
+  The engine is called via a mapper from Ivy's `Transaction` domain objects.
