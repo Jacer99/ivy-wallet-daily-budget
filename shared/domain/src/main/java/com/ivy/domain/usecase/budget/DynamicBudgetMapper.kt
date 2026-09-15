@@ -1,5 +1,6 @@
 package com.ivy.domain.usecase.budget
 
+import com.ivy.data.model.AllocationMode
 import com.ivy.data.model.Expense
 import com.ivy.data.model.Transaction
 import java.time.LocalDate

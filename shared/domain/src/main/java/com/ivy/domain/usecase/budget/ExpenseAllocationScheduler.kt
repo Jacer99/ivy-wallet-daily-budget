@@ -1,12 +1,11 @@
 package com.ivy.domain.usecase.budget
 
+import com.ivy.data.model.AllocationMode
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 import kotlin.math.min
-
-enum class AllocationMode { TODAY, WEEK, MONTH }
 
 data class AllocationEntry(
     val date: LocalDate,

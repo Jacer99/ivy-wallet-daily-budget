@@ -1,5 +1,6 @@
 package com.ivy.domain.usecase.budget
 
+import com.ivy.data.model.AllocationMode
 import java.time.LocalDate
 import javax.inject.Inject
 

@@ -1,5 +1,6 @@
 package com.ivy.domain.usecase.budget
 
+import com.ivy.data.model.AllocationMode
 import com.google.testing.junit.testparameterinjector.TestParameter
 import com.google.testing.junit.testparameterinjector.TestParameterInjector
 import io.kotest.matchers.shouldBe

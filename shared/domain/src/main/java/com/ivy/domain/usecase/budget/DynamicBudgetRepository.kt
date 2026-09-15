@@ -1,5 +1,6 @@
 package com.ivy.domain.usecase.budget
 
+import com.ivy.data.model.AllocationMode
 import com.ivy.data.repository.TransactionRepository
 import java.time.LocalDate
 import java.time.ZoneId

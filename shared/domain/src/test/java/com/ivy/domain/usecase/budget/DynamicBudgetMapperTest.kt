@@ -1,5 +1,6 @@
 package com.ivy.domain.usecase.budget
 
+import com.ivy.data.model.AllocationMode
 import com.ivy.data.model.AccountId
 import com.ivy.data.model.CategoryId
 import com.ivy.data.model.Expense
