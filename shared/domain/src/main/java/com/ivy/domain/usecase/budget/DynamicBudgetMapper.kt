@@ -14,7 +14,6 @@ import javax.inject.Inject
  * v1 Limitations:
  * - Income inclusion is not yet implemented (defaults to 0L).
  * - Reservations are not yet implemented (defaults to 0L).
- * - Per-expense allocation mode is not yet implemented (defaults to TODAY).
  *
  * @property resolver Used to resolve the budget period boundaries based on configuration.
  */
@@ -46,8 +45,7 @@ class DynamicBudgetMapper @Inject constructor(
                 BudgetExpenseInput(
                     transactionDate = expense.time.atZone(zoneId).toLocalDate(),
                     amount = CurrencyMinorUnits.toMinorUnits(expense.value.amount.value, config.currencyCode),
-                    // TODO: v1 only - use a real allocationMode field from Transaction when added to schema
-                    mode = AllocationMode.TODAY
+                    mode = expense.allocationMode
                 )
             }
 

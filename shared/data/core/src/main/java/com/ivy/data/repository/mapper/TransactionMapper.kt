@@ -7,6 +7,7 @@ import arrow.core.raise.ensureNotNull
 import com.ivy.base.model.TransactionType
 import com.ivy.data.db.entity.TransactionEntity
 import com.ivy.data.model.AccountId
+import com.ivy.data.model.AllocationMode
 import com.ivy.data.model.CategoryId
 import com.ivy.data.model.Expense
 import com.ivy.data.model.Income
@@ -84,6 +85,7 @@ class TransactionMapper @Inject constructor(
                     settled = settled,
                     metadata = metadata,
                     tags = tags,
+                    allocationMode = allocationMode,
                 )
             }
 
@@ -161,6 +163,11 @@ class TransactionMapper @Inject constructor(
             attachmentUrl = null,
             loanId = metadata.loanId,
             loanRecordId = metadata.loanRecordId,
+            allocationMode = when (this) {
+                is Expense -> allocationMode
+                is Income -> AllocationMode.TODAY
+                is Transfer -> AllocationMode.TODAY
+            },
             isSynced = true,
             isDeleted = false,
             id = id.value

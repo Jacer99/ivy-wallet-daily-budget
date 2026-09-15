@@ -6,6 +6,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector
 import com.ivy.base.model.TransactionType
 import com.ivy.data.db.entity.TransactionEntity
 import com.ivy.data.model.AccountId
+import com.ivy.data.model.AllocationMode
 import com.ivy.data.model.CategoryId
 import com.ivy.data.model.Expense
 import com.ivy.data.model.Income
@@ -210,6 +211,33 @@ class TransactionMapperTest {
             isDeleted = false,
             id = TransactionId.value
         )
+    }
+
+    @Test
+    fun `maps domain expense to entity - WEEK allocationMode is preserved`() {
+        // given
+        val expense = Expense(
+            id = TransactionId,
+            title = null,
+            description = null,
+            category = null,
+            time = InstantNow,
+            settled = true,
+            metadata = TransactionMetadata(null, null, null, null),
+            tags = persistentListOf(),
+            value = PositiveValue(
+                amount = PositiveDouble.unsafe(100.0),
+                asset = AssetCode.unsafe("EUR")
+            ),
+            account = AccountId,
+            allocationMode = AllocationMode.WEEK,
+        )
+
+        // when
+        val entity = with(mapper) { expense.toEntity() }
+
+        // then
+        entity.allocationMode shouldBe AllocationMode.WEEK
     }
     // endregion
 
@@ -470,6 +498,32 @@ class TransactionMapperTest {
 
         // then
         transfer.shouldBeLeft()
+    }
+
+    @Test
+    fun `expense entity to domain - WEEK allocationMode is preserved`() = runTest {
+        // given
+        val entity = ValidExpense.copy(allocationMode = AllocationMode.WEEK)
+        mockkAccounts(account = EUR)
+
+        // when
+        val result = with(mapper) { entity.toDomain() }
+
+        // then
+        (result.shouldBeRight() as Expense).allocationMode shouldBe AllocationMode.WEEK
+    }
+
+    @Test
+    fun `expense entity to domain - MONTH allocationMode is preserved`() = runTest {
+        // given
+        val entity = ValidExpense.copy(allocationMode = AllocationMode.MONTH)
+        mockkAccounts(account = EUR)
+
+        // when
+        val result = with(mapper) { entity.toDomain() }
+
+        // then
+        (result.shouldBeRight() as Expense).allocationMode shouldBe AllocationMode.MONTH
     }
 
     @Test
