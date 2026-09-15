@@ -13,6 +13,6 @@ abstract class DynamicBudgetModule {
     @Binds
     @Singleton
     abstract fun bindDynamicBudgetConfigStore(
-        impl: InMemoryDynamicBudgetConfigStore,
+        impl: RoomDynamicBudgetConfigStore,
     ): DynamicBudgetConfigStore
 }
