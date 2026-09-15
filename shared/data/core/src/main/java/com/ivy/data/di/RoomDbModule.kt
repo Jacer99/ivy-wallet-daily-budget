@@ -10,6 +10,7 @@ import com.ivy.data.db.dao.read.ExchangeRatesDao
 import com.ivy.data.db.dao.read.LoanDao
 import com.ivy.data.db.dao.read.LoanRecordDao
 import com.ivy.data.db.dao.read.PlannedPaymentRuleDao
+import com.ivy.data.db.dao.read.ReservationDao
 import com.ivy.data.db.dao.read.SettingsDao
 import com.ivy.data.db.dao.read.TagAssociationDao
 import com.ivy.data.db.dao.read.TagDao
@@ -23,6 +24,7 @@ import com.ivy.data.db.dao.write.WriteExchangeRatesDao
 import com.ivy.data.db.dao.write.WriteLoanDao
 import com.ivy.data.db.dao.write.WriteLoanRecordDao
 import com.ivy.data.db.dao.write.WritePlannedPaymentRuleDao
+import com.ivy.data.db.dao.write.WriteReservationDao
 import com.ivy.data.db.dao.write.WriteSettingsDao
 import com.ivy.data.db.dao.write.WriteTagAssociationDao
 import com.ivy.data.db.dao.write.WriteTagDao
@@ -109,6 +111,11 @@ object RoomDbModule {
     }
 
     @Provides
+    fun provideReservationDao(db: IvyRoomDatabase): ReservationDao {
+        return db.reservationDao
+    }
+
+    @Provides
     fun provideExchangeRatesDao(
         roomDatabase: IvyRoomDatabase
     ): ExchangeRatesDao {
@@ -173,5 +180,10 @@ object RoomDbModule {
     @Provides
     fun provideWriteDynamicBudgetConfigDao(db: IvyRoomDatabase): WriteDynamicBudgetConfigDao {
         return db.writeDynamicBudgetConfigDao
+    }
+
+    @Provides
+    fun provideWriteReservationDao(db: IvyRoomDatabase): WriteReservationDao {
+        return db.writeReservationDao
     }
 }

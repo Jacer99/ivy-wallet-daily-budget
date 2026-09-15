@@ -79,7 +79,9 @@ class BackupDataUseCaseAndroidTest {
             tagsWriter = db.writeTagDao,
             tagAssociationWriter = db.writeTagAssociationDao,
             dynamicBudgetConfigReader = db.dynamicBudgetConfigDao,
-            dynamicBudgetConfigWriter = db.writeDynamicBudgetConfigDao
+            dynamicBudgetConfigWriter = db.writeDynamicBudgetConfigDao,
+            reservationReader = db.reservationDao,
+            reservationWriter = db.writeReservationDao
         )
     }
 

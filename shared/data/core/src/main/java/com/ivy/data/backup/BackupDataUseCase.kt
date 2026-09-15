@@ -16,6 +16,7 @@ import com.ivy.data.db.dao.read.DynamicBudgetConfigDao
 import com.ivy.data.db.dao.read.LoanDao
 import com.ivy.data.db.dao.read.LoanRecordDao
 import com.ivy.data.db.dao.read.PlannedPaymentRuleDao
+import com.ivy.data.db.dao.read.ReservationDao
 import com.ivy.data.db.dao.read.SettingsDao
 import com.ivy.data.db.dao.read.TagAssociationDao
 import com.ivy.data.db.dao.read.TagDao
@@ -26,6 +27,7 @@ import com.ivy.data.db.dao.write.WriteDynamicBudgetConfigDao
 import com.ivy.data.db.dao.write.WriteLoanDao
 import com.ivy.data.db.dao.write.WriteLoanRecordDao
 import com.ivy.data.db.dao.write.WritePlannedPaymentRuleDao
+import com.ivy.data.db.dao.write.WriteReservationDao
 import com.ivy.data.db.dao.write.WriteSettingsDao
 import com.ivy.data.db.dao.write.WriteTagAssociationDao
 import com.ivy.data.db.dao.write.WriteTagDao
@@ -76,7 +78,9 @@ class BackupDataUseCase @Inject constructor(
     private val tagsWriter: WriteTagDao,
     private val tagAssociationWriter: WriteTagAssociationDao,
     private val dynamicBudgetConfigReader: DynamicBudgetConfigDao,
-    private val dynamicBudgetConfigWriter: WriteDynamicBudgetConfigDao
+    private val dynamicBudgetConfigWriter: WriteDynamicBudgetConfigDao,
+    private val reservationReader: ReservationDao,
+    private val reservationWriter: WriteReservationDao
 ) {
     suspend fun exportToFile(
         zipFileUri: Uri
@@ -113,6 +117,7 @@ class BackupDataUseCase @Inject constructor(
             val tags = async { tagsReader.findAll() }
             val tagAssociations = async { tagAssociationReader.findAll() }
             val dynamicBudgetConfig = async { dynamicBudgetConfigReader.findAll() }
+            val reservations = async { reservationReader.findAll() }
 
             val completeData = IvyWalletCompleteData(
                 accounts = accounts.await(),
@@ -126,7 +131,8 @@ class BackupDataUseCase @Inject constructor(
                 sharedPrefs = sharedPrefs.await(),
                 tags = tags.await(),
                 tagAssociations = tagAssociations.await(),
-                dynamicBudgetConfig = dynamicBudgetConfig.await()
+                dynamicBudgetConfig = dynamicBudgetConfig.await(),
+                reservations = reservations.await()
             )
 
             json.encodeToString(completeData)
@@ -287,6 +293,9 @@ class BackupDataUseCase @Inject constructor(
                 dynamicBudgetConfigWriter.deleteAll()
                 dynamicBudgetConfigWriter.saveMany(completeData.dynamicBudgetConfig)
             }
+            val reservations = async {
+                reservationWriter.saveMany(completeData.reservations)
+            }
 
             val plannedPayments =
                 async { plannedPaymentRuleWriter.saveMany(completeData.plannedPaymentRules) }
@@ -323,6 +332,7 @@ class BackupDataUseCase @Inject constructor(
             tags.await()
             tagAssociations.await()
             dynamicBudgetConfig.await()
+            reservations.await()
 
             onProgress(0.9)
         }

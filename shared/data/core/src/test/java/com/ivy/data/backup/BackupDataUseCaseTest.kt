@@ -10,6 +10,7 @@ import com.ivy.data.db.dao.fake.FakeDynamicBudgetConfigDao
 import com.ivy.data.db.dao.fake.FakeLoanDao
 import com.ivy.data.db.dao.fake.FakeLoanRecordDao
 import com.ivy.data.db.dao.fake.FakePlannedPaymentDao
+import com.ivy.data.db.dao.fake.FakeReservationDao
 import com.ivy.data.db.dao.fake.FakeSettingsDao
 import com.ivy.data.db.dao.fake.FakeTagAssociationDao
 import com.ivy.data.db.dao.fake.FakeTagDao
@@ -39,7 +40,8 @@ class BackupDataUseCaseTest {
         loanRecordDao: FakeLoanRecordDao = FakeLoanRecordDao(),
         tagDao: FakeTagDao = FakeTagDao(),
         tagAssociationDao: FakeTagAssociationDao = FakeTagAssociationDao(),
-        dynamicBudgetConfigDao: FakeDynamicBudgetConfigDao = FakeDynamicBudgetConfigDao()
+        dynamicBudgetConfigDao: FakeDynamicBudgetConfigDao = FakeDynamicBudgetConfigDao(),
+        reservationDao: FakeReservationDao = FakeReservationDao()
     ): BackupDataUseCase {
         val accountMapper = AccountMapper(
             CurrencyRepository(
@@ -84,7 +86,9 @@ class BackupDataUseCaseTest {
             tagAssociationReader = tagAssociationDao,
             tagAssociationWriter = tagAssociationDao,
             dynamicBudgetConfigReader = dynamicBudgetConfigDao,
-            dynamicBudgetConfigWriter = dynamicBudgetConfigDao
+            dynamicBudgetConfigWriter = dynamicBudgetConfigDao,
+            reservationReader = reservationDao,
+            reservationWriter = reservationDao
         )
     }
 

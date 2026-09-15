@@ -5,6 +5,7 @@ import com.ivy.data.db.entity.AccountEntity
 import com.ivy.data.db.entity.BudgetEntity
 import com.ivy.data.db.entity.CategoryEntity
 import com.ivy.data.db.entity.DynamicBudgetConfigEntity
+import com.ivy.data.db.entity.ReservationEntity
 import com.ivy.data.db.entity.LoanEntity
 import com.ivy.data.db.entity.LoanRecordEntity
 import com.ivy.data.db.entity.PlannedPaymentRuleEntity
@@ -42,5 +43,7 @@ data class IvyWalletCompleteData(
     @SerialName("tagAssociations")
     val tagAssociations: List<TagAssociationEntity> = emptyList(),
     @SerialName("dynamicBudgetConfig")
-    val dynamicBudgetConfig: List<DynamicBudgetConfigEntity> = emptyList()
+    val dynamicBudgetConfig: List<DynamicBudgetConfigEntity> = emptyList(),
+    @SerialName("reservations")
+    val reservations: List<ReservationEntity> = emptyList()
 )
