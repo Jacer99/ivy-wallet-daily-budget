@@ -6,6 +6,7 @@ import com.ivy.data.DataObserver
 import com.ivy.data.db.dao.fake.FakeAccountDao
 import com.ivy.data.db.dao.fake.FakeBudgetDao
 import com.ivy.data.db.dao.fake.FakeCategoryDao
+import com.ivy.data.db.dao.fake.FakeDynamicBudgetConfigDao
 import com.ivy.data.db.dao.fake.FakeLoanDao
 import com.ivy.data.db.dao.fake.FakeLoanRecordDao
 import com.ivy.data.db.dao.fake.FakePlannedPaymentDao
@@ -13,6 +14,7 @@ import com.ivy.data.db.dao.fake.FakeSettingsDao
 import com.ivy.data.db.dao.fake.FakeTagAssociationDao
 import com.ivy.data.db.dao.fake.FakeTagDao
 import com.ivy.data.db.dao.fake.FakeTransactionDao
+import com.ivy.data.db.entity.DynamicBudgetConfigEntity
 import com.ivy.data.repository.AccountRepository
 import com.ivy.data.repository.CurrencyRepository
 import com.ivy.data.repository.fake.fakeRepositoryMemoFactory
@@ -21,6 +23,7 @@ import com.ivy.data.testResource
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import java.util.UUID
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -35,7 +38,8 @@ class BackupDataUseCaseTest {
         loanDao: FakeLoanDao = FakeLoanDao(),
         loanRecordDao: FakeLoanRecordDao = FakeLoanRecordDao(),
         tagDao: FakeTagDao = FakeTagDao(),
-        tagAssociationDao: FakeTagAssociationDao = FakeTagAssociationDao()
+        tagAssociationDao: FakeTagAssociationDao = FakeTagAssociationDao(),
+        dynamicBudgetConfigDao: FakeDynamicBudgetConfigDao = FakeDynamicBudgetConfigDao()
     ): BackupDataUseCase {
         val accountMapper = AccountMapper(
             CurrencyRepository(
@@ -78,7 +82,9 @@ class BackupDataUseCaseTest {
             tagsReader = tagDao,
             tagsWriter = tagDao,
             tagAssociationReader = tagAssociationDao,
-            tagAssociationWriter = tagAssociationDao
+            tagAssociationWriter = tagAssociationDao,
+            dynamicBudgetConfigReader = dynamicBudgetConfigDao,
+            dynamicBudgetConfigWriter = dynamicBudgetConfigDao
         )
     }
 
@@ -114,5 +120,50 @@ class BackupDataUseCaseTest {
     @Test
     fun `backup compatibility with 450 (150)`() = runTest {
         backupTestCase("450-150")
+    }
+
+    @Test
+    fun `dynamic budget config survives export and reimport`() = runTest {
+        // given
+        val dynamicBudgetConfigDao = FakeDynamicBudgetConfigDao()
+        val id = UUID.randomUUID()
+        val now = java.time.Instant.parse("2023-01-01T00:00:00Z")
+        val entity = DynamicBudgetConfigEntity(
+            id = id,
+            periodTypeTag = "MONTHLY",
+            salaryPayday = null,
+            customStartEpochDay = null,
+            customEndEpochDay = null,
+            budgetLimitMinorUnits = 12345L,
+            currencyCode = "TND",
+            includedAccountIdsSerialized = null,
+            includedCategoryIdsSerialized = null,
+            includeIncomeInBudget = true,
+            dateTime = now,
+            isSynced = false,
+            isDeleted = false
+        )
+        dynamicBudgetConfigDao.save(entity)
+
+        val useCase = newBackupDataUseCase(
+            dynamicBudgetConfigDao = dynamicBudgetConfigDao
+        )
+
+        // when
+        val exportedJson = useCase.generateJsonBackup()
+
+        // then
+        val freshDao = FakeDynamicBudgetConfigDao()
+        val freshUseCase = newBackupDataUseCase(
+            dynamicBudgetConfigDao = freshDao
+        )
+        freshUseCase.importJson(exportedJson, onProgress = {})
+
+        val imported = freshDao.findFirstOrNull()
+        imported shouldBe entity
+
+        // idempotence check
+        val reExportedJson = freshUseCase.generateJsonBackup()
+        reExportedJson shouldBe exportedJson
     }
 }
