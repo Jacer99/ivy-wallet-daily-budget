@@ -43,6 +43,16 @@ data class Transaction(
     // This refers to the loan record id that is linked with a transaction
     val loanRecordId: UUID? = null,
 
+    /**
+     * How this transaction is attributed to the daily safe-to-spend allowance.
+     * Stored as a String here (rather than the AllocationMode enum) because
+     * shared/base is a leaf module with no project dependencies, and
+     * shared/data/model cannot be added without a circular dependency.
+     *
+     * Values: "TODAY" | "WEEK" | "MONTH". Defaults to "TODAY".
+     */
+    val allocationMode: String = "TODAY",
+
     val isSynced: Boolean = false,
     val isDeleted: Boolean = false,
 

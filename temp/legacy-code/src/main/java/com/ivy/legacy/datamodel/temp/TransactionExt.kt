@@ -39,6 +39,7 @@ fun TransactionEntity.toLegacyDomain(
     attachmentUrl = attachmentUrl,
     loanId = loanId,
     loanRecordId = loanRecordId,
+    allocationMode = allocationMode.name,
     id = id,
     tags = tags
 )
