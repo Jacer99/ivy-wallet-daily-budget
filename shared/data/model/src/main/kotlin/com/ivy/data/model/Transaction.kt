@@ -46,6 +46,7 @@ data class Expense(
     override val tags: List<TagId>,
     val value: PositiveValue,
     val account: AccountId,
+    val allocationMode: AllocationMode = AllocationMode.TODAY,
 ) : Transaction
 
 data class Transfer(

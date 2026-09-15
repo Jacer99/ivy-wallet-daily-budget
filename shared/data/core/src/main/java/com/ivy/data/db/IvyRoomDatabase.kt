@@ -5,6 +5,7 @@ import com.ivy.data.db.dao.write.WriteDynamicBudgetConfigDao
 import com.ivy.data.db.entity.DynamicBudgetConfigEntity
 import com.ivy.data.db.migration.Migration130to131_DynamicBudgetConfig
 import com.ivy.data.db.migration.Migration131to132_Reservations
+import com.ivy.data.db.migration.Migration132to133_AllocationMode
 import android.content.Context
 import androidx.room.*
 import androidx.room.migration.AutoMigrationSpec
@@ -87,7 +88,7 @@ import com.ivy.domain.db.migration.Migration125to126_Tags
             spec = IvyRoomDatabase.DeleteSEMigration::class
         )
     ],
-    version = 132,
+    version = 133,
     exportSchema = true
 )
 @TypeConverters(RoomTypeConverters::class)
@@ -150,7 +151,8 @@ abstract class IvyRoomDatabase : RoomDatabase() {
             Migration128to129_DeleteIsDeleted(),
             Migration129to130_LoanIncludeNote(),
             Migration130to131_DynamicBudgetConfig(),
-            Migration131to132_Reservations()
+            Migration131to132_Reservations(),
+            Migration132to133_AllocationMode()
         )
 
         @Suppress("SpreadOperator")
