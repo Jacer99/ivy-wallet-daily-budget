@@ -16,6 +16,8 @@ import com.ivy.data.model.primitive.AssetCode
 import com.ivy.data.repository.CategoryRepository
 import com.ivy.data.repository.mapper.TransactionMapper
 import com.ivy.domain.features.Features
+import com.ivy.domain.usecase.budget.DynamicBudgetConfigStore
+import com.ivy.domain.usecase.budget.GetDynamicBudgetSnapshotUseCase
 import com.ivy.domain.usecase.exchange.SyncExchangeRatesUseCase
 import com.ivy.frp.fixUnit
 import com.ivy.frp.then
@@ -63,6 +65,8 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 @Stable
@@ -92,7 +96,9 @@ class HomeViewModel @Inject constructor(
     private val transactionMapper: TransactionMapper,
     private val timeProvider: TimeProvider,
     private val timeConverter: TimeConverter,
-    private val features: Features
+    private val features: Features,
+    private val getDynamicBudgetSnapshotUseCase: GetDynamicBudgetSnapshotUseCase,
+    private val dynamicBudgetConfigStore: DynamicBudgetConfigStore,
 ) : ComposeViewModel<HomeState, HomeEvent>() {
     private var currentTheme by mutableStateOf(Theme.AUTO)
     private var name by mutableStateOf("")
@@ -132,6 +138,9 @@ class HomeViewModel @Inject constructor(
     private var hideBalance by mutableStateOf(false)
     private var hideIncome by mutableStateOf(false)
     private var expanded by mutableStateOf(true)
+    private var safeToSpend by mutableStateOf<SafeToSpendCardState>(
+        SafeToSpendCardState.Loading
+    )
 
     @Composable
     override fun uiState(): HomeState {
@@ -154,13 +163,19 @@ class HomeViewModel @Inject constructor(
             hideBalance = getHideBalance(),
             expanded = getExpanded(),
             hideIncome = getHideIncome(),
-            shouldShowAccountSpecificColorInTransactions = getShouldShowAccountSpecificColorInTransactions()
+            shouldShowAccountSpecificColorInTransactions = getShouldShowAccountSpecificColorInTransactions(),
+            safeToSpend = getSafeToSpend()
         )
     }
 
     @Composable
     fun getShouldShowAccountSpecificColorInTransactions(): Boolean {
         return features.showAccountColorsInTransactions.asEnabledState()
+    }
+
+    @Composable
+    private fun getSafeToSpend(): SafeToSpendCardState {
+        return safeToSpend
     }
 
     @Composable
@@ -292,7 +307,7 @@ class HomeViewModel @Inject constructor(
         )
     } then ::loadAppBaseData then ::loadIncomeExpenseBalance then
             ::loadBuffer then ::loadTrnHistory then
-            ::loadDueTrns thenInvokeAfter ::loadCustomerJourney
+            ::loadDueTrns thenInvokeAfter ::loadCustomerJourneyAndSafeToSpend
 
     private suspend fun loadAppBaseData(
         input: Pair<Settings, ClosedTimeRange>
@@ -402,6 +417,33 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadCustomerJourney(unit: Unit) {
         customerJourneyCards = ioThread {
             customerJourneyLogic.loadCards().toImmutableList()
+        }
+    }
+
+    private suspend fun loadCustomerJourneyAndSafeToSpend(unit: Unit) {
+        loadCustomerJourney(unit)
+        loadSafeToSpend(unit)
+    }
+
+    private suspend fun loadSafeToSpend(unit: Unit) {
+        safeToSpend = try {
+            val config = dynamicBudgetConfigStore.load()
+            val hasBudget = config.budgetLimitMinorUnits > 0L
+
+            if (!hasBudget) {
+                SafeToSpendCardState.NoBudget
+            } else {
+                val snapshot = getDynamicBudgetSnapshotUseCase(
+                    today = LocalDate.now(),
+                    zoneId = ZoneId.systemDefault(),
+                )
+                mapToSafeToSpendCardState(
+                    hasBudget = true,
+                    snapshot = snapshot,
+                )
+            }
+        } catch (e: Exception) {
+            SafeToSpendCardState.Error("Please try again.")
         }
     }
 // -----------------------------------------------------------------

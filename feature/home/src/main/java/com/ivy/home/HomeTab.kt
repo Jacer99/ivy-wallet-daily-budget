@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -158,6 +159,7 @@ fun BoxWithConstraintsScope.HomeUi(
         )
 
         HomeLazyColumn(
+            safeToSpend = uiState.safeToSpend,
             hideBalance = uiState.hideBalance,
             hideIncome = uiState.hideIncome,
             onSetExpand = {
@@ -287,6 +289,7 @@ fun HomeLazyColumn(
     hideIncome: Boolean,
     onSetExpand: (Boolean) -> Unit,
     listState: LazyListState,
+    safeToSpend: SafeToSpendCardState,
     period: TimePeriod,
 
     baseData: AppBaseData,
@@ -339,6 +342,13 @@ fun HomeLazyColumn(
             .testTag("home_lazy_column"),
         state = listState
     ) {
+        item {
+            SafeToSpendCard(
+                state = safeToSpend,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+            Spacer(Modifier.height(16.dp))
+        }
         item {
             CashFlowInfo(
                 currency = baseData.baseCurrency,
@@ -432,7 +442,14 @@ private fun BoxWithConstraintsScope.PreviewHomeTab(isDark: Boolean = false) {
                 hideBalance = false,
                 hideIncome = false,
                 expanded = false,
-                shouldShowAccountSpecificColorInTransactions = false
+                shouldShowAccountSpecificColorInTransactions = false,
+                safeToSpend = SafeToSpendCardState.Active(
+                    remainingAllowanceMinorUnits = 57_400L,
+                    openingAllowanceMinorUnits = 80_400L,
+                    todayChargesMinorUnits = 23_000L,
+                    tomorrowProjectionMinorUnits = 62_000L,
+                    message = null,
+                )
             ),
             onEvent = {}
         )
