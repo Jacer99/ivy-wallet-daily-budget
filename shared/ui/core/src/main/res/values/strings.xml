@@ -500,4 +500,15 @@
     <string name="allocation_mode_today">Today</string>
     <string name="allocation_mode_week">This week</string>
     <string name="allocation_mode_month">This month</string>
+
+    <!-- Task 17: Safe-to-spend card -->
+    <string name="safe_to_spend_today">SAFE TO SPEND TODAY</string>
+    <string name="safe_to_spend_context">Opening %1$s · Charged today %2$s</string>
+    <string name="safe_to_spend_tomorrow">Tomorrow approximately %1$s %2$s</string>
+    <string name="safe_to_spend_currency">TND</string>
+    <string name="safe_to_spend_over_today">You are %1$s TND over today\'s target. Future allowances will adjust.</string>
+    <string name="safe_to_spend_period_exhausted">You have used your available spending budget.</string>
+    <string name="no_budget_message">Set a spending budget to see what’s safe to spend today.</string>
+    <string name="calculating_allowance">Calculating allowance…</string>
+    <string name="allowance_calculation_error">Could not calculate allowance.</string>
 </resources>
