@@ -2,6 +2,7 @@ package com.ivy.transaction
 
 import androidx.compose.runtime.Immutable
 import com.ivy.base.model.TransactionType
+import com.ivy.data.model.AllocationMode
 import com.ivy.data.model.Category
 import com.ivy.data.model.Tag
 import com.ivy.data.model.TagId
@@ -35,7 +36,8 @@ data class EditTransactionViewState(
     val backgroundProcessingStarted: Boolean,
     val customExchangeRateState: CustomExchangeRateState,
     val tags: ImmutableList<Tag>,
-    val transactionAssociatedTags: ImmutableList<TagId>
+    val transactionAssociatedTags: ImmutableList<TagId>,
+    val allocationMode: AllocationMode,
 )
 
 sealed interface EditTransactionViewEvent {
@@ -50,6 +52,7 @@ sealed interface EditTransactionViewEvent {
     data object OnChangeTime : EditTransactionViewEvent
     data class OnSetTransactionType(val newTransactionType: TransactionType) :
         EditTransactionViewEvent
+    data class OnAllocationModeChanged(val newMode: AllocationMode) : EditTransactionViewEvent
 
     data object OnPayPlannedPayment : EditTransactionViewEvent
     data object Delete : EditTransactionViewEvent

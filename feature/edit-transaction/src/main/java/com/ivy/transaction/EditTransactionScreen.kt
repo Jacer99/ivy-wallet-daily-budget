@@ -5,12 +5,17 @@ import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -32,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ivy.base.legacy.Theme
 import com.ivy.base.model.TransactionType
+import com.ivy.data.model.AllocationMode
 import com.ivy.data.model.Category
 import com.ivy.data.model.Tag
 import com.ivy.data.model.TagId
@@ -114,6 +121,7 @@ fun BoxWithConstraintsScope.EditTransactionScreen(screen: EditTransactionScreen)
         toAccount = uiState.toAccount,
         dueDate = uiState.dueDate,
         amount = uiState.amount,
+        allocationMode = uiState.allocationMode,
         loanData = uiState.displayLoanHelper,
         backgroundProcessing = uiState.backgroundProcessingStarted,
         customExchangeRateState = uiState.customExchangeRateState,
@@ -137,6 +145,9 @@ fun BoxWithConstraintsScope.EditTransactionScreen(screen: EditTransactionScreen)
         },
         onAmountChange = {
             viewModel.onEvent(EditTransactionViewEvent.OnAmountChanged(it))
+        },
+        onAllocationModeChange = {
+            viewModel.onEvent(EditTransactionViewEvent.OnAllocationModeChanged(it))
         },
         onCategoryChange = {
             viewModel.onEvent(EditTransactionViewEvent.OnCategoryChanged(it))
@@ -203,6 +214,7 @@ private fun BoxWithConstraintsScope.UI(
     toAccount: Account?,
     dueDate: Instant?,
     amount: Double,
+    allocationMode: AllocationMode,
 
     customExchangeRateState: CustomExchangeRateState,
     categories: ImmutableList<Category>,
@@ -212,6 +224,7 @@ private fun BoxWithConstraintsScope.UI(
     onTitleChange: (String?) -> Unit,
     onDescriptionChange: (String?) -> Unit,
     onAmountChange: (Double) -> Unit,
+    onAllocationModeChange: (AllocationMode) -> Unit,
     onCategoryChange: (Category?) -> Unit,
     onAccountChange: (Account) -> Unit,
     onToAccountChange: (Account) -> Unit,
@@ -345,6 +358,14 @@ private fun BoxWithConstraintsScope.UI(
         Category(category = category, onChooseCategory = {
             chooseCategoryModalVisible = true
         })
+
+        if (transactionType == TransactionType.EXPENSE) {
+            Spacer(Modifier.height(16.dp))
+            ApplyToAllowanceSelector(
+                selected = allocationMode,
+                onSelect = onAllocationModeChange,
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 
@@ -653,6 +674,55 @@ private fun shouldFocusTitle(
 
 private fun shouldFocusAmount(amount: Double) = amount == 0.0
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ApplyToAllowanceSelector(
+    selected: AllocationMode,
+    onSelect: (AllocationMode) -> Unit,
+) {
+    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+        Text(
+            text = stringResource(R.string.allocation_mode_label),
+            style = UI.typo.nB2.style(
+                color = UI.colors.mediumInverse,
+                fontWeight = FontWeight.Normal,
+            )
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        val options = listOf(
+            AllocationMode.TODAY to R.string.allocation_mode_today,
+            AllocationMode.WEEK to R.string.allocation_mode_week,
+            AllocationMode.MONTH to R.string.allocation_mode_month,
+        )
+
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            options.forEachIndexed { index, (mode, labelRes) ->
+                SegmentedButton(
+                    selected = mode == selected,
+                    onClick = { onSelect(mode) },
+                    shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = Color(0xFFC4783E),
+                        activeContentColor = Color.White,
+                        activeBorderColor = Color(0xFFC4783E),
+                        inactiveContainerColor = Color.Transparent,
+                        inactiveContentColor = UI.colors.mediumInverse,
+                        inactiveBorderColor = UI.colors.mediumInverse,
+                    ),
+                    icon = {},
+                ) {
+                    Text(
+                        text = stringResource(labelRes),
+                        style = UI.typo.nB2.style(fontWeight = FontWeight.Medium),
+                    )
+                }
+            }
+        }
+    }
+}
+
 /** For Preview purpose **/
 private val testDateTime = LocalDateTime.of(2023, 4, 27, 0, 35)
     .toInstant(ZoneOffset.UTC)
@@ -676,6 +746,7 @@ private fun BoxWithConstraintsScope.Preview(isDark: Boolean = false) {
             toAccount = null,
             amount = 0.0,
             dueDate = null,
+            allocationMode = AllocationMode.TODAY,
             transactionType = TransactionType.INCOME,
             customExchangeRateState = CustomExchangeRateState(),
 
@@ -689,6 +760,7 @@ private fun BoxWithConstraintsScope.Preview(isDark: Boolean = false) {
             onDescriptionChange = {},
             onTitleChange = {},
             onAmountChange = {},
+            onAllocationModeChange = {},
 
             onCreateCategory = { },
             onEditCategory = {},

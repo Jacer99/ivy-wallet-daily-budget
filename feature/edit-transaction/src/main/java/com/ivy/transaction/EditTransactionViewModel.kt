@@ -18,6 +18,7 @@ import com.ivy.base.time.TimeConverter
 import com.ivy.base.time.TimeProvider
 import com.ivy.data.db.dao.read.LoanDao
 import com.ivy.data.db.dao.read.SettingsDao
+import com.ivy.data.model.AllocationMode
 import com.ivy.data.model.Category
 import com.ivy.data.model.CategoryId
 import com.ivy.data.model.Tag
@@ -124,6 +125,7 @@ class EditTransactionViewModel @Inject constructor(
     private var toAccount by mutableStateOf<Account?>(null)
     private var category by mutableStateOf<Category?>(null)
     private var amount by mutableDoubleStateOf(0.0)
+    private var allocationMode by mutableStateOf(AllocationMode.TODAY)
     private var hasChanges by mutableStateOf(false)
     private var displayLoanHelper by mutableStateOf(EditTransactionDisplayLoan())
 
@@ -207,7 +209,8 @@ class EditTransactionViewModel @Inject constructor(
             backgroundProcessingStarted = getBackgroundProcessingStarted(),
             customExchangeRateState = getCustomExchangeRateState(),
             tags = getTags(),
-            transactionAssociatedTags = getTransactionAssociatedTags()
+            transactionAssociatedTags = getTransactionAssociatedTags(),
+            allocationMode = getAllocationMode()
         )
     }
 
@@ -310,6 +313,11 @@ class EditTransactionViewModel @Inject constructor(
         return transactionAssociatedTags
     }
 
+    @Composable
+    private fun getAllocationMode(): AllocationMode {
+        return allocationMode
+    }
+
     @Suppress("CyclomaticComplexMethod")
     override fun onEvent(event: EditTransactionViewEvent) {
         when (event) {
@@ -333,6 +341,8 @@ class EditTransactionViewModel @Inject constructor(
 
             is EditTransactionViewEvent.OnTitleChanged -> onTitleChanged(event.newTitle)
             is EditTransactionViewEvent.OnToAccountChanged -> onToAccountChanged(event.newAccount)
+            is EditTransactionViewEvent.OnAllocationModeChanged ->
+                onAllocationModeChanged(event.newMode)
             is EditTransactionViewEvent.Save -> save(event.closeScreen)
             is EditTransactionViewEvent.SetHasChanges -> setHasChanges(event.hasChangesValue)
             is EditTransactionViewEvent.UpdateExchangeRate -> updateExchangeRate(event.exRate)
@@ -349,6 +359,12 @@ class EditTransactionViewModel @Inject constructor(
             is EditTransactionViewEvent.TagEvent.OnTagDelete -> deleteTag(event.selectedTag)
             is EditTransactionViewEvent.TagEvent.OnTagEdit -> updateTagInformation(event.newTag)
         }
+    }
+
+    private fun onAllocationModeChanged(newMode: AllocationMode) {
+        if (allocationMode == newMode) return
+        allocationMode = newMode
+        saveIfEditMode()
     }
 
     private suspend fun defaultAccountId(
@@ -394,6 +410,7 @@ class EditTransactionViewModel @Inject constructor(
             categoryRepository.findById(CategoryId(it))
         }
         amount = transaction.amount.toDouble()
+        allocationMode = transaction.allocationMode.toAllocationModeOrToday()
 
         updateCurrency(account = selectedAccount)
 
@@ -728,6 +745,7 @@ class EditTransactionViewModel @Inject constructor(
                         else -> loadedTransaction().dateTime
                     },
                     categoryId = category?.id?.value,
+                    allocationMode = allocationMode.name,
                     isSynced = false
                 )
 
@@ -998,3 +1016,6 @@ class EditTransactionViewModel @Inject constructor(
         return features.sortCategoriesAscending.isEnabled(context)
     }
 }
+
+private fun String.toAllocationModeOrToday(): AllocationMode =
+    runCatching { AllocationMode.valueOf(this) }.getOrDefault(AllocationMode.TODAY)

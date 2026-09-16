@@ -495,4 +495,9 @@
     <string name="bill_paid">Your bill for %1$s %2$s has been paid</string>
     <string name="language">Language</string>
     <string name="advanced_features">Advanced features</string>
+    <!-- PocketMoney: allocation mode selector -->
+    <string name="allocation_mode_label">Apply to allowance</string>
+    <string name="allocation_mode_today">Today</string>
+    <string name="allocation_mode_week">This week</string>
+    <string name="allocation_mode_month">This month</string>
 </resources>

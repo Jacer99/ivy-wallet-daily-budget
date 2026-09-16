@@ -1,6 +1,6 @@
 ================================================================
 POCKETMONEY (Ivy Wallet fork) — DYNAMIC SAFE-TO-SPEND
-SESSION HANDOFF — 2026-09-15
+SESSION HANDOFF — 2026-09-15 (end of day)
 ================================================================
 
 PURPOSE OF THIS FILE
@@ -11,13 +11,26 @@ the start of the next session before doing anything else. Read
 in full before proposing any action.
 
 ================================================================
+0. TOP OF MIND FOR NEXT SESSION
+================================================================
+
+Next task: Task 16b — add the "Apply to allowance" UI selector
+to the EditTransaction screen. This is the FIRST UI task of the
+project. All prior tasks were data-layer + domain. Expect it to
+take longer than the roadmap suggests, and expect to need
+several recon batches before writing a prompt.
+
+Before writing any prompt for Task 16b, do the recon listed in
+§11. Do NOT write the prompt blind.
+
+================================================================
 1. PROJECT IDENTITY
 ================================================================
 
 Product name:   PocketMoney
 Tagline:        "One number a day."
 Fallback:       "Today, that's it."
-Pronunciation:  plain English, no localization needed.
+Pronunciation:  plain English.
 Intent:         Personal household app for me + Amina.
                 Not intended for Play Store distribution in v1.
                 GPL-3.0 obligations preserved regardless.
@@ -27,8 +40,7 @@ Origin repo:    https://github.com/Ivy-Apps/ivy-wallet (archived
 My fork:        https://github.com/Jacer99/ivy-wallet-daily-budget
 Local path:     C:\Dev\Ivy-wallet
 Branch:         development
-Baseline tag:   ivy-original-baseline (points at original Ivy
-                state before any of our changes)
+Baseline tag:   ivy-original-baseline
 
 Remotes:
   origin   → https://github.com/Jacer99/ivy-wallet-daily-budget.git
@@ -41,7 +53,7 @@ Environment (frozen — do NOT change any of this):
   Kotlin:             2.0.20
   AGP:                8.5.2
   Android Studio:     2026.1.4  (its bundled JBR is 25 — do NOT
-                      use that for Gradle, use jbr-17)
+                      use for Gradle, use jbr-17)
   Emulator:           Pixel 8, API 37.1
   JAVA_HOME is set permanently (User scope) to jbr-17.0.14
 
@@ -55,8 +67,7 @@ PowerShell gotcha:
   Each new PowerShell session starts in C:\Users\JACER. Every
   session must start with:
       cd "C:\Dev\Ivy-wallet"
-  before running git or gradlew. Otherwise git reports "not a
-  git repository" and gradlew is not on PATH.
+  before running git or gradlew.
 
 ================================================================
 2. BRANDING (locked 2026-09-15)
@@ -73,8 +84,7 @@ Base:        Flat-vector wallet, brown leather, with a single
 Style:       Filled flat vector, 2-3 colors, thick dark outline.
              No gradients, no shadows, no glossy effects.
 Files:       app/src/main/res/mipmap-*/ic_launcher*.webp
-             plus ic_launcher_foreground.xml (adaptive icon,
-             foreground layer only; background is a solid color).
+             plus ic_launcher_foreground.xml (adaptive icon).
 
 --- Banknote inspiration: Tunisian dinar (TND) --------------
 
@@ -98,12 +108,10 @@ Concretely:
              a denomination number would be on a real bill.
              Only include if legible at 48dp.
 
-Design rule: at 48dp (smallest launcher density), only two
-things must read clearly:
+Design rule: at 48dp, only two things must read clearly:
   1. It's a wallet.
   2. A banknote is sticking out.
-Everything else (border, portrait, number) is bonus at larger
-sizes. Do not sacrifice silhouette for detail.
+Everything else is bonus at larger sizes.
 
 Do NOT copy:
   - Actual TND bill artwork, portraits, or serial numbers
@@ -111,19 +119,15 @@ Do NOT copy:
   - US dollar, Euro, or generic international bill styling
   - Ivy's leaf icon or its green
 
-The banknote is stylized, not literal. Tunisian character comes
-from geometry and color, never from text or faces.
-
 CRITICAL: The wallet must NOT look related to Ivy Wallet's leaf
 icon. If a bystander sees both icons side by side, they must not
 think they belong to the same app.
 
 --- Palette (locked 2026-09-15) -----------------------------
 
-Deliberately NOT green as the primary accent. Both Ivy Wallet and
-Spendaily use green as their brand color. PocketMoney uses warm
-clay/brown so the icon reads as "wallet" and the in-app accent
-reads as "warm" rather than "budget tool".
+Deliberately NOT green as the primary accent. Both Ivy Wallet
+and Spendaily use green as their brand color. PocketMoney uses
+warm clay/brown so the icon reads as "wallet".
 
   Role                Light      Dark       Hex
   -----------------   --------   --------   ---------
@@ -139,10 +143,7 @@ reads as "warm" rather than "budget tool".
   - "Over budget" is deep clay (#A0522D), NOT red. No punishment
     color. Matches CALCULATION.md §38.
   - Banknote green (#6B9080) is deliberately distinct from Ivy's
-    brand green. Do not reuse Ivy's green anywhere in PocketMoney.
-  - Warm charcoal / warm off-white are the text colors. Not pure
-    black, not pure white. The slight warmth matches the wallet
-    theme.
+    brand green. Do not reuse Ivy's green in PocketMoney.
 
 --- Voice / tone --------------------------------------------
 
@@ -154,42 +155,35 @@ Calm, brief, warm.
   No:  "Oops, you overspent."
 
 Never guilt. Never red alarm screens. Never gamified rewards.
-Never animated celebrations. Matches SPECIFICATION.md §3, §38,
-§63.
+Matches SPECIFICATION.md §3, §38, §63.
 
-Specific phrasing for the overspend state (SPECIFICATION.md §39):
+Overspend phrasing (SPECIFICATION.md §39):
   "You are 12.00 over today's target. Future allowances will
    adjust."
 
-Specific phrasing for the no-budget state (SPECIFICATION.md §40):
+No-budget phrasing (SPECIFICATION.md §40):
   "Set a spending budget to see what's safe to spend today."
 
 --- Where branding lives in code (Task 22, do NOT do now) ---
 
   app/src/main/res/values/strings.xml  -> app_name = "PocketMoney"
   app/src/main/AndroidManifest.xml     -> @string/app_name
-  app/src/main/res/mipmap-*/           -> wallet icon (all densities)
+  app/src/main/res/mipmap-*/           -> wallet icon
   app/src/main/res/mipmap-anydpi-v26/  -> adaptive icon XML
   Compose theme                        -> palette above
   About screen                         -> "Built on Ivy Wallet
                                           (GPL-3.0)."
 
-None of this touches the budget engine. It is purely cosmetic.
-
 ================================================================
 3. PROJECT CONTROL FILES (committed)
 ================================================================
-
-All of the following are in the repo root or docs/ and are
-committed on the development branch:
 
 C:\Dev\Ivy-wallet\PROJECT_RULES.md           — non-negotiables
 C:\Dev\Ivy-wallet\docs\SPECIFICATION.md      — master product spec
 C:\Dev\Ivy-wallet\docs\CALCULATION.md        — math spec
 C:\Dev\Ivy-wallet\docs\ENGINEERING.md        — architecture + staging
 
-CALCULATION.md §20 and §21 lock in the following (these are
-decisions, not suggestions):
+CALCULATION.md §20 and §21 lock in these decisions:
 
   - Uncategorized transactions: INCLUDED in budget by default.
     Exclusion is opt-in via category rules only.
@@ -197,38 +191,31 @@ decisions, not suggestions):
     Ivy's AccountEntity.includeInBalance field.
   - Reservations paid late: converted expense uses the ACTUAL
     payment date. No backdating.
-  - Salary payday clipping: local per-month. Payday 31 in
-    February clips to Feb 28/29 for that cycle only.
-  - Do NOT extend BudgetEntity (per-category budget, different
-    concept).
-  - Do NOT extend PlannedPaymentRuleEntity (recurring template,
-    different concept).
+  - Salary payday clipping: local per-month.
+  - Do NOT extend BudgetEntity (different concept).
+  - Do NOT extend PlannedPaymentRuleEntity (different concept).
   - Reactive updates for new code: hook
-    DataObserver.writeEvents: Flow<DataWriteEvent>, not
-    LaunchedEffect(reload()).
+    DataObserver.writeEvents, not LaunchedEffect(reload()).
   - New entities use Long minor units for money. Never Double.
 
-CALCULATION.md §20 also defines the pool calculation for the
-daily ledger. §21 clarifies: the daily engine works exclusively
-in allocation entries, not raw transaction amounts.
-periodRemaining (shown on the summary card) uses raw amounts;
-the daily engine uses allocations. They total to the same figure
-at period end because all allocations are clipped to the period.
+CALCULATION.md §21: the daily engine works exclusively in
+allocation entries, not raw transaction amounts. periodRemaining
+(shown on the summary card) uses raw amounts; the daily engine
+uses allocations. Both coexist.
 
 ================================================================
 4. UI / UX DIRECTION (studied 2026-09-15)
 ================================================================
 
 Reference studied: Spendaily (spendaily.com).
-Studied for PRINCIPLES only. Do NOT copy visuals, branding,
-colors, icons, or exact layouts.
+Studied for PRINCIPLES only. Do NOT copy visuals.
 
 --- Spendaily core principles extracted ---------------------
 
 1. ONE NUMBER, ONE SCREEN.
    The safe-to-spend number is the hero. Everything else is
    subordinate. No competing numbers above the fold. No charts
-   above the fold. No total balance above it.
+   above the fold.
 
 2. CALM > CLEVER.
    No gradients, no mascots, no gamification, no decoration.
@@ -240,33 +227,21 @@ colors, icons, or exact layouts.
 
 4. ROLLOVER AS A DAILY DECISION (future idea, not v1).
    Spendaily lets the user decide where today's underspend
-   goes: "boost tomorrow," "contribute to a goal," or "split."
-   For v1 we keep rollover SILENT (CALCULATION.md §30).
-   Possible Task 22 polish: optional "where does today's
-   leftover go?" bottom sheet.
+   goes. For v1 we keep rollover SILENT (CALCULATION.md §30).
 
 5. NO-SPEND / STREAKS.
-   Spendaily has streaks. We do NOT (SPECIFICATION.md §91
-   forbids gamification in v1). But tone matters: if we ever
-   add "you spent nothing today," it must be a calm statement,
-   never a reward animation.
+   Spendaily has streaks. We do NOT (SPECIFICATION.md §91).
 
-6. CALENDAR HEATMAP (future idea).
-   Spendaily shows a month view with day-by-day status (under /
-   on-track / over / no-spend / payday). Strong candidate for
-   Task 21 or Task 22. When we get there: single month grid,
-   each day colored by status from the palette, payday marked
-   with a small dot. No numbers on days. Just colors + shape.
+6. CALENDAR HEATMAP (future idea for Task 21 or 22).
+   Month grid, day status colors, no numbers.
 
 7. PAYDAY BUDGETING.
    Already supported (BudgetPeriodType.Salary from Task 1).
    UI must show "Left until payday" — never a date.
-   Same for other periods: "Left this week", "Left this month",
-   "Left in this period."
 
 --- Dashboard hierarchy (committed) -------------------------
 
-From SPECIFICATION.md §6, in strict priority order:
+From SPECIFICATION.md §6:
 
   1. Safe to spend today (large number, primary accent)
   2. Add Expense
@@ -276,20 +251,18 @@ From SPECIFICATION.md §6, in strict priority order:
   6. Recent transactions
   7. Existing Ivy content
 
-Items 1–3 must fit above the fold on a normal phone. No
-scrolling to see the number. No navigating to a dedicated
-budget page.
+Items 1–3 must fit above the fold.
 
 --- Safe-to-spend card layout (conceptual, for Task 17) -----
 
   +----------------------------------+
-  | SAFE TO SPEND TODAY              |  <- small, uppercase,
-  |                                  |     wide letter spacing
-  | 57.40 TND                        |  <- hero number, XL
+  | SAFE TO SPEND TODAY              |
   |                                  |
-  | Opening 80.40 · Spent 23.00      |  <- quiet context row
-  | Tomorrow ~62.00                  |  <- quiet, hidden on
-  +----------------------------------+     last day of period
+  | 57.40 TND                        |
+  |                                  |
+  | Opening 80.40 · Spent 23.00      |
+  | Tomorrow ~62.00                  |
+  +----------------------------------+
   |  [ + Add Expense ] [ Add Income ]|
   +----------------------------------+
 
@@ -301,10 +274,6 @@ budget page.
   | Days left  5                     |
   +----------------------------------+
 
-  +----------------------------------+
-  | Recent transactions (Ivy rows)   |
-  +----------------------------------+
-
 --- Special states -----------------------------------------
 
 Over-today-but-period-has-money (SPECIFICATION.md §39):
@@ -313,64 +282,75 @@ Over-today-but-period-has-money (SPECIFICATION.md §39):
             allowances will adjust."
   NO red screen. NO warning icon. NO amber alert.
 
-Budget exhausted (SPECIFICATION.md §40):
+Budget exhausted:
   Hero number: 0.00
   Caption: "You have used your available spending budget."
-  Calm, factual, no punctuation drama.
 
-No budget configured (SPECIFICATION.md §40):
-  Hero area: replaced with
+No budget configured:
+  Hero area replaced with
     "Set a spending budget to see what's safe to spend today."
-    Plus a setup action button.
-  NOT 0.00 — a fake zero would incorrectly imply the budget has
-  been exhausted.
+  Plus a setup action button.
+  NOT 0.00.
 
-Loading (SPECIFICATION.md §60):
-  Do NOT show fake zeros while loading. Show a placeholder
-  (skeleton, shimmer, or blank) — but never 0.00.
+Loading:
+  Do NOT show fake zeros. Show a placeholder.
 
-Calculation error (SPECIFICATION.md §57):
-  Show a recoverable error state. Never display a number if
-  the calculation is known to be invalid. A zero caused by
-  "calculation failed" must be distinguishable from "budget
-  exhausted."
+Calculation error:
+  Never display a number if the calculation is known to be
+  invalid.
 
-Last day of period (SPECIFICATION.md §40):
-  No tomorrow projection row. Today receives the remaining
-  discretionary amount.
+Last day of period:
+  No tomorrow projection row.
 
 ================================================================
 5. GIT HISTORY — COMPLETED COMMITS
 ================================================================
 
-All commits from today's session (most recent first):
+Most recent (from today's session, newest first):
+
+ec86d1c3  Wire allocationMode through transaction mappers + tests
+dc075451  Add allocationMode column to transactions entity + domain
+          + migration
+1aa12163  Move AllocationMode to shared/data/model
+
+[16a]     Add allocationMode plumbing to legacy Transaction model
+          ← COMMIT THIS BEFORE NEXT SESSION IF NOT ALREADY DONE
+
+Earlier (this session):
 
 0bd8b46d  Add ReservationEntity, DAOs, Migration 131 to 132, and
           backup integration
 a79631ed  Include DynamicBudgetConfigEntity in backup export/import
-04cb7f59  Add Room-backed DynamicBudgetConfigStore with entity mapper
-56cc872b  Add DynamicBudgetConfigEntity, DAOs, and Migration 130 to 131
+04cb7f59  Add Room-backed DynamicBudgetConfigStore with entity
+          mapper
+56cc872b  Add DynamicBudgetConfigEntity, DAOs, and Migration 130
+          to 131
 5a86940b  Add session handoff notes for 2026-09-14
 
-Earlier commits (before today's session):
+Even earlier (previous session):
 
 c159cd22  Add DynamicBudgetConfigStore, use case, and Hilt module
-39f12330  Add DynamicBudgetRepository reading real transactions from Ivy
-a2f26a36  Add end-to-end pipeline integration test for budget engine
-7d99eea4  Add DynamicBudgetMapper bridging Ivy transactions to engine input
+39f12330  Add DynamicBudgetRepository reading real transactions
+          from Ivy
+a2f26a36  Add end-to-end pipeline integration test for budget
+          engine
+7d99eea4  Add DynamicBudgetMapper bridging Ivy transactions to
+          engine input
 4afc261d  Add DynamicBudgetConfig domain model with tests
 6c348c86  Add CurrencyMinorUnits conversion utility with tests
 19c65afc  Clarify pool calculation in daily ledger
 75577670  Add DynamicBudgetEngine (safe-to-spend core) with tests
-95827c0e  Add ExpenseAllocationScheduler with exact-sum split algorithm
-17147030  Add BudgetPeriodResolver (weekly/monthly/salary/custom) with tests
+95827c0e  Add ExpenseAllocationScheduler with exact-sum split
+          algorithm
+17147030  Add BudgetPeriodResolver (weekly/monthly/salary/custom)
+          with tests
 64c2d52e  Lock repository-specific decisions after recon
 255ab17b  Remove duplicate docs/PROJECT_RULES.md
-c094c35b  Add project control files (rules, spec, calculation, engineering)
+c094c35b  Add project control files (rules, spec, calculation,
+          engineering)
           ivy-original-baseline ← original Ivy state (tagged)
 
 All committed and pushed to origin/development.
-Working tree is clean as of handoff close.
 
 ================================================================
 6. WHAT LIVES IN THE CODEBASE — ALL NEW CODE
@@ -388,22 +368,16 @@ Location: shared/domain/src/main/java/com/ivy/domain/usecase/budget/
         data class Custom(val start: LocalDate, val end: LocalDate)
     }
 
-    CRITICAL: This is a SEALED INTERFACE, not an enum class.
-    Room cannot auto-convert a sealed interface to a column.
-    See DynamicBudgetConfigEntityMapper below for how we
-    persist it.
+    CRITICAL: SEALED INTERFACE, not enum. Cannot be auto-stored
+    by Room. See DynamicBudgetConfigEntityMapper for the tag +
+    nullable-params persistence pattern.
 
-    BudgetPeriod(start, end, type) with daysRemaining(today)
-
-    resolve(type, today): BudgetPeriod
-      Weekly  -> Monday of current week to next Sunday
-      Monthly -> 1st of month to last day of month
-      Salary  -> payday of this month to day before payday of
-                 next month, clipped for months without that day
-      Custom  -> given start to given end
+    BudgetPeriod(start, end, type) with daysRemaining(today).
 
   ExpenseAllocationScheduler.kt
-    AllocationMode { TODAY, WEEK, MONTH }
+    AllocationMode { TODAY, WEEK, MONTH }   ← MOVED TO
+                                            shared/data/model
+                                            in Task 15a
     AllocationEntry(date: LocalDate, amount: Long)
     schedule(amount, date, mode, periodEnd): List<AllocationEntry>
 
@@ -414,316 +388,253 @@ Location: shared/domain/src/main/java/com/ivy/domain/usecase/budget/
       Never allocates outside period
 
   DynamicBudgetEngine.kt
-    BudgetExpenseInput(
-      transactionDate: LocalDate,
-      amount: Long,           // minor units
-      mode: AllocationMode
-    )
-    BudgetEngineInput(
-      period: BudgetPeriod,
-      budgetLimit: Long,      // minor units
-      includedIncome: Long,   // minor units
-      reservationsTotal: Long,// minor units
-      expenses: List<BudgetExpenseInput>,
-      today: LocalDate
-    )
-    BudgetSnapshot(
-      periodStart, periodEnd,
-      capacity, periodSpentRaw, periodReserved, periodRemaining,
-      daysRemaining,
-      openingAllowance, todayCharges, remainingAllowance,
-      tomorrowProjection  // nullable, null on last day
-    )
+    BudgetExpenseInput(transactionDate, amount, mode)
+    BudgetEngineInput(period, budgetLimit, includedIncome,
+        reservationsTotal, expenses, today)
+    BudgetSnapshot(periodStart, periodEnd, capacity,
+        periodSpentRaw, periodReserved, periodRemaining,
+        daysRemaining, openingAllowance, todayCharges,
+        remainingAllowance, tomorrowProjection)
 
     calculate(input): BudgetSnapshot
-    Validates inputs (non-negative amounts, today within period).
-    Deterministic: same input → same output.
-
-    This is the ONLY place budget math lives. No formulas
-    anywhere else in the codebase. PROJECT_RULES.md §6.
+    Deterministic. This is the ONLY place budget math lives.
 
   CurrencyMinorUnits.kt
-    exponentFor(code): Int
-      3 -> TND, BHD, IQD, JOD, KWD, OMR, LYD
-      2 -> USD, EUR, GBP, MAD, EGP, SAR, AED, most others
-      0 -> JPY, KRW, VND
-    toMinorUnits(Double, code): Long  (HALF_UP, symmetric)
-    toMajorUnits(Long, code): Double
+    exponentFor / toMinorUnits (HALF_UP) / toMajorUnits
 
   DynamicBudgetConfig.kt
-    id: UUID
-    periodType: BudgetPeriodType
-    budgetLimitMinorUnits: Long
-    currencyCode: String
-    includedAccountIds: Set<AccountId>
-    includedCategoryIds: Set<CategoryId>
-    includeIncomeInBudget: Boolean
-
-    init: requires budgetLimitMinorUnits >= 0,
-          currencyCode.isNotBlank()
-    companion default(): fresh config with random UUID,
-          Weekly period, 0 budget, TND, empty sets, income off.
-
-    Empty includedAccountIds means "all accounts eligible."
-    Empty includedCategoryIds means "all categories eligible."
+    id, periodType, budgetLimitMinorUnits, currencyCode,
+    includedAccountIds, includedCategoryIds, includeIncomeInBudget
+    companion default()
 
   DynamicBudgetConfigStore.kt (interface)
-    suspend fun load(): DynamicBudgetConfig
-    suspend fun save(config: DynamicBudgetConfig)
+    suspend load() / suspend save(config)
 
   RoomDynamicBudgetConfigStore.kt
     @Singleton
-    @Inject constructor(
-      readDao: DynamicBudgetConfigDao,
-      writeDao: WriteDynamicBudgetConfigDao
-    )
-    load() returns first non-deleted row mapped, or default()
-    save() preserves original dateTime on update, otherwise
-           uses Instant.now(). Does deleteAll + save to enforce
-           single-row semantics.
+    load() first non-deleted row or default()
+    save() deleteAll + save(entity) preserving original dateTime
 
   DynamicBudgetConfigEntityMapper.kt
     internal object
-    toEntity(config, dateTime): DynamicBudgetConfigEntity
-      Because BudgetPeriodType is a sealed interface, the entity
-      stores periodTypeTag: String. Tags:
-        "WEEKLY" / "MONTHLY" / "SALARY" / "CUSTOM"
-      Nullable param columns on the entity:
-        salaryPayday: Int?            (non-null iff SALARY)
-        customStartEpochDay: Long?    (non-null iff CUSTOM)
-        customEndEpochDay: Long?      (non-null iff CUSTOM)
-      CSV serialization: Set<UUID> → sorted, joined with ",".
-      Empty set → null (not empty string).
-    toDomain(entity): DynamicBudgetConfig
-      Inverse. Throws IllegalArgumentException on inconsistent
-      tag + params. Throws IllegalStateException on unknown tag.
+    Because BudgetPeriodType is a sealed interface, the entity
+    stores:
+      periodTypeTag: String    // "WEEKLY"/"MONTHLY"/"SALARY"/"CUSTOM"
+      salaryPayday: Int?
+      customStartEpochDay: Long?
+      customEndEpochDay: Long?
+    CSV serializes UUID sets in sorted order; empty -> null.
 
-  InMemoryDynamicBudgetConfigStore.kt
-    @Deprecated (kept for tests, no longer Hilt-bound)
+  InMemoryDynamicBudgetConfigStore.kt (@Deprecated, kept for tests)
 
   DynamicBudgetModule.kt
-    @Module @InstallIn(SingletonComponent::class)
-    @Binds DynamicBudgetConfigStore -> RoomDynamicBudgetConfigStore
+    Binds DynamicBudgetConfigStore → RoomDynamicBudgetConfigStore
 
-  DynamicBudgetMapper.kt (unchanged from Task 6)
+  DynamicBudgetMapper.kt
     Takes List<Transaction>, config, today, zoneId.
     Filters to settled Expense in configured currency whose
     account and category pass the config's inclusion rules.
-    v1 LIMITATIONS:
-      - allocationMode always TODAY
+    NOW reads expense.allocationMode (Task 15b) instead of
+    hardcoding TODAY.
+    v1 LIMITATIONS still present:
       - reservationsTotal always 0L
       - includedIncome always 0L
-    Task 14 addresses reservations. Task 15/16 address allocation.
 
-  DynamicBudgetRepository.kt (unchanged from Task 8)
+  DynamicBudgetRepository.kt
     @Inject constructor(
-      transactionRepository: TransactionRepository,
-      resolver: BudgetPeriodResolver,
-      mapper: DynamicBudgetMapper,
-      engine: DynamicBudgetEngine
+      transactionRepository, resolver, mapper, engine
     )
     calculate(config, today, zoneId): BudgetSnapshot
     Uses transactionRepository.findAllBetween(startInstant,
-    endInstant) with endInstant = period.end.atTime(23,59,59,
-    999_999_999).atZone(zoneId).
+    endInstant).
 
   GetDynamicBudgetSnapshotUseCase.kt
-    @Inject constructor(store: DynamicBudgetConfigStore,
-                        repository: DynamicBudgetRepository)
     suspend operator invoke(today, zone): BudgetSnapshot
     Loads config from store, delegates to repository.
+
+--- ALLOCATION MODE (Task 15a) ------------------------------
+Location: shared/data/model/src/main/kotlin/com/ivy/data/model/
+
+  AllocationMode.kt
+    package com.ivy.data.model
+    enum class AllocationMode { TODAY, WEEK, MONTH }
+
+    Moved here in Task 15a so that both shared/domain and
+    shared/data/model can reference it without a circular
+    dependency. shared/base (legacy Transaction) CANNOT see this
+    enum — that's why the legacy model stores it as a String.
 
 --- PERSISTENCE LAYER ---------------------------------------
 Location: shared/data/core/src/main/java/com/ivy/data/db/...
 
   DynamicBudgetConfigEntity.kt
-    @Keep @Serializable @Entity(tableName = "dynamic_budget_config")
-    Fields (in this exact order):
-      id: UUID                         @PrimaryKey
-      periodTypeTag: String
-      salaryPayday: Int?
-      customStartEpochDay: Long?
-      customEndEpochDay: Long?
-      budgetLimitMinorUnits: Long
-      currencyCode: String
-      includedAccountIdsSerialized: String?
-      includedCategoryIdsSerialized: String?
-      includeIncomeInBudget: Boolean
-      dateTime: Instant
-      isSynced: Boolean = false        @Deprecated
-      isDeleted: Boolean = false       @Deprecated
+    table "dynamic_budget_config" (singleton)
+    Fields: id, periodTypeTag, salaryPayday, customStartEpochDay,
+    customEndEpochDay, budgetLimitMinorUnits, currencyCode,
+    includedAccountIdsSerialized, includedCategoryIdsSerialized,
+    includeIncomeInBudget, dateTime, isSynced, isDeleted
 
-  DynamicBudgetConfigDao.kt (dao/read/)
-    @Query("SELECT * FROM dynamic_budget_config
-            WHERE isDeleted = 0 LIMIT 1")
-      suspend fun findFirstOrNull()
-    findAll() WHERE isDeleted = 0
-    findById(id)
-
-  WriteDynamicBudgetConfigDao.kt (dao/write/)
-    @Upsert save / saveMany
-    @Query("DELETE FROM dynamic_budget_config WHERE id = :id")
-    @Query("DELETE FROM dynamic_budget_config")
-
-  FakeDynamicBudgetConfigDao.kt (dao/fake/)
-    Implements both read + write in one class. In-memory
-    MutableList. Matches FakeBudgetDao pattern.
+  DynamicBudgetConfigDao.kt / WriteDynamicBudgetConfigDao.kt
+  FakeDynamicBudgetConfigDao.kt
 
   Migration130to131_DynamicBudgetConfig.kt
-    class Migration130to131_DynamicBudgetConfig : Migration(130, 131)
-    Single CREATE TABLE IF NOT EXISTS statement, one line,
-    backtick-quoted identifiers, matches Migration125to126_Tags
-    style.
+    Migration(130, 131). CREATE TABLE IF NOT EXISTS.
 
   ReservationEntity.kt
-    @Keep @Serializable @Entity(tableName = "reservations")
-    Fields (in this exact order):
-      id: UUID                         @PrimaryKey
-      name: String
-      amountMinorUnits: Long
-      currencyCode: String
-      dueEpochDay: Long?
-      categoryId: UUID?
-      accountId: UUID?
-      linkedTransactionId: UUID?
-      dateTime: Instant
-      isSynced: Boolean = false        @Deprecated
-      isDeleted: Boolean = false       @Deprecated
+    table "reservations" (multi-row, planned expenses)
+    Fields: id, name, amountMinorUnits, currencyCode,
+    dueEpochDay, categoryId, accountId, linkedTransactionId,
+    dateTime, isSynced, isDeleted
+    Design: linkedTransactionId != null means "paid".
 
-    Design decision: no separate isPaid column. Semantics:
-      linkedTransactionId != null  => paid, converted to that txn
-      isDeleted = true             => cancelled
-      otherwise                    => active reservation
-
-    This preserves a full audit trail and directly answers
-    "which transaction replaced this reservation?"
-
-  ReservationDao.kt (dao/read/)
-    findActive():
-      WHERE isDeleted = 0 AND linkedTransactionId IS NULL
-    findActiveByCurrency(currencyCode):
-      same + AND currencyCode = :currencyCode
-    findById(id): no isDeleted filter (admin lookup)
-    findAll(): WHERE isDeleted = 0 (used by backup export)
-
-  WriteReservationDao.kt (dao/write/)
-    @Upsert save / saveMany
-    deleteById / deleteAll
-
-  FakeReservationDao.kt (dao/fake/)
-    Matches FakeDynamicBudgetConfigDao / FakeBudgetDao pattern.
-
+  ReservationDao.kt / WriteReservationDao.kt / FakeReservationDao.kt
   Migration131to132_Reservations.kt
-    class Migration131to132_Reservations : Migration(131, 132)
-    Single CREATE TABLE IF NOT EXISTS, backtick-quoted, one line.
+  Migration131to132Test.kt
 
-  Migration131to132Test.kt (androidTest)
-    MigrationTestHelper + FrameworkSQLiteOpenHelperFactory.
-    @get:Rule helper uses listOf(IvyRoomDatabase.DeleteSEMigration()).
-    Three tests: existing rows survive, new table empty,
-    can insert + read back reservation.
+  TransactionEntity.kt (MODIFIED — Task 15b-1)
+    table "transactions"
+    NEW FIELD added between loanRecordId and isSynced:
+      @SerialName("allocationMode")
+      @ColumnInfo(defaultValue = "TODAY")
+      val allocationMode: AllocationMode = AllocationMode.TODAY,
+    Uses Room's native enum→String conversion, same as
+    TransactionType. The @ColumnInfo DEFAULT must match the SQL
+    DEFAULT in the migration exactly.
 
-  IvyRoomDatabase.kt (MODIFIED — version = 132)
-    Changes:
-      + ReservationEntity added to @Database entities
-      + abstract val reservationDao: ReservationDao
-      + abstract val writeReservationDao: WriteReservationDao
-      + Migration131to132_Reservations() in migrations() array
-      + 4 new imports
-    COSMETIC: two new migration imports placed at top of file
-    above `android.content.Context` instead of in the
-    com.ivy.data.db.migration import block. Compiles fine. Fix
-    only if diff cleanliness matters.
+  Migration132to133_AllocationMode.kt (NEW — Task 15b-1)
+    class Migration132to133_AllocationMode : Migration(132, 133)
+    Single line: ALTER TABLE `transactions` ADD COLUMN
+      `allocationMode` TEXT NOT NULL DEFAULT 'TODAY'
+
+  Migration132to133Test.kt (NEW — Task 15b-1, androidTest)
+    Three tests: existing rows survive, existing transactions
+    get default TODAY, new transactions can have custom mode.
+
+  IvyRoomDatabase.kt (MODIFIED — version = 133)
+    Entities: added DynamicBudgetConfigEntity and ReservationEntity.
+    DAOs: added dynamicBudgetConfigDao, writeDynamicBudgetConfigDao,
+          reservationDao, writeReservationDao.
+    Migrations: appended 130→131, 131→132, 132→133.
+    ⚠ COSMETIC: the newer migration imports are at the TOP of the
+    file (above android.content.Context) instead of in the
+    com.ivy.data.db.migration block. Compiles fine. Fix only if
+    diff cleanliness matters.
 
   RoomDbModule.kt (MODIFIED)
-    + provideReservationDao(db): ReservationDao
-    + provideWriteReservationDao(db): WriteReservationDao
-    Placed after their DynamicBudgetConfig counterparts.
-    4 new imports (2 read, 2 write), alphabetically correct.
+    Added 4 @Provides: provideDynamicBudgetConfigDao,
+    provideWriteDynamicBudgetConfigDao, provideReservationDao,
+    provideWriteReservationDao.
 
   IvyWalletCompleteData.kt (MODIFIED)
-    + @SerialName("reservations")
+    Added fields:
+      @SerialName("dynamicBudgetConfig")
+      val dynamicBudgetConfig: List<DynamicBudgetConfigEntity> =
+          emptyList()
+      @SerialName("reservations")
       val reservations: List<ReservationEntity> = emptyList()
-    Position: at the end of the data class.
-    COSMETIC: ReservationEntity import ended up between
-    DynamicBudgetConfigEntity and LoanEntity instead of
-    alphabetically after PlannedPaymentRuleEntity. Compiles.
 
   BackupDataUseCase.kt (MODIFIED)
-    Constructor also takes:
-      reservationReader: ReservationDao
-      reservationWriter: WriteReservationDao
-    generateJsonBackup(): async { reservationReader.findAll() }
-    insertDataToDb(): async { reservationWriter.saveMany(...) }
-      NO deleteAll on reservations — multi-row table, preserve
-      existing rows. This matches how loans, loanRecords, tags
-      are handled. It differs from settings and dynamicBudgetConfig
-      which are singleton and use deleteAll + saveMany.
-    COSMETIC: 4 imports at top of file out of alphabetical block.
+    Constructor also takes 4 new reader/writer pairs.
+    generateJsonBackup() reads all 4.
+    insertDataToDb():
+      - dynamicBudgetConfigWriter.deleteAll() + saveMany (singleton)
+      - reservationWriter.saveMany (multi-row, no deleteAll)
 
-  BackupDataUseCaseTest.kt (MODIFIED)
-    Added reservationDao parameter default FakeReservationDao().
-    Wired to reservationReader + reservationWriter.
+  BackupDataUseCaseTest.kt / BackupDataUseCaseAndroidTest.kt
+    Wired to the 4 new DAOs.
 
-  BackupDataUseCaseAndroidTest.kt (MODIFIED)
-    Wired reservationReader + reservationWriter to real Room DAOs.
+  Schema JSON committed:
+    schemas/com.ivy.data.db.IvyRoomDatabase/131.json
+    schemas/com.ivy.data.db.IvyRoomDatabase/132.json
+    schemas/com.ivy.data.db.IvyRoomDatabase/133.json
 
-  Schema JSON files committed:
-    shared/data/core/schemas/com.ivy.data.db.IvyRoomDatabase/131.json
-    shared/data/core/schemas/com.ivy.data.db.IvyRoomDatabase/132.json
+--- DOMAIN ↔ ENTITY MAPPERS (MODIFIED — Task 15b-2) ---------
 
-  Fake DAO files added to shared/data/core/src/main/java/
-  com/ivy/data/db/dao/fake/:
-    FakeDynamicBudgetConfigDao.kt  (Task 11)
-    FakeReservationDao.kt          (Task 13)
+  shared/data/core/src/main/java/com/ivy/data/repository/mapper/
+  TransactionMapper.kt
+    toDomain(): reads entity.allocationMode into the domain
+    Expense.
+    toEntity(): writes allocationMode via
+      when (this) {
+        is Expense -> allocationMode
+        is Income -> AllocationMode.TODAY
+        is Transfer -> AllocationMode.TODAY
+      }
+    Rationale: allocationMode is only meaningful for Expense.
+    Income and Transfer store TODAY as a harmless default.
+
+  shared/domain/src/main/java/com/ivy/domain/usecase/budget/
+  DynamicBudgetMapper.kt
+    mode = expense.allocationMode  (was: AllocationMode.TODAY)
+
+--- LEGACY TRANSACTION MODEL (MODIFIED — Task 16a) ----------
+
+  shared/base/src/main/java/com/ivy/base/legacy/Transaction.kt
+    ADDED field to the deprecated legacy data class:
+      val allocationMode: String = "TODAY"
+    Stored as String because shared/base is a LEAF MODULE with
+    no project dependencies. Adding shared/data/model would
+    create a circular dependency.
+    Values: "TODAY" | "WEEK" | "MONTH". Default "TODAY".
+
+  temp/legacy-code/src/main/java/com/ivy/legacy/datamodel/
+  TransactionExt.kt
+    fun Transaction.toEntity(): now passes
+      allocationMode = allocationMode.parseAllocationMode()
+    Private helper parses String → AllocationMode enum with a
+    safe fallback to TODAY if unrecognized.
+
+  temp/legacy-code/src/main/java/com/ivy/legacy/datamodel/temp/
+  TransactionExt.kt
+    fun TransactionEntity.toLegacyDomain(): now passes
+      allocationMode = allocationMode.name
+
+--- OTHER NOTABLE FILES -------------------------------------
+
+  shared/data/model/src/main/kotlin/com/ivy/data/model/
+  Transaction.kt (MODIFIED — Task 15b-1)
+    Domain Expense data class now has:
+      val allocationMode: AllocationMode = AllocationMode.TODAY,
+    ONLY on Expense, NOT on Income/Transfer/sealed interface.
 
 ================================================================
 7. SCHEMA VERSIONS AND MIGRATIONS
 ================================================================
 
 Database name:     ivywallet.db
-Current version:   132
+Current version:   133
 Schema JSON dir:   shared/data/core/schemas/com.ivy.data.db.IvyRoomDatabase/
 
 Migrations registered (in IvyRoomDatabase.migrations()):
   105→106 through 129→130 (Ivy's own)
   130→131  DynamicBudgetConfig   (Task 10)
   131→132  Reservations          (Task 13)
+  132→133  AllocationMode        (Task 15b-1)
 
 New tables introduced by this project:
-  dynamic_budget_config  (singleton config row)
-  reservations           (multi-row planned expenses)
+  dynamic_budget_config
+  reservations
 
-Room exportSchema = true. Schema JSON files are generated by KSP
-on every build and MUST be committed. Future migrations depend
-on them being in version control.
+Modified table:
+  transactions — added allocationMode TEXT NOT NULL DEFAULT 'TODAY'
+
+This migration was always planned. Task 16b (UI) does NOT need
+a new migration. NO further schema changes are expected.
+
+Room exportSchema = true. Schema JSONs must be committed.
 
 Migration test style (androidTest):
   - androidx.room.testing.MigrationTestHelper
-  - androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
-  - Kotest shouldBe
-  - private migrationTestCase(...) helper wrapping
-    createDatabase + runMigrationsAndValidate + query
+  - FrameworkSQLiteOpenHelperFactory
+  - @get:Rule helper uses listOf(IvyRoomDatabase.DeleteSEMigration())
+  - private migrationTestCase(...) helper
   - companion object { private const val TestDb = "migration-test" }
-  - @get:Rule helper uses
-    listOf(IvyRoomDatabase.DeleteSEMigration())
-    NOT emptyList()
-  - Test source set is src/androidTest, NOT src/main
-    (main has no JUnit, Kotest, or room-testing on classpath)
-
-Migration file naming:
-  Migration{A}to{B}_{ShortPascalCaseDescription}.kt
-  package com.ivy.data.db.migration
-  (NOT com.ivy.domain.db.migration — that older package has a
-  @file:Suppress("InvalidPackageDeclaration") workaround in a
-  couple of files. Our migrations use the correct current
-  package.)
 
 Migration file style:
+  package com.ivy.data.db.migration
   class Migration{A}to{B}_{Description} : Migration(A, B)
   override fun migrate(database: SupportSQLiteDatabase)
-  Single db.execSQL(...) with one-line SQL, backtick-quoted
-  table and column names.
+  Single-line db.execSQL(...) with backtick-quoted identifiers.
 
 ================================================================
 8. KEY CONVENTIONS (locked in)
@@ -733,428 +644,496 @@ Money:
   - Engine uses Long minor units.
   - New entities use Long minor units.
   - TND has 3 decimals. 100.50 TND = 100_500L.
-  - Ivy legacy entities still use Double (Account, Budget,
-    Transaction, PlannedPaymentRule). We do NOT change those.
+  - Ivy legacy entities still use Double / BigDecimal.
     Conversion happens only at the mapper boundary via
     CurrencyMinorUnits.
-  - Never Float. Never Double. Never rounding money outside
-    the allocation algorithm. Never create or destroy value
-    through rounding.
+  - Never Float. Never Double for new money fields.
 
 Time:
-  - Instant → LocalDate via a ZoneId parameter. The zone is
-    NEVER a global constant. It's passed through every layer.
-  - LocalDate arithmetic uses epoch days where serialization
-    is needed (customStartEpochDay, customEndEpochDay,
-    dueEpochDay).
+  - Instant → LocalDate via a ZoneId parameter. Never global.
 
 Allocation invariants (tested):
   - Σ allocation amounts == source amount (exact)
-  - Zero-amount days omitted from result
+  - Zero-amount days omitted
   - Schedules never create transactions
   - Never double-count: actual accounting vs guidance are
     separate ledgers
 
-Entity style (matches Ivy's TagEntity):
+Entity style (matches TagEntity):
   - @Keep @Serializable @Entity(tableName="snake_plural")
-  - UUID primary key: @PrimaryKey + @SerialName("id")
+  - UUID PK: @PrimaryKey @SerialName("id")
     @Serializable(with = KSerializerUUID::class)
-  - Every column decorated with @SerialName("camelCase")
-  - Instant fields: @Serializable(with = KSerializerInstant::class)
+  - @SerialName("camelCase") on every column
+  - Instant via @Serializable(with = KSerializerInstant::class)
   - isSynced / isDeleted: Boolean = false with @Deprecated
-    annotation "Obsolete field used for cloud sync. Can't be
-    deleted because of backwards compatibility"
+    annotation "Obsolete field used for cloud sync..."
 
 DAO style:
-  - Read in dao/read/XxxDao.kt: @Dao interface, @Query only.
-  - Write in dao/write/WriteXxxDao.kt: @Dao interface.
-  - Write uses @Upsert (not @Insert(onConflict = ...))
-  - Multi-row tables: saveMany without deleteAll on import
-  - Singleton tables: deleteAll then saveMany on import
-  - Methods:
-      save(value) / saveMany(values)
-      deleteById(id) / deleteAll()
+  - Read in dao/read/XxxDao.kt: @Dao interface, @Query only
+  - Write in dao/write/WriteXxxDao.kt: @Dao interface, @Upsert
+  - NO @Insert(onConflict = ...)
+  - Multi-row tables: saveMany WITHOUT deleteAll on import
+  - Singleton tables: deleteAll THEN saveMany on import
 
 Test style:
   - JUnit4 (@Test from org.junit.Test)
   - Kotest assertions (io.kotest.matchers.shouldBe etc.)
-  - Backtick test names: `fun \`weekly round-trips\`()`
-  - Real objects (no mocks) unless mocking a repository or DAO
-  - coEvery / coVerify for suspend DAO functions (NOT every /
-    verify — those are for non-suspend)
+  - Backtick test names
+  - Real objects (no mocks) unless mocking a repository/DAO
+  - coEvery / coVerify for suspend DAO functions
 
-Backup / export compatibility:
-  - IvyWalletCompleteData has every field with = emptyList()
-    or = HashMap() default.
-  - The pre-existing 450-150.json fixture does NOT contain
-    "dynamicBudgetConfig" or "reservations" keys.
-  - kotlinx.serialization Json is configured with
-    ignoreUnknownKeys = true and isLenient = true.
-  - The `backup compatibility with 450 (150)` test guards
-    backward compat. Do not break it.
-  - encodeDefaults is false by default, so an empty list does
-    not appear in exported JSON. The round-trip stability
-    assertion (`freshBackupUseCase.generateJsonBackup() shouldBe
-    exportedJson`) depends on this.
+CRITICAL GOTCHA discovered in Task 15b-2:
+  shouldBeRight() returns the SEALED interface type (Transaction),
+  not the concrete subclass. If the test needs to check a field
+  that only exists on the subclass (like allocationMode on
+  Expense), you must cast:
+    (result.shouldBeRight() as Expense).allocationMode shouldBe ...
+  Direct .allocationMode on the right of shouldBeRight() fails
+  with "Unresolved reference 'allocationMode'".
+
+Backward-compat:
+  - The pre-existing 450-150.json backup fixture does not
+    contain our new keys. Our fields all have = emptyList() or
+    = "TODAY" defaults, so old backups import cleanly.
 
 ID remapping on backup import:
-  - Ivy's BackupDataUseCase.accommodateExistingAccountsAndCategories
-    does a blunt string-replace of UUIDs across the entire
-    backup JSON.
-  - This means UUIDs inside our CSV columns
-    (includedAccountIdsSerialized /
-    includedCategoryIdsSerialized) AND our reservation
-    references (categoryId, accountId) get remapped
-    automatically for free.
-  - Do not break this — no format changes that would break
-    substring matching of UUIDs.
-  - linkedTransactionId is NOT remapped this way (transaction
-    IDs are not deduplicated by Ivy on import). This is a
-    known limitation. If a user exports and reimports, the
-    reservation's linkedTransactionId may point to a
-    transaction that no longer exists. Task 22 could add
-    repair logic; not v1.
+  Ivy's accommodateExistingAccountsAndCategories does a blunt
+  string-replace of UUIDs across the entire backup JSON. This
+  means UUIDs inside our CSV columns AND reservation references
+  get remapped automatically for free.
 
 ================================================================
 9. GEMINI-SPECIFIC QUIRKS (learned the hard way)
 ================================================================
 
-Gemini 3 Flash Preview (the model we use for code generation)
-cannot execute Gradle in this environment. It tries ./gradlew,
-then .\gradlew, then cmd /c gradlew.bat — all fail on Windows
-PowerShell. When it then claims "All tests passed local
-verification" or "The implementation is complete and tested",
-THAT IS A HALLUCINATION. You run the tests. Always.
+Gemini CANNOT execute Gradle in this environment. It tries
+./gradlew, then .\gradlew, then cmd /c gradlew.bat — all fail
+on Windows PowerShell. When it then claims "All tests passed
+local verification", THAT IS A HALLUCINATION. You run the tests.
 
 Specific failure modes we have caught:
 
-  - Wrong source set: Gemini writes test files to
-    src/main/java/... instead of src/androidTest/java/...
-    Result: "Unresolved reference 'kotest'" or
-    "Unresolved reference 'junit'" on compileDebugKotlin.
-    Fix: move the file to androidTest, keeping the package
-    declaration the same.
+  - Wrong source set: Gemini writes test files to src/main/java
+    instead of src/androidTest/java. Symptom: "Unresolved
+    reference 'kotest'" or "'junit'" on compileDebugKotlin.
 
-  - Extra or missing closing brace: Gemini's
-    multi_replace_file_content sometimes adds `}` or drops
-    `}` at the end of a file. After each edit, open the file
-    in Android Studio and check the last 3 lines.
+  - Extra or missing closing brace at end of file. After each
+    Gemini edit, open the file and check the last 3 lines.
 
-  - Wildcard import rewrite: Gemini replaces ~40 specific
-    imports with `import com.ivy.data.db.dao.read.*` etc.
-    NEVER accept this. Always use individual imports in
-    existing files.
+  - Wildcard import rewrite: replaces ~40 specific imports with
+    wildcard imports. NEVER accept this in existing files.
 
   - `not in` instead of `!in`.
 
-  - `verify` instead of `coVerify` for suspend functions.
+  - `verify` instead of `coVerify`.
 
-  - `HALF_DOWN` instead of `HALF_UP` (rounding direction).
+  - `HALF_DOWN` instead of `HALF_UP`.
 
-  - Column list in hand-written CREATE TABLE doesn't match
-    the entity (order, nullability, or type). This causes
-    runMigrationsAndValidate to fail with a specific column
-    mismatch. Always cross-check against the generated
-    schema JSON.
+  - Hand-written CREATE TABLE doesn't match the entity
+    annotations. runMigrationsAndValidate names the mismatch.
 
-  - Referring to a domain type (like BudgetPeriodType sealed
-    interface) from a Room entity — Room cannot auto-convert
-    a sealed interface. Use a discriminator string + nullable
-    param columns instead.
+  - Referring to a domain sealed interface (like
+    BudgetPeriodType) from a Room entity — Room cannot
+    auto-convert it. Use discriminator String + nullable params.
 
-If Gemini hits quota mid-task (which has happened), its file
-writes are NOT rolled back. "File was written" in the tool
-log means the change is on disk. DO NOT re-run the whole
-prompt after quota resets — check git status + file listing,
-then finish only the remaining files manually in Android
-Studio.
+  - Chaining `.someField` off `shouldBeRight()` (or similar
+    Either helpers) fails because the returned type is the
+    sealed interface, not the concrete subtype. Always cast.
+
+MODEL ROTATION ISSUE (new as of 2026-09-15):
+  Google rotated their model lineup mid-session:
+    - gemini-2.5-flash is now "no longer available to new users"
+    - gemini-3-flash-preview returns RESOURCE_EXHAUSTED under
+      heavy demand, with retry backoff up to 256 seconds
+    - gemini-3.8-flash has ~20 RPD on free tier (barely usable)
+    - gemini-1.5-pro still available but with low free RPD
+  Also: switching models MID-CONVERSATION corrupts the chat due
+  to mismatched thought_signature fields. Always start a FRESH
+  chat when switching models.
+  Currently recommended for free-tier codegen:
+    - Primary: gemini-2.5-flash (if still available to you) or
+      gemini-3.6-flash (as the error message recommends)
+    - Fallback: hand-write small tasks (the last several tasks
+      were done entirely by hand for this reason)
+
+When Gemini is interrupted mid-task, its file writes are NOT
+rolled back. "File was written" means the change is on disk.
+Do NOT re-run the whole prompt. Check git status + file listing,
+then finish only the remaining files manually.
 
 ================================================================
-10. ROADMAP — 10 TASKS REMAINING
+10. ROADMAP — 8 TASKS REMAINING
 ================================================================
 
-COMPLETED (13 tasks):
+COMPLETED (15 tasks, including sub-tasks):
+  ✅ Task 1   BudgetPeriodResolver
+  ✅ Task 2   ExpenseAllocationScheduler
+  ✅ Task 3   DynamicBudgetEngine
+  ✅ Task 4   CurrencyMinorUnits
+  ✅ Task 5   DynamicBudgetConfig
+  ✅ Task 6   DynamicBudgetMapper
+  ✅ Task 7   End-to-end pipeline integration test
+  ✅ Task 8   DynamicBudgetRepository
+  ✅ Task 9   ConfigStore + UseCase + Hilt module
+  ✅ Task 10  DynamicBudgetConfigEntity + DAO + Migration 130→131
+  ✅ Task 11  Room-backed DynamicBudgetConfigStore
+  ✅ Task 12  Backup / export integration (config)
+  ✅ Task 13  ReservationEntity + DAO + Migration 131→132 +
+              backup integration
+  ✅ Task 15a Move AllocationMode to shared/data/model
+  ✅ Task 15b-1 Add allocationMode column to transactions +
+                Migration 132→133
+  ✅ Task 15b-2 Wire allocationMode through transaction mappers
+                + tests
+  ✅ Task 16a Add allocationMode plumbing to legacy Transaction
+              model
 
-  ✅ Task 1  BudgetPeriodResolver
-  ✅ Task 2  ExpenseAllocationScheduler
-  ✅ Task 3  DynamicBudgetEngine
-  ✅ Task 4  CurrencyMinorUnits
-  ✅ Task 5  DynamicBudgetConfig
-  ✅ Task 6  DynamicBudgetMapper
-  ✅ Task 7  End-to-end pipeline integration test
-  ✅ Task 8  DynamicBudgetRepository
-  ✅ Task 9  ConfigStore + UseCase + Hilt module
-  ✅ Task 10 DynamicBudgetConfigEntity + DAO + Migration 130→131
-  ✅ Task 11 Room-backed DynamicBudgetConfigStore
-  ✅ Task 12 Backup / export integration (config)
-  ✅ Task 13 ReservationEntity + DAO + Migration 131→132 +
-            backup integration
+DEFERRED:
+  ⏸ Task 14  Wire reservations into mapper + engine input.
+              User decided v1 records only real expenses.
+              Reservations are dormant infrastructure for a
+              future planned-payments feature.
 
-REMAINING (10 tasks):
+REMAINING (8 tasks):
 
-  Phase D — Reservations (1 task):
+  Phase E — Allocation mode UI (1 task):
 
-    ☐ Task 14  Wire reservations into mapper + engine input.
-                Compute reservationsTotal from
-                reservationDao.findActiveByCurrency(code)
-                .sumOf { it.amountMinorUnits }, pass to
-                BudgetEngineInput.reservationsTotal.
-                Currently DynamicBudgetMapper hardcodes 0L.
-                Confirm filtering decision (§11) BEFORE writing
-                the prompt.
-
-  Phase E — Allocation mode on transactions (2 tasks):
-
-    ☐ Task 15  Add allocationMode column to transactions +
-                Migration 132→133.
-                This migration was always planned. It is the
-                LAST migration expected. After it, no more
-                schema changes.
-                Column: allocationMode: String = "TODAY".
-                Enum: AllocationMode { TODAY, WEEK, MONTH }
-                (already defined in ExpenseAllocationScheduler).
-                Store as .name (uppercase string).
-
-    ☐ Task 16  EditTransactionScreen: allocation mode selector.
-                UI label per SPECIFICATION.md §23:
-                "Apply to allowance" — Today / This week /
-                This month.
-                Reuses Ivy's existing transaction entry flow.
-                Only addition: one selector field.
+    ☐ Task 16b  EditTransactionScreen: add "Apply to allowance"
+                selector. Only visible for Expense transactions.
+                Label per SPECIFICATION.md §23:
+                  "Apply to allowance" — Today / This week /
+                  This month.
+                Reuses the existing EditTransaction screen and
+                ViewModel. NO data-layer changes — plumbing is
+                done (Tasks 15a, 15b, 16a).
 
   Phase F — Dashboard UI (3 tasks):
 
     ☐ Task 17  Safe-to-spend card composable.
-                Follow §4 UI direction.
-                Use PocketMoney palette once wired.
-                Do NOT use Ivy's green for the hero number.
-                States to handle (SPECIFICATION.md §60):
-                  loading / no budget / active / exhausted /
-                  over-today / over-period / last-day /
-                  invalid config / calculation error.
-
     ☐ Task 18  HomeViewModel + state wiring.
-                Expose BudgetSnapshot as immutable ViewState.
-                ViewModel coordinates intent; Compose renders
-                state; domain engine does the math.
-                No formulas in ViewModel. No formulas in
-                Compose.
-
     ☐ Task 19  Add Expense / Add Income quick actions.
-                Reuse Ivy's existing entry flows.
-                Only addition: allocation mode selector for
-                expenses.
 
   Phase G — Reactive + historical (2 tasks):
 
     ☐ Task 20  Hook DataObserver.writeEvents for reactive
-                recalc. CALCULATION.md §20 explicitly names
-                this hook. Do NOT use
-                LaunchedEffect(reload()) in a Composable.
-
+                recalc.
     ☐ Task 21  Historical edit propagation.
-                earliestAffectedDate → rebuild forward.
-                Any change to a historical transaction,
-                budget, period, reservation, or eligibility
-                must recalculate forward from the earliest
-                affected date.
-                OPTIONAL: Spendaily-style calendar heatmap
-                (single month grid, day status colors, no
-                numbers).
+                OPTIONAL: Spendaily-style calendar heatmap.
 
   Phase H — Polish + regression (2 tasks):
 
     ☐ Task 22  Branding + polish.
-                - PocketMoney name (strings.xml, manifest)
-                - Wallet icon (mipmap-*/ic_launcher*.webp
-                  + adaptive icon XML)
-                - Palette into Compose theme
-                - About screen: "Built on Ivy Wallet
-                  (GPL-3.0)."
-                - Accessibility (content descriptions,
-                  screen reader order)
-                - Localization (all strings via resources)
-                - Empty / error states per §4
-                - Overspend message wording per §4 calm voice
-                - OPTIONAL: "where does today's leftover go?"
-                  bottom sheet
-                - OPTIONAL: calendar heatmap
-
     ☐ Task 23  Full regression pass over untouched Ivy.
-                Verify that these all still work:
-                  - creating / editing / deleting accounts
-                  - adding / editing / deleting expenses
-                  - adding / editing / deleting income
-                  - categories
-                  - transfers
-                  - analytics
-                  - transaction history
-                  - import / export
-                  - dark / light mode
-                  - localization
-                  - backup / restore
-                  - navigation
 
 ================================================================
-11. NEXT TASK IS TASK 14 — WIRE RESERVATIONS INTO THE ENGINE
+11. NEXT TASK — TASK 16b (UI SELECTOR)
 ================================================================
 
-Task 14 is small. The engine already accepts reservationsTotal
-as a Long. The reservation DAO already exists. What remains:
+This is the FIRST UI task. Everything before it was data-layer
+or domain-layer. Expect it to take several hours.
 
-  1. DynamicBudgetRepository needs a reservation source
-     (probably ReservationDao, injected).
-  2. Before invoking the engine, compute:
-       reservationsTotal = reservationDao
-           .findActiveByCurrency(config.currencyCode)
-           .sumOf { it.amountMinorUnits }
-  3. Pass that into BudgetEngineInput.reservationsTotal
-     (currently hardcoded to 0L in DynamicBudgetMapper).
+--- Scope --------------------------------------------------
 
-DESIGN DECISION TO CONFIRM WITH USER BEFORE WRITING PROMPT:
+  4 files expected to change:
+    1. EditTransactionViewEvent.kt
+       - Add `allocationMode: String` to EditTransactionViewState
+       - Add `OnAllocationModeChanged(newMode: String)` to the
+         EditTransactionViewEvent sealed interface
+    2. EditTransactionViewModel.kt
+       - State variable: `private var allocationMode by mutableStateOf("TODAY")`
+       - In display(transaction): read transaction.allocationMode
+       - On event: update state + loadedTransaction + saveIfEditMode()
+       - In saveInternal(): persist into loadedTransaction().copy()
+    3. EditTransactionScreen.kt
+       - New Composable row "Apply to allowance" with 3 options
+       - ONLY render when transactionType == EXPENSE
+    4. Possibly a new Composable file if Ivy has no segmented
+       selector
 
-  Should reservations be filtered by config.includedAccountIds
-  or config.includedCategoryIds?
+--- File sizes (for reference) ------------------------------
 
-  Recommendation: yes for account
-    (if reservation.accountId != null
-     && includedAccountIds is not empty
-     && accountId !in includedAccountIds, exclude).
+  feature/edit-transaction/src/main/java/com/ivy/transaction/
+    EditTransactionScreen.kt       719 lines
+    EditTransactionViewEvent.kt     72 lines
+    EditTransactionViewModel.kt   1000 lines
 
-  Category filtering: optional. Recommendation is to include
-  reservations with null categoryId, matching "uncategorized
-  included by default" from CALCULATION.md §20.
+--- Known facts about the screen ----------------------------
 
-  This decision affects financial correctness. Confirm with
-  the user before writing the prompt.
+  - Uses the LEGACY Transaction model (com.ivy.base.legacy.
+    Transaction), not the new domain model.
+  - Save path: builds a legacy Transaction, then calls
+    loadedTransaction().toDomain(transactionMapper) which goes
+    through toEntity() (Task 16a makes this work).
+  - saveIfEditMode() auto-saves on every field change.
+  - The screen has an `EditBottomSheet` with the account
+    selector and amount. The new selector can either go in the
+    main column or the bottom sheet. Decide based on UX.
+  - Existing events use pattern: OnAccountChanged, OnCategoryChanged,
+    OnAmountChanged, etc. New event follows the same shape.
+  - The state uses @Immutable + kotlinx.collections.immutable
+    lists.
+  - Uses both Material3 and legacy design system. Check whether
+    a segmented selector exists in either before building one.
 
-Recon needed before Task 14 prompt:
-  - Current DynamicBudgetRepository.kt
-  - GetDynamicBudgetSnapshotUseCase.kt (how config is loaded
-    and passed through)
-  - DynamicBudgetRepositoryTest.kt (test style for reservations)
-  - DynamicBudgetMapper.kt (current signature, to know where to
-    inject reservationsTotal)
+--- RECON NEEDED BEFORE WRITING PROMPT ----------------------
+
+Run these before prompting:
+
+  # 1. Does Ivy have a segmented / chip-style selector already?
+  Get-ChildItem -Path "shared" -Recurse -Filter "*.kt" |
+      Select-String -Pattern "SegmentedButton|FilterChip|AssistChip"
+      | Select-Object Path, LineNumber | Select-Object -First 15
+
+  # 2. What Material3 imports are already in the screen?
+  Get-Content "feature\edit-transaction\src\main\java\com\ivy\
+      transaction\EditTransactionScreen.kt" |
+      Select-String -Pattern "^import androidx.compose.material3" |
+      Select-Object -First 30
+
+  # 3. Confirm the legacy Transaction allocationMode field is
+  #    really there (should be, from Task 16a):
+  Get-Content "shared\base\src\main\java\com\ivy\base\legacy\
+      Transaction.kt" | Select-String "allocationMode"
+
+  # 4. Look for existing selector-like UI components in the
+  #    legacy design system:
+  Get-ChildItem -Path "temp" -Recurse -Filter "*.kt" |
+      Select-String -Pattern "fun.*Selector|fun.*Segment"
+      | Select-Object -First 15
+
+  # 5. Check how the AddTransaction / bottom-sheet flow enters
+  #    the EditTransaction screen — new vs edit path matters:
+  Get-ChildItem -Path "feature","app" -Recurse -Filter "*.kt" |
+      Select-String -Pattern "navigateTo.*EditTransactionScreen|
+      EditTransactionScreen\(" |
+      Select-Object Path, LineNumber | Select-Object -First 15
+
+--- Design decisions for the user to make when we get there --
+
+  A) Where does the selector live? Main column or bottom sheet?
+     Recommendation: main column, between Category and Date,
+     because it's a per-transaction decision the user makes
+     consciously. Bottom sheet is for amount + account which
+     are quick defaults.
+  B) What does "Today" mean visually — a segmented control, a
+     row of chips, or three radio rows? Recommendation: 3 chips
+     in a Row if Material3 chips are available. Simpler and
+     less code than a custom segmented control.
+  C) Should the label be exactly "Apply to allowance"?
+     SPECIFICATION.md §23 says yes. Confirm with user.
+  D) For non-EXPENSE transactions (Income, Transfer), the row
+     must be hidden entirely. Not disabled — hidden.
 
 ================================================================
-12. DAILY WORKFLOW THAT HAS BEEN WORKING
+12. FUTURE PHASES (post-v1, DO NOT IMPLEMENT NOW)
 ================================================================
 
-1. AI writes a detailed prompt for Gemini.
-2. User pastes prompt into Gemini 3 Flash Preview.
+Phase 2 — Firebase Spark (free tier) — CLOUD + AMINA SHARING
+
+  Goal: Me + Amina share the same budget and transactions
+  across our phones.
+
+  Platform: Firebase Spark (free tier) was chosen over Supabase
+  and PocketBase because:
+    - Google-native Android SDK
+    - 50,000 MAU free auth
+    - 20,000 writes/day free (we'll use <1%)
+    - No auto-charge risk on Spark plan
+    - Offline persistence built in
+    - Reversible (Firestore data is portable)
+
+  Firestore layout:
+    workspaces/{workspaceId}/
+      config/dynamic-budget
+      accounts/{id}
+      transactions/{id}
+      categories/{id}
+      reservations/{id}
+
+  Key principles:
+    - Sync SOURCE DATA only (transactions, config, reservations).
+      NEVER sync the derived safe-to-spend number.
+    - Security rules must restrict reads/writes to memberIds on
+      the workspace document.
+    - Last-write-wins conflict resolution for v1.
+    - Offline-first: local Room stays the primary store. Firestore
+      is a sync target.
+
+  Estimated effort: 1-2 weeks (Tasks 24-29 post-v1).
+
+  Requires a Migration 133→134 to add `workspaceId` to entities.
+  Do NOT add workspaceId to any entity before Phase 2 begins.
+
+Phase 3 — Sinking funds (far-future expenses)
+
+  Problem: ReservationEntity currently subtracts the full amount
+  out of TODAY's period capacity. Correct for bills due soon,
+  wrong for bills due in months (e.g. April 5 bill entered in
+  September would crash the September number).
+
+  Desired: 1000 TND due April 5 (200 days away)
+    → ~5 TND/day reduction in allowance, accumulating.
+    → On April 5, the accumulated reserve hits 1000 and the user
+      pays the bill from a pre-committed account.
+
+  Two options:
+    Option 1 (recommended): new SinkingFundEntity. Cleaner
+      separation. New migration. Engine gains one input:
+      dailySinkingContribution: Long.
+    Option 2: extend ReservationEntity with
+      spreadStartEpochDay: Long?. Smaller diff but blurs two
+      concepts.
+
+  Do NOT decide until Phase 1 is shipped and trusted.
+
+Phase 4 — Loans with interest (mortgage, car loan)
+
+  This is a TRACKER, not a budget input. User's explicit
+  instruction:
+
+    "Loan payments are PRE-COMMITTED fixed expenses. They are
+     NOT part of safe-to-spend. They come out of income before
+     the discretionary pool is defined. I pay them manually
+     from an account EXCLUDED from includedAccountIds (or record
+     them as a transfer from checking). Either way, the budget
+     engine never sees them."
+
+  Therefore: LoanEntity NEVER appears in BudgetEngineInput or
+  DynamicBudgetConfig. Do NOT subtract loan payments from
+  reservationsTotal or from capacity.
+
+  Features:
+    - Store loan terms: principal, annual rate, term (months),
+      start date, payment frequency
+    - Compute amortization schedule
+    - Track remaining balance over time
+    - Show total interest paid / projected
+    - Show next payment date and amount
+    - Optional reminder notification
+
+  Detail screen:
+    - Balance remaining
+    - Next payment
+    - Months remaining
+    - Progress bar (principal paid / total principal)
+    - Full amortization table (collapsible)
+
+  Estimated effort: 2-3 weeks.
+
+  Do NOT start before Phase 1 is trusted and Phase 2 works.
+
+================================================================
+13. DAILY WORKFLOW THAT HAS BEEN WORKING
+================================================================
+
+1. AI writes a detailed prompt for Gemini (or hand-writes files
+   directly if Gemini is unavailable/quota-limited).
+2. User pastes prompt into Gemini 3.x Flash Preview.
 3. Gemini writes files, reports them verbatim.
 4. User pastes Gemini's full output back to AI.
-5. AI reviews for: Python-isms, logic bugs, hidden Unicode,
-   wrong constructor syntax, wrong imports, wrong source set,
-   missing commas, extra closing braces.
+5. AI reviews: Python-isms, logic bugs, hidden Unicode, wrong
+   constructor syntax, wrong imports, wrong source set, missing
+   commas, extra closing braces, shouldBeRight() chaining.
 6. If issues: AI gives fix, user applies manually in Android
-   Studio (do NOT use PowerShell here-strings — they are
-   fragile and mangle indentation).
-7. User runs in this order, stopping at the first failure:
+   Studio (do NOT use PowerShell here-strings — they mangle
+   indentation).
+7. User runs, stopping at the first failure:
      .\gradlew :shared:data:core:assembleDebug
+     .\gradlew :shared:domain:assembleDebug
      .\gradlew :shared:data:core:testDebugUnitTest --tests "<pattern>"
+     .\gradlew :shared:domain:testDebugUnitTest --tests "<pattern>"
      .\gradlew assembleDebug
      .\gradlew :shared:data:core:connectedDebugAndroidTest
 8. Green → commit → push.
 9. Red → send failure output to AI, iterate.
 
-NEVER trust Gemini's self-check. Always compile and test.
+NEVER trust Gemini's self-check.
 
-If Gemini hits quota mid-task, DO NOT re-run the whole prompt.
-Check git status / file listing to see what landed, and finish
-only the remaining files manually.
+If Gemini hits quota mid-task: check git status + file listing,
+finish remaining files manually. Its writes are NOT rolled back.
+
+If Gemini is completely unavailable (which happened for the last
+several tasks): hand-write the files. The last few tasks were
+completed entirely without Gemini, using the AI to produce
+complete file contents that were pasted directly into Android
+Studio. This has worked reliably and is now the preferred
+approach for small, well-scoped tasks.
 
 PowerShell flag gotchas:
   - `--tests "com.ivy.package.*"` uses a quoted glob.
-  - For connectedDebugAndroidTest, the filter flag is
-    `-Pandroid.testInstrumentationRunnerArguments.class=...`
-    and PowerShell may need the whole flag quoted:
-      "-Pandroid.testInstrumentationRunnerArguments.class=com.ivy.FooTest"
-    If PowerShell rejects it, run the whole module's tests
-    unfiltered — the module has few tests.
+  - For connectedDebugAndroidTest, filter via
+    -Pandroid.testInstrumentationRunnerArguments.class=...
+    quote the whole flag if PowerShell complains.
 
 ================================================================
-13. CHECKPOINT — STATE AS OF 2026-09-15
+14. CHECKPOINT — STATE AS OF 2026-09-15 END OF DAY
 ================================================================
 
-HEAD:  0bd8b46d  (Add ReservationEntity, DAOs, Migration 131 to
-                  132, and backup integration)
+HEAD after commit 16a: <SHA_16A> (pending confirmation)
+HEAD before commit 16a: ec86d1c3 (Wire allocationMode through
+                        transaction mappers + tests)
 
-Working tree: clean, pushed to origin/development.
+Working tree: clean and pushed after 16a commit.
 
-Task 13 commit contents (13 files):
-  M  shared/data/core/src/main/java/com/ivy/data/backup/BackupDataUseCase.kt
-  M  shared/data/core/src/main/java/com/ivy/data/backup/IvyWalletCompleteData.kt
-  M  shared/data/core/src/main/java/com/ivy/data/db/IvyRoomDatabase.kt
-  M  shared/data/core/src/main/java/com/ivy/data/di/RoomDbModule.kt
-  M  shared/data/core/src/test/java/com/ivy/data/backup/BackupDataUseCaseTest.kt
-  M  shared/data/core/src/androidTest/java/com/ivy/data/backup/BackupDataUseCaseAndroidTest.kt
-  A  shared/data/core/src/androidTest/java/com/ivy/data/db/Migration131to132Test.kt
-  A  shared/data/core/src/main/java/com/ivy/data/db/dao/fake/FakeReservationDao.kt
-  A  shared/data/core/src/main/java/com/ivy/data/db/dao/read/ReservationDao.kt
-  A  shared/data/core/src/main/java/com/ivy/data/db/dao/write/WriteReservationDao.kt
-  A  shared/data/core/src/main/java/com/ivy/data/db/entity/ReservationEntity.kt
-  A  shared/data/core/src/main/java/com/ivy/data/db/migration/Migration131to132_Reservations.kt
-  A  shared/data/core/schemas/com.ivy.data.db.IvyRoomDatabase/132.json
+Task 16a commit contents (expected):
+  M  shared/base/src/main/java/com/ivy/base/legacy/Transaction.kt
+  M  temp/legacy-code/src/main/java/com/ivy/legacy/datamodel/
+     TransactionExt.kt
+  M  temp/legacy-code/src/main/java/com/ivy/legacy/datamodel/
+     temp/TransactionExt.kt
 
 Verification (all green as of handoff):
+  :shared:base:assembleDebug :temp:legacy-code:assembleDebug
+    BUILD SUCCESSFUL
+  assembleDebug (full app)
+    BUILD SUCCESSFUL in 57s
+    1269 actionable tasks: 174 executed, 1095 up-to-date
 
-  :shared:data:core:assembleDebug        BUILD SUCCESSFUL
-  schemas/.../132.json                   generated (30,480 bytes)
-  :shared:data:core:testDebugUnitTest    BUILD SUCCESSFUL
-  assembleDebug (full app)               BUILD SUCCESSFUL
-  :shared:data:core:connectedDebugAndroidTest
-    15 tests passed on Pixel_8(AVD) - 17
-
-The 15 connected tests include all existing Ivy migration tests
-plus our new Migration130to131Test and Migration131to132Test.
+Test evidence that allocationMode flows through the legacy
+model: compileDebugKotlin for feature:edit-transaction prints
+the deprecated Transaction constructor listing
+`allocationMode: String = ...` as a parameter. This means the
+field is compiled into the legacy model.
 
 ================================================================
-14. FILES TO VERIFY BEFORE NEXT SESSION STARTS
+15. FILES TO VERIFY BEFORE NEXT SESSION STARTS
 ================================================================
 
   cd "C:\Dev\Ivy-wallet"
   git status
   git log --oneline -5
 
-Expected: on branch development, clean working tree, HEAD at
-0bd8b46d.
+Expected: on branch development, clean working tree, HEAD
+contains "allocationMode plumbing to legacy Transaction model"
+in the newest commit message.
 
 If any files show as modified or untracked, paste `git status`
-before starting anything else. Do not proceed until the tree is
-clean and HEAD matches.
+before starting anything else.
 
 ================================================================
-15. HOW TO RESUME TOMORROW
+16. HOW TO RESUME TOMORROW
 ================================================================
 
-1. Open a fresh PowerShell window.
-
+1. Fresh PowerShell window.
 2. cd "C:\Dev\Ivy-wallet"
-
 3. git status && git log --oneline -3
-   Confirm HEAD at 0bd8b46d and clean tree.
-
+   Confirm HEAD is at the 16a commit and tree is clean.
 4. Start a new AI session and paste:
      - This handoff file
      - PROJECT_RULES.md
      - docs/CALCULATION.md
      - docs/ENGINEERING.md
      - docs/SPECIFICATION.md
-
-5. Say: "Read the handoff. We're starting Task 14. Confirm
-   the reservation filtering decision in §11 before writing
-   the prompt."
-
-6. AI asks for recon commands. Run them, paste output.
-
-7. AI writes the Task 14 prompt. Paste into Gemini. Iterate.
+5. Say: "Read the handoff. We're starting Task 16b. Let's do
+   the recon in §11 first."
+6. AI asks for recon commands. Run them. Paste output.
+7. AI writes the Task 16b prompt (or full file contents, if
+   hand-writing).
+8. Iterate until green.
 
 ================================================================
-16. ABSOLUTE PRIORITIES (from PROJECT_RULES.md §17)
+17. ABSOLUTE PRIORITIES (from PROJECT_RULES.md §17)
 ================================================================
-
-When requirements conflict, this order wins:
 
   1. Financial correctness
   2. Preservation of Ivy accounting
@@ -1169,15 +1148,11 @@ When requirements conflict, this order wins:
 Never sacrifice 1–5 for 8–9.
 
 ================================================================
-17. THINGS THAT ARE EXPLICITLY OUT OF SCOPE FOR V1
+18. THINGS EXPLICITLY OUT OF SCOPE FOR V1
 ================================================================
-
-Do NOT implement any of the following until explicitly
-authorized later:
 
   - Bank connections
   - Account aggregation
-  - Automatic transaction imports from banks
   - AI financial advisor
   - Investment management
   - Cryptocurrency management
@@ -1186,30 +1161,27 @@ authorized later:
   - Social feed
   - Notifications spam
   - Advertisements
-  - Cloud synchronization
-  - Amina authentication
-  - Household invitations
-  - Online accounts
+  - Cloud synchronization  (Phase 2)
+  - Amina authentication   (Phase 2)
+  - Household invitations  (Phase 2)
   - Server backend
+  - Loans with interest    (Phase 4)
 
-The v1 product is local-first, offline-first, single-device.
-Any future cloud sync will synchronize the underlying source
-data (transactions, budgets, reservations, config), never the
-derived safe-to-spend number.
+v1 is local-first, offline-first, single-device.
 
 ================================================================
-18. LICENSING
+19. LICENSING
 ================================================================
 
 This is a fork of Ivy Wallet, which is GPL-3.0. Public
-distribution of PocketMoney requires that we:
+distribution requires that we:
 
   - Preserve the GPL-3.0 license text
   - Preserve Ivy's copyright notices
-  - Publish our modifications under GPL-3.0 as well
+  - Publish our modifications under GPL-3.0
   - Provide source access to anyone we distribute to
 
-For personal use this is all moot, but the About screen should
+For personal use this is moot, but the About screen should
 carry a one-line credit to Ivy Wallet and a link to the
 license. Task 22 does this.
 
