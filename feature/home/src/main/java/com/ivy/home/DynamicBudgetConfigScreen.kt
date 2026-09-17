@@ -27,6 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -230,7 +231,7 @@ fun DynamicBudgetConfigUi(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                        .padding(top = 16.dp, bottom = if (uiState.hasExistingBudget) 8.dp else 16.dp),
                 ) {
                     if (uiState.saving) {
                         CircularProgressIndicator(
@@ -240,6 +241,18 @@ fun DynamicBudgetConfigUi(
                         )
                     } else {
                         Text("Save", fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
+                if (uiState.hasExistingBudget) {
+                    OutlinedButton(
+                        onClick = { onEvent(DynamicBudgetConfigEvent.RemoveBudget) },
+                        enabled = !uiState.saving,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                    ) {
+                        Text("Remove budget")
                     }
                 }
             }

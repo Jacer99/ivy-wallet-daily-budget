@@ -23,6 +23,7 @@ data class DynamicBudgetConfigState(
     val customEndInput: String = "",
     val customEndError: String? = null,
     val saving: Boolean = false,
+    val hasExistingBudget: Boolean = false,
 ) {
     val canSave: Boolean
         get() = !saving &&

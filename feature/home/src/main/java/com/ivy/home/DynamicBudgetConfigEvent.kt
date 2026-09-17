@@ -18,4 +18,6 @@ sealed interface DynamicBudgetConfigEvent {
         : DynamicBudgetConfigEvent
 
     data object Save : DynamicBudgetConfigEvent
+
+    data object RemoveBudget : DynamicBudgetConfigEvent
 }

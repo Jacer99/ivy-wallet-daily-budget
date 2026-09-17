@@ -66,6 +66,7 @@ class DynamicBudgetConfigViewModel @Inject constructor(
             customEndInput = customEndInput,
             customEndError = customEndError,
             saving = saving,
+            hasExistingBudget = (originalConfig?.budgetLimitMinorUnits ?: 0L) > 0L,
         )
     }
 
@@ -98,6 +99,7 @@ class DynamicBudgetConfigViewModel @Inject constructor(
                         ?: validateDateRange(customStartInput, customEndInput)
                 }
                 DynamicBudgetConfigEvent.Save -> save()
+                DynamicBudgetConfigEvent.RemoveBudget -> removeBudget()
             }
         }
     }
@@ -172,6 +174,17 @@ class DynamicBudgetConfigViewModel @Inject constructor(
                 includeIncomeInBudget = existing?.includeIncomeInBudget ?: false,
             )
             store.save(config)
+            nav.back()
+        } finally {
+            saving = false
+        }
+    }
+
+    private suspend fun removeBudget() {
+        val existing = originalConfig ?: return
+        saving = true
+        try {
+            store.save(existing.copy(budgetLimitMinorUnits = 0L))
             nav.back()
         } finally {
             saving = false
