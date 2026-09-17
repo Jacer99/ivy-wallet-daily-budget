@@ -1,9 +1,6 @@
 package com.ivy.home
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,16 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -69,16 +62,12 @@ private fun formatTndAmount(minorUnits: Long): String =
 @Composable
 fun SafeToSpendCard(
     state: SafeToSpendCardState,
-    onAddExpense: () -> Unit,
-    onAddIncome: () -> Unit,
     onConfigureBudget: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(UI.shapes.r4)
-            .background(UI.colors.medium)
             .testTag("safe_to_spend_card")
     ) {
         when (state) {
@@ -89,8 +78,6 @@ fun SafeToSpendCard(
             )
             is SafeToSpendCardState.Active -> ActiveContent(
                 state = state,
-                onAddExpense = onAddExpense,
-                onAddIncome = onAddIncome,
             )
             is SafeToSpendCardState.Error -> ErrorContent(
                 message = state.message,
@@ -171,8 +158,6 @@ private fun ErrorContent(message: String, modifier: Modifier = Modifier) {
 @Composable
 private fun ActiveContent(
     state: SafeToSpendCardState.Active,
-    onAddExpense: () -> Unit,
-    onAddIncome: () -> Unit,
 ) {
     Column {
         Column(
@@ -252,53 +237,6 @@ private fun ActiveContent(
                 }
             }
         }
-
-        Divider(
-            color = UI.colors.mediumInverse.copy(alpha = 0.2f),
-            thickness = 1.dp,
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .testTag("safe_to_spend_actions"),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            OutlinedButton(
-                onClick = onAddExpense,
-                modifier = Modifier.weight(1f).testTag("safe_to_spend_add_expense"),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = PocketMoneyAccent,
-                ),
-                border = BorderStroke(1.dp, PocketMoneyAccent),
-            ) {
-                Text(
-                    text = stringResource(R.string.add_expense),
-                    style = UI.typo.nB2.style(
-                        color = PocketMoneyAccent,
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                )
-            }
-
-            OutlinedButton(
-                onClick = onAddIncome,
-                modifier = Modifier.weight(1f).testTag("safe_to_spend_add_income"),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = UI.colors.mediumInverse,
-                ),
-                border = BorderStroke(1.dp, UI.colors.mediumInverse),
-            ) {
-                Text(
-                    text = stringResource(R.string.add_income),
-                    style = UI.typo.nB2.style(
-                        color = UI.colors.mediumInverse,
-                        fontWeight = FontWeight.SemiBold,
-                    ),
-                )
-            }
-        }
     }
 }
 
@@ -347,8 +285,6 @@ private fun SafeToSpendCardPreview(state: SafeToSpendCardState) {
     IvyPreview {
         SafeToSpendCard(
             state = state,
-            onAddExpense = {},
-            onAddIncome = {},
             onConfigureBudget = {},
             modifier = Modifier.padding(16.dp),
         )

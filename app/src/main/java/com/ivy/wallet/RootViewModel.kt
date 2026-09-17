@@ -14,7 +14,6 @@ import com.ivy.frp.test.TestIdlingResource
 import com.ivy.legacy.IvyWalletCtx
 import com.ivy.legacy.utils.ioThread
 import com.ivy.legacy.utils.readOnly
-import com.ivy.navigation.DisclaimerScreen
 import com.ivy.navigation.EditTransactionScreen
 import com.ivy.navigation.MainScreen
 import com.ivy.navigation.Navigation
@@ -83,9 +82,6 @@ class RootViewModel @Inject constructor(
                     navigateOnboardedUser(intent)
                 } else {
                     nav.navigateTo(OnboardingScreen)
-                }
-                if (!legalRepo.isDisclaimerAccepted()) {
-                    nav.navigateTo(DisclaimerScreen)
                 }
             }
 

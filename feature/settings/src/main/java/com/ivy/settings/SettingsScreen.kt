@@ -48,7 +48,6 @@ import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.rootScreen
 import com.ivy.legacy.utils.drawColoredShadow
 import com.ivy.navigation.DynamicBudgetConfigScreen
-import com.ivy.navigation.ExchangeRatesScreen
 import com.ivy.navigation.FeaturesScreen
 import com.ivy.navigation.ImportScreen
 import com.ivy.navigation.ReleasesScreen
@@ -302,15 +301,6 @@ private fun BoxWithConstraintsScope.UI(
 //
 //            Spacer(Modifier.height(12.dp))
 
-            SettingsDefaultButton(
-                icon = R.drawable.ic_currency,
-                text = stringResource(R.string.exchange_rates),
-            ) {
-                nav.navigateTo(ExchangeRatesScreen)
-            }
-
-            Spacer(Modifier.height(12.dp))
-
             AppSwitch(
                 lockApp = lockApp,
                 onSetLockApp = onSetLockApp,
@@ -324,7 +314,7 @@ private fun BoxWithConstraintsScope.UI(
                 lockApp = showNotifications,
                 onSetLockApp = onSetShowNotifications,
                 text = stringResource(R.string.show_notifications),
-                icon = R.drawable.ic_notification_m
+                icon = R.drawable.ic_vue_main_notification
             )
 
             Spacer(Modifier.height(12.dp))

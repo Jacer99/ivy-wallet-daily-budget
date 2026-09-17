@@ -123,8 +123,6 @@ private fun SafeToSpendCardTestContainer(
     IvyWalletPreview(ivyTheme) {
         SafeToSpendCard(
             state = state,
-            onAddExpense = {},
-            onAddIncome = {},
             onConfigureBudget = {},
             modifier = Modifier.padding(16.dp),
         )

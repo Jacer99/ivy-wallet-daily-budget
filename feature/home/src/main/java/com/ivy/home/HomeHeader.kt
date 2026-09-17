@@ -29,7 +29,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ivy.base.model.TransactionType
 import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeFormatter
@@ -57,7 +56,6 @@ import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.White
-import com.ivy.wallet.ui.theme.components.BalanceRow
 import com.ivy.wallet.ui.theme.components.BalanceRowMini
 import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.components.IvyOutlinedButton
@@ -238,27 +236,6 @@ fun CashFlowInfo(
                 },
             ),
     ) {
-        BalanceRow(
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .clickableNoIndication(rememberInteractionSource()) {
-                    if (hideBalance) {
-                        onHiddenBalanceClick()
-                    } else {
-                        onBalanceClick()
-                    }
-                }
-                .testTag("home_balance"),
-            currency = currency,
-            balance = balance,
-            shortenBigNumbers = true,
-            hiddenMode = hideBalance,
-            balanceFontSize = if (safeToSpendIsActive) 26.sp else null,
-            currencyFontSize = if (safeToSpendIsActive) 24.sp else null,
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         IncomeExpenses(
             percentExpanded = percentExpanded,
             currency = currency,
