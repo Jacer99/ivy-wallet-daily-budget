@@ -394,7 +394,8 @@ fun HomeLazyColumn(
                 onHiddenBalanceClick = onHiddenBalanceClick,
                 percentExpanded = 1f,
                 hideIncome = hideIncome,
-                onHiddenIncomeClick = onHiddenIncomeClick
+                onHiddenIncomeClick = onHiddenIncomeClick,
+                safeToSpendIsActive = safeToSpend is SafeToSpendCardState.Active,
             )
         }
         item {

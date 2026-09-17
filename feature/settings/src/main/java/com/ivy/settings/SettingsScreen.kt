@@ -237,7 +237,7 @@ private fun BoxWithConstraintsScope.UI(
             Spacer(Modifier.height(12.dp))
 
             SettingsDefaultButton(
-                icon = R.drawable.ic_vue_money_tag,
+                icon = R.drawable.ic_budget_xs,
                 text = "Spending budget",
             ) {
                 nav.navigateTo(DynamicBudgetConfigScreen)

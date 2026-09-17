@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.base.model.TransactionType
 import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeFormatter
@@ -224,7 +225,8 @@ fun CashFlowInfo(
     onBalanceClick: () -> Unit,
     percentExpanded: Float,
     onHiddenBalanceClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    safeToSpendIsActive: Boolean = false,
 ) {
     Column(
         modifier = modifier
@@ -250,7 +252,9 @@ fun CashFlowInfo(
             currency = currency,
             balance = balance,
             shortenBigNumbers = true,
-            hiddenMode = hideBalance
+            hiddenMode = hideBalance,
+            balanceFontSize = if (safeToSpendIsActive) 26.sp else null,
+            currencyFontSize = if (safeToSpendIsActive) 24.sp else null,
         )
 
         Spacer(modifier = Modifier.height(24.dp))
