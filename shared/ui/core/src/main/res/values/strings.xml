@@ -504,7 +504,7 @@
     <!-- Task 17: Safe-to-spend card -->
     <string name="safe_to_spend_today">SAFE TO SPEND TODAY</string>
     <string name="safe_to_spend_context">Opening %1$s · Charged today %2$s</string>
-    <string name="safe_to_spend_tomorrow">Tomorrow approximately %1$s %2$s</string>
+    <string name="safe_to_spend_tomorrow">Tomorrow: %1$s %2$s</string>
     <string name="safe_to_spend_currency">TND</string>
     <string name="safe_to_spend_over_today">You are %1$s TND over today\'s target. Future allowances will adjust.</string>
     <string name="safe_to_spend_period_exhausted">You have used your available spending budget.</string>

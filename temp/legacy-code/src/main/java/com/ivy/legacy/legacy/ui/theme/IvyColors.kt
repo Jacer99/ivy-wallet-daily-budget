@@ -22,53 +22,53 @@ val Black = Color(0xFF111114)
 
 // Primary
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Ivy = Color(0xFF6B4DFF)
+val Ivy = Color(0xFF7C4DFF)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Blue = Color(0xFF4CC3FF)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Green = Color(0xFF14CC9E)
+val Green = Color(0xFF00C853)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Orange = Color(0xFFF29F30)
+val Orange = Color(0xFFFF6E40)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Red = Color(0xFFFF4060)
+val Red = Color(0xFFFF5252)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Red3 = Color(0xFFFF4CA6)
 
 // Light
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val IvyLight = Color(0xFFD5CCFF)
+val IvyLight = Color(0xFFE8DDFF)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GreenLight = Color(0xFFAAF2E0)
+val GreenLight = Color(0xFFB2EBE0)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val OrangeLight = Color(0xFFFFDEB3)
+val OrangeLight = Color(0xFFFFDAD0)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val RedLight = Color(0xFFFFCCD5)
+val RedLight = Color(0xFFFFDAD6)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Red3Light = Color(0xFFFFCCE6)
 
 // Dark
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val IvyDark = Color(0xFF352680)
+val IvyDark = Color(0xFF21005D)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Purple1Dark = Color(0xFF622680)
 
-val Purple = Color(0xFFA020F0)
+val Purple = Color(0xFF7C4DFF)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GreenDark = Color(0xFF0A664F)
+val GreenDark = Color(0xFF002019)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val OrangeDark = Color(0xFF734B17)
+val OrangeDark = Color(0xFF3B0900)
 // --------------------------------------------------------------------------------------------------
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
@@ -84,18 +84,18 @@ val MediumWhite = Color(0xFFEFEEF0)
 val Transparent = Color(0x00000000)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GradientRed = Gradient(Red, Color(0xFFFF99AB))
+val GradientRed = Gradient(Red, Color(0xFFFF8A8A))
 
-val GradientPurple = Gradient(Purple, Color(0xFFED3EF7))
-
-@Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GradientGreen = Gradient(Green, Color(0xFF49F2C8))
+val GradientPurple = Gradient(Purple, Color(0xFF9D7BFF))
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GradientOrangeRevert = Gradient(Color(0xFFF2CD9E), Orange)
+val GradientGreen = Gradient(Green, Color(0xFF00BFA5))
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GradientIvy = Gradient(Ivy, Color(0xFFAA99FF))
+val GradientOrangeRevert = Gradient(Color(0xFFFFDAD0), Orange)
+
+@Deprecated("Old design system. Use `:ivy-design` and Material3")
+val GradientIvy = Gradient(Ivy, Color(0xFF9D7BFF))
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 fun Modifier.gradientCutBackgroundTop(

@@ -706,9 +706,9 @@ private fun ApplyToAllowanceSelector(
                     onClick = { onSelect(mode) },
                     shape = SegmentedButtonDefaults.itemShape(index, options.size),
                     colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = Color(0xFFC4783E),
+                        activeContainerColor = Color(0xFF7C4DFF),
                         activeContentColor = Color.White,
-                        activeBorderColor = Color(0xFFC4783E),
+                        activeBorderColor = Color(0xFF7C4DFF),
                         inactiveContainerColor = Color.Transparent,
                         inactiveContentColor = UI.colors.mediumInverse,
                         inactiveBorderColor = UI.colors.mediumInverse,

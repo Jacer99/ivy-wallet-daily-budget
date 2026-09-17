@@ -4,7 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import com.ivy.design.system.colors.IvyColors
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun IvyMaterial3Theme(
@@ -19,71 +19,75 @@ fun IvyMaterial3Theme(
 }
 
 private fun ivyLightColorScheme(): ColorScheme = ColorScheme(
-    primary = IvyColors.Purple.primary,
-    onPrimary = IvyColors.White,
-    primaryContainer = IvyColors.Purple.light,
-    onPrimaryContainer = IvyColors.White,
-    inversePrimary = IvyColors.Purple.dark,
-    secondary = IvyColors.Green.primary,
-    onSecondary = IvyColors.White,
-    secondaryContainer = IvyColors.Green.light,
-    onSecondaryContainer = IvyColors.White,
-    tertiary = IvyColors.Green.primary,
-    onTertiary = IvyColors.White,
-    tertiaryContainer = IvyColors.Green.light,
-    onTertiaryContainer = IvyColors.White,
+    primary = Color(0xFF7C4DFF),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFE8DDFF),
+    onPrimaryContainer = Color(0xFF21005D),
+    inversePrimary = Color(0xFF9D7BFF),
 
-    error = IvyColors.Red.primary,
-    onError = IvyColors.White,
-    errorContainer = IvyColors.Red.light,
-    onErrorContainer = IvyColors.White,
+    secondary = Color(0xFF00BFA5),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFB2EBE0),
+    onSecondaryContainer = Color(0xFF002019),
 
-    background = IvyColors.White,
-    onBackground = IvyColors.Black,
-    surface = IvyColors.White,
-    onSurface = IvyColors.Black,
-    surfaceVariant = IvyColors.ExtraLightGray,
-    onSurfaceVariant = IvyColors.Black,
-    surfaceTint = IvyColors.Black,
-    inverseSurface = IvyColors.DarkGray,
-    inverseOnSurface = IvyColors.White,
+    tertiary = Color(0xFFFF6E40),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFFFDAD0),
+    onTertiaryContainer = Color(0xFF3B0900),
 
-    outline = IvyColors.Gray,
-    outlineVariant = IvyColors.DarkGray,
-    scrim = IvyColors.ExtraDarkGray.copy(alpha = 0.8f)
+    error = Color(0xFFFF5252),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF410002),
+
+    background = Color(0xFFFDFBFF),
+    onBackground = Color(0xFF1C1B1F),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF1C1B1F),
+    surfaceVariant = Color(0xFFE7E0EC),
+    onSurfaceVariant = Color(0xFF49454F),
+    surfaceTint = Color(0xFF7C4DFF),
+    inverseSurface = Color(0xFF313033),
+    inverseOnSurface = Color(0xFFF4EFF4),
+
+    outline = Color(0xFF7A757F),
+    outlineVariant = Color(0xFFCAC4D0),
+    scrim = Color(0xFF000000).copy(alpha = 0.8f)
 )
 
 private fun ivyDarkColorScheme(isTrueBlack: Boolean): ColorScheme = ColorScheme(
-    primary = IvyColors.Purple.primary,
-    onPrimary = IvyColors.White,
-    primaryContainer = IvyColors.Purple.light,
-    onPrimaryContainer = IvyColors.White,
-    inversePrimary = IvyColors.Purple.dark,
-    secondary = IvyColors.Green.primary,
-    onSecondary = IvyColors.White,
-    secondaryContainer = IvyColors.Green.light,
-    onSecondaryContainer = IvyColors.White,
-    tertiary = IvyColors.Green.primary,
-    onTertiary = IvyColors.White,
-    tertiaryContainer = IvyColors.Green.light,
-    onTertiaryContainer = IvyColors.White,
+    primary = Color(0xFF9D7BFF),
+    onPrimary = Color(0xFF2C0079),
+    primaryContainer = Color(0xFF4B2FA0),
+    onPrimaryContainer = Color(0xFFE8DDFF),
+    inversePrimary = Color(0xFF7C4DFF),
 
-    error = IvyColors.Red.primary,
-    onError = IvyColors.White,
-    errorContainer = IvyColors.Red.light,
-    onErrorContainer = IvyColors.White,
+    secondary = Color(0xFF4DD0C7),
+    onSecondary = Color(0xFF003730),
+    secondaryContainer = Color(0xFF005046),
+    onSecondaryContainer = Color(0xFFB2EBE0),
 
-    background = if (isTrueBlack) IvyColors.TrueBlack else IvyColors.Black,
-    onBackground = IvyColors.White,
-    surface = if (isTrueBlack) IvyColors.TrueBlack else IvyColors.Black,
-    onSurface = IvyColors.White,
-    surfaceVariant = IvyColors.ExtraDarkGray,
-    onSurfaceVariant = IvyColors.White,
-    surfaceTint = IvyColors.White,
-    inverseSurface = IvyColors.LightGray,
-    inverseOnSurface = if (isTrueBlack) IvyColors.TrueBlack else IvyColors.Black,
+    tertiary = Color(0xFFFF8A65),
+    onTertiary = Color(0xFF5C1900),
+    tertiaryContainer = Color(0xFF7C2E10),
+    onTertiaryContainer = Color(0xFFFFDAD0),
 
-    outline = IvyColors.Gray,
-    outlineVariant = IvyColors.LightGray,
-    scrim = IvyColors.ExtraLightGray.copy(alpha = 0.8f)
+    error = Color(0xFFFF8A8A),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+
+    background = if (isTrueBlack) Color(0xFF000000) else Color(0xFF1C1B1F),
+    onBackground = Color(0xFFE6E1E5),
+    surface = if (isTrueBlack) Color(0xFF000000) else Color(0xFF1C1B1F),
+    onSurface = Color(0xFFE6E1E5),
+    surfaceVariant = Color(0xFF49454F),
+    onSurfaceVariant = Color(0xFFCAC4D0),
+    surfaceTint = Color(0xFF9D7BFF),
+    inverseSurface = Color(0xFFE6E1E5),
+    inverseOnSurface = if (isTrueBlack) Color(0xFF000000) else Color(0xFF1C1B1F),
+
+    outline = Color(0xFF938F99),
+    outlineVariant = Color(0xFF49454F),
+    scrim = Color(0xFF000000).copy(alpha = 0.8f)
 )

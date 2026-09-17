@@ -42,7 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-private val PocketMoneyAccent = Color(0xFFC4783E)
+private val PocketMoneyAccent = Color(0xFF7C4DFF)
 
 @Composable
 fun BoxWithConstraintsScope.DynamicBudgetConfigScreen() {

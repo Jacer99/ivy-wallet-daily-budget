@@ -16,10 +16,10 @@ val Black = Color(0xFF111114)
 
 // Primary
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Ivy = Color(0xFF6B4DFF)
+val Ivy = Color(0xFF7C4DFF)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Purple = Color(0xFF6B4DFF)
+val Purple = Color(0xFF7C4DFF)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Purple1 = Color(0xFFC34CFF)
@@ -37,7 +37,7 @@ val Blue2 = Color(0xFF45E6E6)
 val Blue3 = Color(0xFF457BE6)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Green = Color(0xFF14CC9E)
+val Green = Color(0xFF00C853)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Green2 = Color(0xFF45E67B)
@@ -52,7 +52,7 @@ val Green4 = Color(0xFFC7E62E)
 val Yellow = Color(0xFFFFEE33)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Orange = Color(0xFFF29F30)
+val Orange = Color(0xFFFF6E40)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Orange2 = Color(0xFFE67B45)
@@ -61,7 +61,7 @@ val Orange2 = Color(0xFFE67B45)
 val Orange3 = Color(0xFFFFC34C)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val Red = Color(0xFFFF4060)
+val Red = Color(0xFFFF5252)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Red2 = Color(0xFFE62E2E)
@@ -71,7 +71,7 @@ val Red3 = Color(0xFFFF4CA6)
 
 // Light
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val IvyLight = Color(0xFFD5CCFF)
+val IvyLight = Color(0xFFE8DDFF)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Purple1Light = Color(0xFFEECCFF)
@@ -89,7 +89,7 @@ val Blue2Light = Color(0xFFB3FFFF)
 val Blue3Light = Color(0xFFCCDDFF)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GreenLight = Color(0xFFAAF2E0)
+val GreenLight = Color(0xFFB2EBE0)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Green2Light = Color(0xFF99FFBB)
@@ -104,7 +104,7 @@ val Green4Light = Color(0xFFEEFF99)
 val YellowLight = Color(0xFFFFF799)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val OrangeLight = Color(0xFFFFDEB3)
+val OrangeLight = Color(0xFFFFDAD0)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Orange2Light = Color(0xFFFFCCB3)
@@ -113,7 +113,7 @@ val Orange2Light = Color(0xFFFFCCB3)
 val Orange3Light = Color(0xFFFFDC99)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val RedLight = Color(0xFFFFCCD5)
+val RedLight = Color(0xFFFFDAD6)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Red2Light = Color(0xFFFFB3B3)
@@ -123,7 +123,7 @@ val Red3Light = Color(0xFFFFCCE6)
 
 // Dark
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val IvyDark = Color(0xFF352680)
+val IvyDark = Color(0xFF21005D)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Purple1Dark = Color(0xFF622680)
@@ -141,7 +141,7 @@ val Blue2Dark = Color(0xFF227373)
 val Blue3Dark = Color(0xFF223D73)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val GreenDark = Color(0xFF0A664F)
+val GreenDark = Color(0xFF002019)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Green2Dark = Color(0xFF22733D)
@@ -156,7 +156,7 @@ val Green4Dark = Color(0xFF637317)
 val YellowDark = Color(0xFF807719)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val OrangeDark = Color(0xFF734B17)
+val OrangeDark = Color(0xFF3B0900)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Orange2Dark = Color(0xFF66371F)
@@ -165,7 +165,7 @@ val Orange2Dark = Color(0xFF66371F)
 val Orange3Dark = Color(0xFF806226)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
-val RedDark = Color(0xFF801919)
+val RedDark = Color(0xFF410002)
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val Red2Dark = Color(0xFF802030)

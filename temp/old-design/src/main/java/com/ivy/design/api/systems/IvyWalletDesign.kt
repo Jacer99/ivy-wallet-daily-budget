@@ -1,6 +1,7 @@
 package com.ivy.design.api.systems
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -116,70 +117,70 @@ abstract class IvyWalletDesign : IvyDesign {
     override fun colors(theme: Theme, isDarkModeEnabled: Boolean): IvyColors {
         return when (theme) {
             Theme.LIGHT -> object : IvyColors {
-                override val pure = White
+                override val pure = Color(0xFFFDFBFF)
                 override val pureInverse = Black
                 override val gray = Gray
                 override val medium = MediumWhite
                 override val mediumInverse = MediumBlack
 
-                override val primary = Purple
-                override val primary1 = IvyDark
+                override val primary = Color(0xFF7C4DFF)
+                override val primary1 = Color(0xFFE8DDFF)
 
-                override val green = Green
-                override val green1 = GreenLight
+                override val green = Color(0xFF00C853)
+                override val green1 = Color(0xFF00BFA5)
 
-                override val orange = Orange
-                override val orange1 = OrangeLight
+                override val orange = Color(0xFFFF6E40)
+                override val orange1 = Color(0xFFFFDAD0)
 
-                override val red = Red
-                override val red1 = RedLight
-                override val red1Inverse = RedDark
+                override val red = Color(0xFFFF5252)
+                override val red1 = Color(0xFFFFDAD6)
+                override val red1Inverse = Color(0xFF410002)
 
                 override val isLight = true
             }
 
             Theme.DARK -> object : IvyColors {
-                override val pure = Black
+                override val pure = Color(0xFF1C1B1F)
                 override val pureInverse = White
                 override val gray = Gray
                 override val medium = MediumBlack
                 override val mediumInverse = MediumWhite
 
-                override val primary = Purple
-                override val primary1 = IvyLight
+                override val primary = Color(0xFF9D7BFF)
+                override val primary1 = Color(0xFF4B2FA0)
 
-                override val green = Green
-                override val green1 = GreenDark
+                override val green = Color(0xFF5EE87F)
+                override val green1 = Color(0xFF005046)
 
-                override val orange = Orange
-                override val orange1 = OrangeDark
+                override val orange = Color(0xFFFF8A65)
+                override val orange1 = Color(0xFF7C2E10)
 
-                override val red = Red
-                override val red1 = RedDark
-                override val red1Inverse = RedLight
+                override val red = Color(0xFFFF8A8A)
+                override val red1 = Color(0xFF93000A)
+                override val red1Inverse = Color(0xFFFFDAD6)
 
                 override val isLight = false
             }
 
             Theme.AMOLED_DARK -> object : IvyColors {
-                override val pure = TrueBlack
+                override val pure = Color(0xFF000000)
                 override val pureInverse = White
                 override val gray = Gray
                 override val medium = MediumBlack
                 override val mediumInverse = MediumWhite
 
-                override val primary = Purple
-                override val primary1 = IvyLight
+                override val primary = Color(0xFF9D7BFF)
+                override val primary1 = Color(0xFF4B2FA0)
 
-                override val green = Green
-                override val green1 = GreenDark
+                override val green = Color(0xFF5EE87F)
+                override val green1 = Color(0xFF005046)
 
-                override val orange = Orange
-                override val orange1 = OrangeDark
+                override val orange = Color(0xFFFF8A65)
+                override val orange1 = Color(0xFF7C2E10)
 
-                override val red = Red
-                override val red1 = RedDark
-                override val red1Inverse = RedLight
+                override val red = Color(0xFFFF8A8A)
+                override val red1 = Color(0xFF93000A)
+                override val red1Inverse = Color(0xFFFFDAD6)
 
                 override val isLight = false
             }

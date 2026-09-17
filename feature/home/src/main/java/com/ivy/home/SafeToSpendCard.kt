@@ -61,7 +61,7 @@ sealed interface SafeToSpendMessage {
     data object PeriodExhausted : SafeToSpendMessage
 }
 
-private val PocketMoneyAccent = Color(0xFFC4783E)
+private val PocketMoneyAccent = Color(0xFF7C4DFF)
 
 private fun formatTndAmount(minorUnits: Long): String =
     BigDecimal.valueOf(minorUnits, 3).toPlainString()
@@ -212,19 +212,8 @@ private fun ActiveContent(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
-
-            Text(
-                text = stringResource(
-                    R.string.safe_to_spend_context,
-                    formatTndAmount(state.openingAllowanceMinorUnits),
-                    formatTndAmount(state.todayChargesMinorUnits)
-                ),
-                style = UI.typo.nB2.style(color = UI.colors.mediumInverse),
-            )
-
             state.tomorrowProjectionMinorUnits?.let { projectionMinorUnits ->
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
                     text = stringResource(
                         R.string.safe_to_spend_tomorrow,
