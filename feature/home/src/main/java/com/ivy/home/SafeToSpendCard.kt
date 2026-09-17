@@ -27,6 +27,7 @@ import com.ivy.design.l0_system.style
 import com.ivy.navigation.IvyPreview
 import com.ivy.ui.R
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Immutable
 sealed interface SafeToSpendCardState {
@@ -58,7 +59,9 @@ sealed interface SafeToSpendMessage {
 private val PocketMoneyAccent = Color(0xFF7C4DFF)
 
 private fun formatTndAmount(minorUnits: Long): String =
-    BigDecimal.valueOf(minorUnits, 3).toPlainString()
+    BigDecimal.valueOf(minorUnits, 3)
+        .setScale(2, RoundingMode.HALF_UP)
+        .toPlainString()
 
 @Composable
 fun SafeToSpendCard(
