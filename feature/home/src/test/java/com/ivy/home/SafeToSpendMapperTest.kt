@@ -1,5 +1,6 @@
 package com.ivy.home
 
+import com.ivy.domain.usecase.budget.BudgetPeriodType
 import com.ivy.domain.usecase.budget.BudgetSnapshot
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -128,5 +129,107 @@ class SafeToSpendMapperTest {
         ).shouldBeInstanceOf<SafeToSpendCardState.Active>()
 
         result.tomorrowProjectionMinorUnits shouldBe null
+    }
+
+    @Test
+    fun `non-salary period maps paydayLabel to null`() {
+        val result = mapToSafeToSpendCardState(
+            hasBudget = true,
+            snapshot = snapshot(
+                capacity = 450_000L,
+                periodSpentRaw = 0L,
+                periodReserved = 0L,
+                periodRemaining = 450_000L,
+                daysRemaining = 7,
+                openingAllowance = 80_400L,
+                todayCharges = 0L,
+                remainingAllowance = 80_400L,
+                tomorrowProjection = 80_400L
+            ),
+            periodType = BudgetPeriodType.Monthly,
+        ).shouldBeInstanceOf<SafeToSpendCardState.Active>()
+
+        result.paydayLabel shouldBe null
+    }
+
+    @Test
+    fun `salary period with today as payday maps paydayLabel to Payday today`() {
+        val today = LocalDate.of(2026, 9, 25)
+        val snapshot = BudgetSnapshot(
+            periodStart = LocalDate.of(2026, 9, 25),
+            periodEnd = LocalDate.of(2026, 10, 24),
+            capacity = 450_000L,
+            periodSpentRaw = 0L,
+            periodReserved = 0L,
+            periodRemaining = 450_000L,
+            daysRemaining = 30,
+            openingAllowance = 15_000L,
+            todayCharges = 0L,
+            remainingAllowance = 15_000L,
+            tomorrowProjection = 15_000L,
+        )
+
+        val result = mapToSafeToSpendCardState(
+            hasBudget = true,
+            snapshot = snapshot,
+            periodType = BudgetPeriodType.Salary(payday = 25),
+            today = today,
+        ).shouldBeInstanceOf<SafeToSpendCardState.Active>()
+
+        result.paydayLabel shouldBe "Payday today"
+    }
+
+    @Test
+    fun `salary period with 1 day until payday maps paydayLabel to 1 day`() {
+        val today = LocalDate.of(2026, 10, 24)
+        val snapshot = BudgetSnapshot(
+            periodStart = LocalDate.of(2026, 9, 25),
+            periodEnd = LocalDate.of(2026, 10, 24),
+            capacity = 450_000L,
+            periodSpentRaw = 400_000L,
+            periodReserved = 0L,
+            periodRemaining = 50_000L,
+            daysRemaining = 1,
+            openingAllowance = 50_000L,
+            todayCharges = 0L,
+            remainingAllowance = 50_000L,
+            tomorrowProjection = null,
+        )
+
+        val result = mapToSafeToSpendCardState(
+            hasBudget = true,
+            snapshot = snapshot,
+            periodType = BudgetPeriodType.Salary(payday = 25),
+            today = today,
+        ).shouldBeInstanceOf<SafeToSpendCardState.Active>()
+
+        result.paydayLabel shouldBe "Left until payday · 1 day"
+    }
+
+    @Test
+    fun `salary period with multiple days until payday maps paydayLabel`() {
+        val today = LocalDate.of(2026, 10, 20)
+        val snapshot = BudgetSnapshot(
+            periodStart = LocalDate.of(2026, 9, 25),
+            periodEnd = LocalDate.of(2026, 10, 24),
+            capacity = 450_000L,
+            periodSpentRaw = 300_000L,
+            periodReserved = 0L,
+            periodRemaining = 150_000L,
+            daysRemaining = 5,
+            openingAllowance = 30_000L,
+            todayCharges = 0L,
+            remainingAllowance = 30_000L,
+            tomorrowProjection = 30_000L,
+        )
+
+        val result = mapToSafeToSpendCardState(
+            hasBudget = true,
+            snapshot = snapshot,
+            periodType = BudgetPeriodType.Salary(payday = 25),
+            today = today,
+        ).shouldBeInstanceOf<SafeToSpendCardState.Active>()
+
+        result.paydayLabel shouldBe "Left until payday · 5 days"
     }
 }

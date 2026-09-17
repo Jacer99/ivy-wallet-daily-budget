@@ -41,6 +41,7 @@ sealed interface SafeToSpendCardState {
         val todayChargesMinorUnits: Long,
         val tomorrowProjectionMinorUnits: Long?,
         val message: SafeToSpendMessage?,
+        val paydayLabel: String? = null,
     ) : SafeToSpendCardState
 
     data class Error(
@@ -207,6 +208,15 @@ private fun ActiveContent(
                     ),
                     style = UI.typo.nB2.style(color = UI.colors.mediumInverse),
                     modifier = Modifier.testTag("safe_to_spend_tomorrow")
+                )
+            }
+
+            state.paydayLabel?.let { label ->
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = label,
+                    style = UI.typo.nB2.style(color = UI.colors.mediumInverse),
+                    modifier = Modifier.testTag("safe_to_spend_payday")
                 )
             }
 

@@ -450,13 +450,16 @@ class HomeViewModel @Inject constructor(
             if (!hasBudget) {
                 SafeToSpendCardState.NoBudget
             } else {
+                val today = LocalDate.now()
                 val snapshot = getDynamicBudgetSnapshotUseCase(
-                    today = LocalDate.now(),
+                    today = today,
                     zoneId = ZoneId.systemDefault(),
                 )
                 mapToSafeToSpendCardState(
                     hasBudget = true,
                     snapshot = snapshot,
+                    periodType = config.periodType,
+                    today = today,
                 )
             }
         } catch (e: Exception) {
