@@ -12,6 +12,8 @@ import com.ivy.base.legacy.Transaction
 import com.ivy.base.legacy.TransactionHistoryItem
 import com.ivy.base.time.TimeConverter
 import com.ivy.base.time.TimeProvider
+import com.ivy.data.DataObserver
+import com.ivy.data.DataWriteEvent
 import com.ivy.data.model.primitive.AssetCode
 import com.ivy.data.repository.CategoryRepository
 import com.ivy.data.repository.mapper.TransactionMapper
@@ -63,6 +65,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -99,6 +102,7 @@ class HomeViewModel @Inject constructor(
     private val features: Features,
     private val getDynamicBudgetSnapshotUseCase: GetDynamicBudgetSnapshotUseCase,
     private val dynamicBudgetConfigStore: DynamicBudgetConfigStore,
+    private val dataObserver: DataObserver,
 ) : ComposeViewModel<HomeState, HomeEvent>() {
     private var currentTheme by mutableStateOf(Theme.AUTO)
     private var name by mutableStateOf("")
@@ -141,6 +145,19 @@ class HomeViewModel @Inject constructor(
     private var safeToSpend by mutableStateOf<SafeToSpendCardState>(
         SafeToSpendCardState.Loading
     )
+
+    init {
+        viewModelScope.launch {
+            dataObserver.writeEvents.collectLatest { event ->
+                when (event) {
+                    is DataWriteEvent.TransactionChange -> {
+                        reload()
+                    }
+                    else -> Unit
+                }
+            }
+        }
+    }
 
     @Composable
     override fun uiState(): HomeState {

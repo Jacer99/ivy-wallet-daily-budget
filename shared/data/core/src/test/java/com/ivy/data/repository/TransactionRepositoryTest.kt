@@ -5,6 +5,7 @@ import arrow.core.Some
 import arrow.core.identity
 import com.ivy.base.TestDispatchersProvider
 import com.ivy.base.model.TransactionType
+import com.ivy.data.DataObserver
 import com.ivy.data.db.dao.fake.FakeTransactionDao
 import com.ivy.data.db.dao.read.TransactionDao
 import com.ivy.data.db.dao.write.WriteTransactionDao
@@ -45,6 +46,7 @@ class TransactionRepositoryTest {
     private val transactionDao = mockk<TransactionDao>()
     private val writeTransactionDao = mockk<WriteTransactionDao>()
     private val tagRepository = mockk<TagRepository>(relaxed = true)
+    private val dataObserver = DataObserver()
 
     private lateinit var repository: TransactionRepository
 
@@ -60,7 +62,8 @@ class TransactionRepositoryTest {
         transactionDao = fakeDao ?: transactionDao,
         writeTransactionDao = fakeDao ?: writeTransactionDao,
         dispatchersProvider = TestDispatchersProvider,
-        tagRepository = tagRepository
+        tagRepository = tagRepository,
+        dataObserver = dataObserver,
     )
 
     @Test

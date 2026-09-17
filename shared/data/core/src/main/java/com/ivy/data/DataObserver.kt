@@ -6,7 +6,10 @@ import com.ivy.data.model.Category
 import com.ivy.data.model.CategoryId
 import com.ivy.data.model.Tag
 import com.ivy.data.model.TagId
+import com.ivy.data.model.Transaction
+import com.ivy.data.model.TransactionId
 import com.ivy.data.model.sync.UniqueId
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import javax.inject.Inject
@@ -14,7 +17,10 @@ import javax.inject.Singleton
 
 @Singleton
 class DataObserver @Inject constructor() {
-    private val _writeEvents = MutableSharedFlow<DataWriteEvent>()
+    private val _writeEvents = MutableSharedFlow<DataWriteEvent>(
+        extraBufferCapacity = 16,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
     val writeEvents: Flow<DataWriteEvent> = _writeEvents
 
     suspend fun post(event: DataWriteEvent) {
@@ -23,7 +29,7 @@ class DataObserver @Inject constructor() {
 }
 
 sealed interface DataWriteEvent {
-    data object AllDataChange : AccountChange, CategoryChange
+    data object AllDataChange : AccountChange, CategoryChange, TransactionChange
 
     sealed interface AccountChange : DataWriteEvent
     data class SaveAccounts(val accounts: List<Account>) : AccountChange
@@ -36,6 +42,10 @@ sealed interface DataWriteEvent {
     sealed interface TagChange : DataWriteEvent
     data class SaveTags(val tags: List<Tag>) : TagChange
     data class DeleteTags(val operation: DeleteOperation<TagId>) : TagChange
+
+    sealed interface TransactionChange : DataWriteEvent
+    data class SaveTransactions(val transactions: List<Transaction>) : TransactionChange
+    data class DeleteTransactions(val operation: DeleteOperation<TransactionId>) : TransactionChange
 }
 
 sealed interface DeleteOperation<out Id : UniqueId> {

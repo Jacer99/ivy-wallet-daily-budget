@@ -17,6 +17,9 @@ import com.ivy.data.model.primitive.AssociationId
 import com.ivy.data.model.primitive.NonNegativeLong
 import com.ivy.data.model.primitive.toNonNegative
 import com.ivy.data.repository.mapper.TransactionMapper
+import com.ivy.data.DataObserver
+import com.ivy.data.DataWriteEvent
+import com.ivy.data.DeleteOperation
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.time.Instant
@@ -28,7 +31,8 @@ class TransactionRepository @Inject constructor(
     private val transactionDao: TransactionDao,
     private val writeTransactionDao: WriteTransactionDao,
     private val dispatchersProvider: DispatchersProvider,
-    private val tagRepository: TagRepository
+    private val tagRepository: TagRepository,
+    private val dataObserver: DataObserver,
 ) {
     suspend fun findAll(): List<Transaction> = withContext(dispatchersProvider.io) {
         val tagMap = async { findAllTagAssociations() }
@@ -262,6 +266,7 @@ class TransactionRepository @Inject constructor(
             writeTransactionDao.save(
                 with(mapper) { value.toEntity() }
             )
+            dataObserver.post(DataWriteEvent.SaveTransactions(listOf(value)))
         }
     }
 
@@ -270,30 +275,37 @@ class TransactionRepository @Inject constructor(
             writeTransactionDao.saveMany(
                 value.map { with(mapper) { it.toEntity() } }
             )
+            dataObserver.post(DataWriteEvent.SaveTransactions(value))
         }
     }
 
     suspend fun deleteById(id: TransactionId) {
         withContext(dispatchersProvider.io) {
             writeTransactionDao.deleteById(id.value)
+            dataObserver.post(
+                DataWriteEvent.DeleteTransactions(DeleteOperation.Just(listOf(id)))
+            )
         }
     }
 
     suspend fun deleteAllByAccountId(accountId: AccountId) {
         withContext(dispatchersProvider.io) {
             writeTransactionDao.deleteAllByAccountId(accountId.value)
+            dataObserver.post(DataWriteEvent.DeleteTransactions(DeleteOperation.All))
         }
     }
 
     suspend fun deletedByRecurringRuleIdAndNoDateTime(recurringRuleId: UUID) {
         withContext(dispatchersProvider.io) {
             writeTransactionDao.deletedByRecurringRuleIdAndNoDateTime(recurringRuleId)
+            dataObserver.post(DataWriteEvent.DeleteTransactions(DeleteOperation.All))
         }
     }
 
     suspend fun deleteAll() {
         withContext(dispatchersProvider.io) {
             writeTransactionDao.deleteAll()
+            dataObserver.post(DataWriteEvent.DeleteTransactions(DeleteOperation.All))
         }
     }
 
