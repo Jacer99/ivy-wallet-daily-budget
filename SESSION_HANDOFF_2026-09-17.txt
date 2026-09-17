@@ -1,0 +1,366 @@
+================================================================
+POCKETMONEY — SESSION HANDOFF — 2026-09-17 (end of day)
+================================================================
+
+PURPOSE
+-------
+Bring the AI collaborator up to speed on what landed today and where
+we stopped. This is a personal-use Ivy Wallet fork, not a published
+app. Rebrand to PocketMoney is essentially complete. Only launcher
+icon + splash logo remain.
+
+================================================================
+1. CRITICAL — WHAT TO PASTE TO AI NEXT SESSION
+================================================================
+
+Send this whole file. Additionally, before the AI can help with the
+next step, run these commands in a fresh PowerShell window and paste
+their output at the top of your first message:
+
+    cd "C:\Dev\Ivy-wallet"
+    git log --oneline -8
+    git status
+
+Also paste the full contents of these two files (they matter for the
+remaining work):
+
+    Get-Content "feature/onboarding/src/main/java/com/ivy/onboarding/steps/OnboardingSplashLogin.kt"
+
+    Get-Content "feature/home/src/main/java/com/ivy/home/SafeToSpendCard.kt"
+
+And confirm one thing visually in Android Studio:
+  - Does app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+    reference "@mipmap/ic_launcher_foreground" or has it been
+    regenerated with a wallet shape?
+  - Do the mipmap-*/ic_launcher.webp files look like the OLD leaf
+    or the NEW wallet? (Just eyeball the file thumbnails in the
+    Project view.)
+
+That tells the AI whether the Image Asset wizard was ever run.
+
+================================================================
+2. ENVIRONMENT (unchanged — do NOT alter)
+================================================================
+
+Product:        PocketMoney
+Tagline:        "One number a day."
+Repo:           https://github.com/Jacer99/ivy-wallet-daily-budget
+Local path:     C:\Dev\Ivy-wallet
+Branch:         development
+Baseline:       ivy-original-baseline
+
+  Gradle wrapper:     8.8
+  Gradle JDK:         17  (C:\Users\JACER\.jdks\jbr-17.0.14)
+  Kotlin:             2.0.20
+  AGP:                8.5.2
+  Android Studio:     2026.1.4
+  Emulator:           Pixel 8, API 37.1
+  Target phone:       Samsung Galaxy S25 Ultra (both users)
+
+PowerShell gotcha: every fresh session starts in C:\Users\JACER.
+Always "cd C:\Dev\Ivy-wallet" first.
+
+================================================================
+3. GIT HISTORY — RECENT COMMITS (newest first)
+================================================================
+
+Today's work, in two commits (verify with git log):
+
+  <SHA A>  Replace clay with vibrant M3 palette + Quick access
+           and card tweaks
+           Files: IvyColors.kt, IvyMaterial3Theme.kt, legacy Colors.kt,
+                  IvyWalletDesign.kt, legacy IvyColors.kt,
+                  SafeToSpendCard.kt, DynamicBudgetConfigScreen.kt,
+                  HomeMoreMenu.kt, EditTransactionScreen.kt,
+                  strings.xml
+
+  <SHA B>  [Earlier today] Personal touches: rebrand, love message,
+           settings cleanup, banque de tunisie, etc.
+
+Earlier work in this fork (unchanged, from prior sessions):
+  eed2b536  Add spending budget screen and quick actions to Home
+  61d91164  Add live reactivity to SafeToSpendCard via DataObserver
+  fa531291  Allow removing a configured budget
+  250641f3  Gate Apply-to-allowance selector on configured budget
+  af162fed  Polish Home hierarchy and fix Settings icon duplication
+  ... plus the full Task 1-22 history
+
+================================================================
+4. WHAT LANDED TODAY (2026-09-17)
+================================================================
+
+Task 24 — Rebrand to PocketMoney (COMMITTED)
+  - App display name now PocketMoney (release/debug/demo)
+  - Onboarding skips currency step; TND written unconditionally
+  - 17 non-English values-*/ directories deleted (English-only)
+  - External Ivy links removed from Settings: Telegram, Help Center,
+    Report Bug, Request a Feature, Contact Support, Language picker
+  - Product section removed (Releases, Contributors, Attributions)
+  - "Rate us on Google Play" and "Share PocketMoney" rows removed
+    from Settings
+  - Home "Share PocketMoney" quick-access tile replaced with
+    "Spending budget" tile (navigates to DynamicBudgetConfigScreen)
+  - GitHub open-source cards on Home and Settings replaced with
+    "Built with love for my wife ❤️"
+  - Settings bottom credit: two lines — love message + GPL attribution
+  - Export/backup filename prefixes IvyWallet* → PocketMoney*
+  - "Revolut" account suggestion → "Banque de Tunisie",
+    generic bank icon
+  - CSV import warning string corrected to reference PocketMoney
+  - License credit corrected: Apache-2.0 → GPL-3.0
+  - OnboardingViewModel.importSkip/importFinished/startFresh
+    reverted to non-suspend with internal coroutine launch so
+    feature/import-data callers compile
+
+Task 25a — Vibrant M3 palette (COMMITTED)
+  - Primary accent: clay #C4783E → vivid violet #7C4DFF (light) /
+    #9D7BFF (dark). Applied everywhere clay was hardcoded:
+    SafeToSpendCard hero + Add expense button,
+    DynamicBudgetConfigScreen Save button,
+    EditTransactionScreen apply-to-allowance selector.
+  - Secondary: electric teal #00BFA5
+  - Tertiary: coral #FF6E40
+  - Success: #00C853 (light) / #5EE87F (dark)
+  - Error: #FF5252 (light) / #FF8A8A (dark)
+  - Light background: #FDFBFF (warm off-white)
+  - Dark background: #1C1B1F (M3 dark)
+  - AMOLED: #000000 (true black preserved via isTrueBlack)
+  - Both color systems updated: new M3 (IvyColors +
+    IvyMaterial3Theme) AND legacy (Colors.kt + IvyWalletDesign +
+    legacy IvyColors)
+
+SafeToSpendCard text simplification (COMMITTED)
+  - Removed "Opening X · Charged today Y" line
+  - "Tomorrow approximately X TND" → "Tomorrow: X TND"
+  - Hero number, buttons, over-budget messages unchanged
+
+Task 23 — Regression pass: DECLARED DONE
+  - User verified all manual flows on device across the week
+  - :app:assembleDebug green, no regressions observed
+
+================================================================
+5. UNCOMMITTED WORK IN THE WORKING TREE
+================================================================
+
+STATUS AT END OF SESSION — LIKELY UNCLEAR, VERIFY FIRST
+
+The user was mid-way through replacing the launcher icon and
+onboarding splash when they stopped. It is UNKNOWN whether any of
+the following were done:
+
+  a) Run the Android Studio Image Asset wizard with the new wallet
+     PNG (regenerates 25 mipmap files in app/src/main/res/)
+  b) Copy pocketmoney_logo.png into
+     shared/ui/core/src/main/res/drawable/
+  c) Run the Gemini prompt to change the painterResource reference
+     in OnboardingSplashLogin.kt from ivy_wallet_logo to
+     pocketmoney_logo
+
+Run "git status" first thing next session. Expected possible
+uncommitted changes:
+  - app/src/main/res/mipmap-*/ic_launcher*.webp (25 files)
+  - app/src/main/res/mipmap-anydpi-v26/ic_launcher*.xml (2 files)
+  - shared/ui/core/src/main/res/drawable/pocketmoney_logo.png (new)
+  - feature/onboarding/.../OnboardingSplashLogin.kt (1-line change)
+
+If working tree is clean and none of those files exist, the icon
+task was NOT started. If working tree is dirty, apply the commit
+in section 8 below.
+
+================================================================
+6. THE NEW LOGO ASSET
+================================================================
+
+The user created a wallet illustration (pink $10 bill, mint $20 bill,
+gold coin peeking out of a cream/white wallet with dark navy strap).
+An in-app variant of this logo is what the launcher icon and splash
+should show.
+
+A transparent-background version exists on the user's device
+(produced via Nano Banana's background removal). The user needs to:
+
+  1. Save that transparent PNG locally as pocketmoney_logo.png
+  2. Copy it to:
+     shared/ui/core/src/main/res/drawable/pocketmoney_logo.png
+  3. For the launcher icon: run Image Asset wizard in Android Studio
+     with that PNG as foreground, background color #2A2D35
+     (dark navy), scaling ~65%, include monochrome theme
+
+If the user has not done any of this, the prompt in section 7 covers
+only the splash reference change. The wizard is a manual Android
+Studio tool — no prompt can automate it.
+
+================================================================
+7. NEXT IMMEDIATE STEP (Prompt already prepared)
+================================================================
+
+The Gemini prompt to change the splash logo reference was already
+written and sent to the user at end of session — it may or may not
+have been used. It instructs:
+
+  In OnboardingSplashLogin.kt:
+    - painter = painterResource(id = R.drawable.ivy_wallet_logo)
+    + painter = painterResource(id = R.drawable.pocketmoney_logo)
+
+The user should:
+  1. Confirm pocketmoney_logo.png is in the drawable folder
+  2. Run (or re-run) the prompt if the change isn't applied
+  3. Run the Image Asset wizard if not yet done
+  4. Build: .\gradlew :app:assembleDebug
+  5. Install: .\gradlew installDebug
+  6. Screenshot launcher + onboarding splash on S25 Ultra
+  7. Commit if it looks right
+
+================================================================
+8. COMMIT COMMAND — for when icon + splash are verified
+================================================================
+
+    cd "C:\Dev\Ivy-wallet"
+    git add -A
+    git status   # sanity check — expect mipmap files + new png
+                 # + OnboardingSplashLogin.kt
+    git commit -m "Replace launcher icon and splash logo with
+    PocketMoney wallet
+
+    - Regenerated all 25 launcher icon variants (adaptive, legacy,
+      round, monochrome) from the new wallet logo
+    - Added pocketmoney_logo.png to shared drawable
+    - OnboardingSplashLogin now references the new logo
+    - Original ivy_wallet_logo.xml kept in place (unused, harmless)
+
+    Verified: :app:assembleDebug, installDebug, visual on
+    Samsung S25 Ultra launcher and onboarding splash."
+    git push origin development
+
+================================================================
+9. ROADMAP STATUS
+================================================================
+
+  ✅ Tasks 1–15     Domain layer, migrations, backup integration
+  ✅ Task 16a/16b   AllocationMode plumbing + selector UI
+  ✅ Task 17/17b    SafeToSpendCard + raw minor units refactor
+  ✅ Task 18        Home wiring
+  ✅ Task 19/19c    Quick actions + budget config screen
+  ✅ Task 20        Live reactivity via DataObserver.writeEvents
+  ✅ Task 21        Verified free (edit propagation via Task 20)
+  ✅ Task 22        Home hierarchy polish + Settings icon fix
+  ✅ Task 23        Regression pass (declared done)
+  ✅ Task 24        Rebrand to PocketMoney (committed)
+  ✅ Task 25a       Vibrant M3 palette (committed)
+  ⏳ Task 25b       Launcher icon + splash logo (in progress)
+  ☐  Optional       Code cleanup: remove dead shareIvyWallet(),
+                    unused Constants import in HomeMoreMenu.kt,
+                    unused `context` val in HomeMoreMenu.kt,
+                    unused string resources
+
+================================================================
+10. KNOWN NON-BLOCKING WARNINGS AT END OF SESSION
+================================================================
+
+These compile fine but generate IDE warnings:
+
+  - HomeMoreMenu.kt: unused import com.ivy.legacy.Constants
+  - HomeMoreMenu.kt: unused local `val context = LocalContext.current`
+  - HomeMoreMenu.kt: unused function parameter onCurrencyClick
+  - RootScreen.kt: shareIvyWallet() has no callers now
+  - RootActivity.kt: override of shareIvyWallet() now dead code
+  - SettingsScreen.kt: unused function AccountCardButton
+  - SettingsScreen.kt: unused SettingsUiTest function
+
+None of these break the build. A future cleanup task can sweep them
+if desired. Not urgent.
+
+================================================================
+11. VISUAL PALETTE REFERENCE (locked in)
+================================================================
+
+  Role                   Light         Dark
+  Primary (accent)       #7C4DFF       #9D7BFF
+  Primary container      #E8DDFF       #4B2FA0
+  Secondary (teal)       #00BFA5       #4DD0C7
+  Secondary container    #B2EBE0       #005046
+  Tertiary (coral)       #FF6E40       #FF8A65
+  Tertiary container     #FFDAD0       #7C2E10
+  Success / income       #00C853       #5EE87F
+  Error / expense        #FF5252       #FF8A8A
+  Background             #FDFBFF       #1C1B1F
+  Surface                #FFFFFF       #1C1B1F
+  AMOLED background      —             #000000
+
+================================================================
+12. PROJECT RULES — DO NOT VIOLATE
+================================================================
+
+From PROJECT_RULES.md §17 — priority when requirements conflict:
+
+  1. Financial correctness
+  2. Preservation of Ivy accounting
+  3. Data integrity
+  4. Deterministic calculations
+  5. User trust
+  6. Ivy UX consistency
+  7. Performance
+  8. Visual polish
+  9. Feature count
+
+Never sacrifice 1–5 for 8–9.
+
+NEVER touch (breaks app):
+  - package name com.ivy
+  - IvyRoomDatabase class name, DB schema
+  - Backup format: IvyWalletCompleteData, @SerialName values
+  - LICENSE file
+  - README, NOTICE
+
+SAFE to touch: any user-visible text, colors in the palette files,
+the launcher icon, the splash logo, layout of any screen.
+
+================================================================
+13. GEMINI WORKFLOW NOTES
+================================================================
+
+The user works with a Gemini agent in Android Studio. Key rules for
+prompts given to that agent:
+
+  - Gemini CANNOT run shell, git, or gradle commands. Attempts hang
+    the session. Every prompt must include:
+    "Do NOT run any shell commands, git commands, gradle commands,
+    or process invocations."
+
+  - Gemini CANNOT copy/move binary files (PNGs, webp). The user
+    must place image files manually before Gemini can reference them.
+
+  - Gemini CANNOT use Android Studio's Image Asset wizard. That's
+    a manual tool. Only the user can run it.
+
+  - Every prompt must end with: "Do NOT claim 'Build finished
+    successfully.' I run Gradle locally. Reply inline only."
+
+  - Use fresh Gemini sessions per task to avoid thought_signature
+    corruption on rotated models.
+
+================================================================
+14. CHECKPOINT — STATE AS OF 2026-09-17 END OF DAY
+================================================================
+
+HEAD: at the "M3 palette + Quick access + card tweaks" commit.
+      Verify exact SHA with `git log --oneline -3`.
+
+Working tree: likely contains launcher icon changes (if wizard was
+  run) + splash logo changes (if Gemini prompt was run). Verify with
+  `git status`.
+
+Build status: :app:assembleDebug was green as of the last commit.
+  No known compile errors.
+
+Emulator status: everything verified in Light, Dark, and AMOLED
+  modes. Launcher icon and splash logo are the only unverified
+  visuals.
+
+User state: tired, stopping for the day. Next session should pick
+  up cleanly with "git status" + a decision about whether to finish
+  the icon work or defer it.
+
+================================================================
+END OF HANDOFF
+================================================================
