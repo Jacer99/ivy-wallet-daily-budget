@@ -144,4 +144,6 @@ data object ReleasesScreen : Screen
 
 data object DisclaimerScreen : Screen
 
+data object DynamicBudgetConfigScreen : Screen
+
 data object PollScreen : Screen

@@ -49,6 +49,7 @@ import com.ivy.legacy.rootScreen
 import com.ivy.legacy.utils.drawColoredShadow
 import com.ivy.navigation.AttributionsScreen
 import com.ivy.navigation.ContributorsScreen
+import com.ivy.navigation.DynamicBudgetConfigScreen
 import com.ivy.navigation.ExchangeRatesScreen
 import com.ivy.navigation.FeaturesScreen
 import com.ivy.navigation.ImportScreen
@@ -231,6 +232,15 @@ private fun BoxWithConstraintsScope.UI(
                 nameLocalAccount = nameLocalAccount,
             ) {
                 nameModalVisible = true
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            SettingsDefaultButton(
+                icon = R.drawable.ic_vue_money_tag,
+                text = "Spending budget",
+            ) {
+                nav.navigateTo(DynamicBudgetConfigScreen)
             }
 
 //            Spacer(Modifier.height(20.dp))

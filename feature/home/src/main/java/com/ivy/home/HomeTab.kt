@@ -29,6 +29,7 @@ import com.ivy.base.legacy.Theme
 import com.ivy.base.legacy.Transaction
 import com.ivy.base.legacy.TransactionHistoryItem
 import com.ivy.base.legacy.stringRes
+import com.ivy.base.model.TransactionType
 import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeFormatter
 import com.ivy.design.api.LocalTimeProvider
@@ -50,7 +51,10 @@ import com.ivy.legacy.ui.component.transaction.transactions
 import com.ivy.legacy.utils.horizontalSwipeListener
 import com.ivy.legacy.utils.rememberSwipeListenerState
 import com.ivy.legacy.utils.verticalSwipeListener
+import com.ivy.navigation.DynamicBudgetConfigScreen
+import com.ivy.navigation.EditTransactionScreen
 import com.ivy.navigation.IvyPreview
+import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
 import com.ivy.ui.rememberScrollPositionListState
@@ -86,6 +90,7 @@ fun BoxWithConstraintsScope.HomeUi(
     modifier: Modifier = Modifier,
 ) {
     val ivyContext = ivyWalletCtx()
+    val nav = navigation()
 
     var bufferModalData: BufferModalData? by remember { mutableStateOf(null) }
     var currencyModalVisible by remember { mutableStateOf(false) }
@@ -160,6 +165,25 @@ fun BoxWithConstraintsScope.HomeUi(
 
         HomeLazyColumn(
             safeToSpend = uiState.safeToSpend,
+            onAddExpense = {
+                nav.navigateTo(
+                    EditTransactionScreen(
+                        initialTransactionId = null,
+                        type = TransactionType.EXPENSE,
+                    )
+                )
+            },
+            onAddIncome = {
+                nav.navigateTo(
+                    EditTransactionScreen(
+                        initialTransactionId = null,
+                        type = TransactionType.INCOME,
+                    )
+                )
+            },
+            onConfigureBudget = {
+                nav.navigateTo(DynamicBudgetConfigScreen)
+            },
             hideBalance = uiState.hideBalance,
             hideIncome = uiState.hideIncome,
             onSetExpand = {
@@ -290,6 +314,9 @@ fun HomeLazyColumn(
     onSetExpand: (Boolean) -> Unit,
     listState: LazyListState,
     safeToSpend: SafeToSpendCardState,
+    onAddExpense: () -> Unit,
+    onAddIncome: () -> Unit,
+    onConfigureBudget: () -> Unit,
     period: TimePeriod,
 
     baseData: AppBaseData,
@@ -345,6 +372,9 @@ fun HomeLazyColumn(
         item {
             SafeToSpendCard(
                 state = safeToSpend,
+                onAddExpense = onAddExpense,
+                onAddIncome = onAddIncome,
+                onConfigureBudget = onConfigureBudget,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
             Spacer(Modifier.height(16.dp))

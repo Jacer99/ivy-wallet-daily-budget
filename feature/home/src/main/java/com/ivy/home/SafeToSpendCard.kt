@@ -1,6 +1,9 @@
 package com.ivy.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -60,6 +69,9 @@ private fun formatTndAmount(minorUnits: Long): String =
 @Composable
 fun SafeToSpendCard(
     state: SafeToSpendCardState,
+    onAddExpense: () -> Unit,
+    onAddIncome: () -> Unit,
+    onConfigureBudget: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -67,21 +79,30 @@ fun SafeToSpendCard(
             .fillMaxWidth()
             .clip(UI.shapes.r4)
             .background(UI.colors.medium)
-            .padding(24.dp)
             .testTag("safe_to_spend_card")
     ) {
         when (state) {
-            is SafeToSpendCardState.Loading -> LoadingContent()
-            is SafeToSpendCardState.NoBudget -> NoBudgetContent()
-            is SafeToSpendCardState.Active -> ActiveContent(state)
-            is SafeToSpendCardState.Error -> ErrorContent(state.message)
+            is SafeToSpendCardState.Loading -> LoadingContent(Modifier.padding(24.dp))
+            is SafeToSpendCardState.NoBudget -> NoBudgetContent(
+                onConfigureBudget = onConfigureBudget,
+                modifier = Modifier.padding(24.dp),
+            )
+            is SafeToSpendCardState.Active -> ActiveContent(
+                state = state,
+                onAddExpense = onAddExpense,
+                onAddIncome = onAddIncome,
+            )
+            is SafeToSpendCardState.Error -> ErrorContent(
+                message = state.message,
+                modifier = Modifier.padding(24.dp),
+            )
         }
     }
 }
 
 @Composable
-private fun LoadingContent() {
-    Column(modifier = Modifier.testTag("safe_to_spend_loading")) {
+private fun LoadingContent(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.testTag("safe_to_spend_loading")) {
         Text(
             text = stringResource(R.string.safe_to_spend_today),
             style = UI.typo.c.style(
@@ -101,20 +122,37 @@ private fun LoadingContent() {
 }
 
 @Composable
-private fun NoBudgetContent() {
-    Text(
-        text = stringResource(R.string.no_budget_message),
-        style = UI.typo.nB1.style(
-            color = UI.colors.pureInverse,
-            fontWeight = FontWeight.Medium
-        ),
-        modifier = Modifier.testTag("safe_to_spend_no_budget")
-    )
+private fun NoBudgetContent(
+    onConfigureBudget: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onConfigureBudget)
+            .testTag("safe_to_spend_no_budget"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.no_budget_message),
+            style = UI.typo.nB1.style(
+                color = UI.colors.pureInverse,
+                fontWeight = FontWeight.Medium,
+            ),
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(8.dp))
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = UI.colors.mediumInverse,
+        )
+    }
 }
 
 @Composable
-private fun ErrorContent(message: String) {
-    Column(modifier = Modifier.testTag("safe_to_spend_error")) {
+private fun ErrorContent(message: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.testTag("safe_to_spend_error")) {
         Text(
             text = stringResource(R.string.allowance_calculation_error),
             style = UI.typo.c.style(
@@ -131,86 +169,143 @@ private fun ErrorContent(message: String) {
 }
 
 @Composable
-private fun ActiveContent(state: SafeToSpendCardState.Active) {
+private fun ActiveContent(
+    state: SafeToSpendCardState.Active,
+    onAddExpense: () -> Unit,
+    onAddIncome: () -> Unit,
+) {
     Column {
-        Text(
-            text = stringResource(R.string.safe_to_spend_today),
-            style = UI.typo.c.style(
-                color = UI.colors.mediumInverse,
-                fontWeight = FontWeight.ExtraBold
-            )
-        )
-
-        Spacer(Modifier.height(4.dp))
-
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier.testTag("safe_to_spend_amount")
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
         ) {
             Text(
-                text = formatTndAmount(state.remainingAllowanceMinorUnits),
-                style = UI.typo.h1.style(
-                    color = PocketMoneyAccent,
-                    fontWeight = FontWeight.Black
+                text = stringResource(R.string.safe_to_spend_today),
+                style = UI.typo.c.style(
+                    color = UI.colors.mediumInverse,
+                    fontWeight = FontWeight.ExtraBold
                 )
             )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.safe_to_spend_currency),
-                style = UI.typo.b1.style(
-                    color = UI.colors.mediumInverse,
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
 
-        Spacer(Modifier.height(12.dp))
-
-        Text(
-            text = stringResource(
-                R.string.safe_to_spend_context,
-                formatTndAmount(state.openingAllowanceMinorUnits),
-                formatTndAmount(state.todayChargesMinorUnits)
-            ),
-            style = UI.typo.nB2.style(color = UI.colors.mediumInverse),
-        )
-
-        state.tomorrowProjectionMinorUnits?.let { projectionMinorUnits ->
             Spacer(Modifier.height(4.dp))
+
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier.testTag("safe_to_spend_amount")
+            ) {
+                Text(
+                    text = formatTndAmount(state.remainingAllowanceMinorUnits),
+                    style = UI.typo.h1.style(
+                        color = PocketMoneyAccent,
+                        fontWeight = FontWeight.Black
+                    )
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.safe_to_spend_currency),
+                    style = UI.typo.b1.style(
+                        color = UI.colors.mediumInverse,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
             Text(
                 text = stringResource(
-                    R.string.safe_to_spend_tomorrow,
-                    formatTndAmount(projectionMinorUnits),
-                    stringResource(R.string.safe_to_spend_currency)
+                    R.string.safe_to_spend_context,
+                    formatTndAmount(state.openingAllowanceMinorUnits),
+                    formatTndAmount(state.todayChargesMinorUnits)
                 ),
                 style = UI.typo.nB2.style(color = UI.colors.mediumInverse),
-                modifier = Modifier.testTag("safe_to_spend_tomorrow")
             )
-        }
 
-        when (val m = state.message) {
-            null -> Unit
-            is SafeToSpendMessage.OverToday -> {
-                Spacer(Modifier.height(12.dp))
+            state.tomorrowProjectionMinorUnits?.let { projectionMinorUnits ->
+                Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(
-                        R.string.safe_to_spend_over_today,
-                        formatTndAmount(m.overByMinorUnits),
+                        R.string.safe_to_spend_tomorrow,
+                        formatTndAmount(projectionMinorUnits),
+                        stringResource(R.string.safe_to_spend_currency)
                     ),
+                    style = UI.typo.nB2.style(color = UI.colors.mediumInverse),
+                    modifier = Modifier.testTag("safe_to_spend_tomorrow")
+                )
+            }
+
+            when (val m = state.message) {
+                null -> Unit
+                is SafeToSpendMessage.OverToday -> {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.safe_to_spend_over_today,
+                            formatTndAmount(m.overByMinorUnits),
+                        ),
+                        style = UI.typo.nB2.style(
+                            color = UI.colors.mediumInverse,
+                            fontWeight = FontWeight.Medium,
+                        ),
+                    )
+                }
+                is SafeToSpendMessage.PeriodExhausted -> {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(R.string.safe_to_spend_period_exhausted),
+                        style = UI.typo.nB2.style(
+                            color = UI.colors.mediumInverse,
+                            fontWeight = FontWeight.Medium,
+                        ),
+                    )
+                }
+            }
+        }
+
+        Divider(
+            color = UI.colors.mediumInverse.copy(alpha = 0.2f),
+            thickness = 1.dp,
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .testTag("safe_to_spend_actions"),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = onAddExpense,
+                modifier = Modifier.weight(1f).testTag("safe_to_spend_add_expense"),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = PocketMoneyAccent,
+                ),
+                border = BorderStroke(1.dp, PocketMoneyAccent),
+            ) {
+                Text(
+                    text = stringResource(R.string.add_expense),
                     style = UI.typo.nB2.style(
-                        color = UI.colors.mediumInverse,
-                        fontWeight = FontWeight.Medium,
+                        color = PocketMoneyAccent,
+                        fontWeight = FontWeight.SemiBold,
                     ),
                 )
             }
-            is SafeToSpendMessage.PeriodExhausted -> {
-                Spacer(Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = onAddIncome,
+                modifier = Modifier.weight(1f).testTag("safe_to_spend_add_income"),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = UI.colors.mediumInverse,
+                ),
+                border = BorderStroke(1.dp, UI.colors.mediumInverse),
+            ) {
                 Text(
-                    text = stringResource(R.string.safe_to_spend_period_exhausted),
+                    text = stringResource(R.string.add_income),
                     style = UI.typo.nB2.style(
                         color = UI.colors.mediumInverse,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
                     ),
                 )
             }
@@ -263,7 +358,10 @@ private fun SafeToSpendCardPreview(state: SafeToSpendCardState) {
     IvyPreview {
         SafeToSpendCard(
             state = state,
-            modifier = Modifier.padding(16.dp)
+            onAddExpense = {},
+            onAddIncome = {},
+            onConfigureBudget = {},
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
