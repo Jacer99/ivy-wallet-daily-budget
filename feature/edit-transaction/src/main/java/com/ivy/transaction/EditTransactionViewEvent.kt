@@ -38,6 +38,7 @@ data class EditTransactionViewState(
     val tags: ImmutableList<Tag>,
     val transactionAssociatedTags: ImmutableList<TagId>,
     val allocationMode: AllocationMode,
+    val hasBudget: Boolean = false,
 )
 
 sealed interface EditTransactionViewEvent {

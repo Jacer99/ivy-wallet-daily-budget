@@ -125,6 +125,7 @@ fun BoxWithConstraintsScope.EditTransactionScreen(screen: EditTransactionScreen)
         loanData = uiState.displayLoanHelper,
         backgroundProcessing = uiState.backgroundProcessingStarted,
         customExchangeRateState = uiState.customExchangeRateState,
+        hasBudget = uiState.hasBudget,
 
         categories = uiState.categories,
         accounts = uiState.accounts,
@@ -246,6 +247,7 @@ private fun BoxWithConstraintsScope.UI(
     loanData: EditTransactionDisplayLoan = EditTransactionDisplayLoan(),
     backgroundProcessing: Boolean = false,
     hasChanges: Boolean = false,
+    hasBudget: Boolean = false,
 
     ) {
     var chooseCategoryModalVisible by remember { mutableStateOf(false) }
@@ -359,7 +361,7 @@ private fun BoxWithConstraintsScope.UI(
             chooseCategoryModalVisible = true
         })
 
-        if (transactionType == TransactionType.EXPENSE) {
+        if (transactionType == TransactionType.EXPENSE && hasBudget) {
             Spacer(Modifier.height(16.dp))
             ApplyToAllowanceSelector(
                 selected = allocationMode,

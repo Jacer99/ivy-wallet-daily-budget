@@ -19,6 +19,7 @@ import com.ivy.base.time.TimeProvider
 import com.ivy.data.db.dao.read.LoanDao
 import com.ivy.data.db.dao.read.SettingsDao
 import com.ivy.data.model.AllocationMode
+import com.ivy.domain.usecase.budget.DynamicBudgetConfigStore
 import com.ivy.data.model.Category
 import com.ivy.data.model.CategoryId
 import com.ivy.data.model.Tag
@@ -108,6 +109,7 @@ class EditTransactionViewModel @Inject constructor(
     private val timeConverter: TimeConverter,
     private val timeProvider: TimeProvider,
     private val dateTimePicker: DateTimePicker,
+    private val dynamicBudgetConfigStore: DynamicBudgetConfigStore,
 ) : ComposeViewModel<EditTransactionViewState, EditTransactionViewEvent>() {
 
     private var transactionType by mutableStateOf(TransactionType.EXPENSE)
@@ -126,6 +128,7 @@ class EditTransactionViewModel @Inject constructor(
     private var category by mutableStateOf<Category?>(null)
     private var amount by mutableDoubleStateOf(0.0)
     private var allocationMode by mutableStateOf(AllocationMode.TODAY)
+    private var hasBudget by mutableStateOf(false)
     private var hasChanges by mutableStateOf(false)
     private var displayLoanHelper by mutableStateOf(EditTransactionDisplayLoan())
 
@@ -155,6 +158,7 @@ class EditTransactionViewModel @Inject constructor(
             baseUserCurrency = baseCurrency()
 
             val tagList = async { getAllTags() }
+            val budgetConfig = async { dynamicBudgetConfigStore.load() }
 
             val getAccounts = accountsAct(Unit)
             if (getAccounts.isEmpty()) {
@@ -181,6 +185,7 @@ class EditTransactionViewModel @Inject constructor(
             )
 
             tags = tagList.await()
+            hasBudget = budgetConfig.await().budgetLimitMinorUnits > 0L
             transactionAssociatedTags =
                 tagRepository.findByAssociatedId(AssociationId(loadedTransaction().id)).map(Tag::id)
                     .toImmutableList()
@@ -210,7 +215,8 @@ class EditTransactionViewModel @Inject constructor(
             customExchangeRateState = getCustomExchangeRateState(),
             tags = getTags(),
             transactionAssociatedTags = getTransactionAssociatedTags(),
-            allocationMode = getAllocationMode()
+            allocationMode = getAllocationMode(),
+            hasBudget = getHasBudget()
         )
     }
 
@@ -316,6 +322,11 @@ class EditTransactionViewModel @Inject constructor(
     @Composable
     private fun getAllocationMode(): AllocationMode {
         return allocationMode
+    }
+
+    @Composable
+    private fun getHasBudget(): Boolean {
+        return hasBudget
     }
 
     @Suppress("CyclomaticComplexMethod")
