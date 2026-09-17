@@ -99,7 +99,7 @@ class PreloadDataLogic @Inject constructor(
                 name = stringRes(R.string.revoult),
                 currency = baseCurrency,
                 color = Blue,
-                icon = "revolut",
+                icon = "bank",
                 balance = 0.0
             ),
         )

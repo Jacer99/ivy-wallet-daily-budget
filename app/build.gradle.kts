@@ -23,9 +23,6 @@ android {
         versionCode = libs.versions.version.code.get().toInt()
     }
 
-    androidResources {
-        generateLocaleConfig = true
-    }
 
     signingConfigs {
         getByName("debug") {
@@ -57,7 +54,7 @@ android {
 
             signingConfig = signingConfigs.getByName("release")
 
-            resValue("string", "app_name", "Ivy Wallet")
+            resValue("string", "app_name", "PocketMoney")
         }
 
         debug {
@@ -70,7 +67,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
 
             applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "Ivy Wallet Debug")
+            resValue("string", "app_name", "PocketMoney Debug")
         }
 
         create("demo") {
@@ -89,7 +86,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
 
             applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "Ivy Wallet")
+            resValue("string", "app_name", "PocketMoney")
         }
     }
 

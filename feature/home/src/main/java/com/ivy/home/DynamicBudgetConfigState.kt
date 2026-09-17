@@ -24,6 +24,7 @@ data class DynamicBudgetConfigState(
     val customEndError: String? = null,
     val saving: Boolean = false,
     val hasExistingBudget: Boolean = false,
+    val isBaseCurrencyTnd: Boolean = true,
 ) {
     val canSave: Boolean
         get() = !saving &&

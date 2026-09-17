@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -37,7 +38,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +57,6 @@ import com.ivy.legacy.utils.clickableNoIndication
 import com.ivy.legacy.utils.colorLerp
 import com.ivy.legacy.utils.lerp
 import com.ivy.legacy.utils.navigationBarInset
-import com.ivy.legacy.utils.openUrl
 import com.ivy.legacy.utils.rememberInteractionSource
 import com.ivy.legacy.utils.rememberSwipeListenerState
 import com.ivy.legacy.utils.springBounce
@@ -304,50 +303,24 @@ private fun SearchButton(
 
 @Composable
 private fun ColumnScope.OpenSource() {
-    val uriHandler = LocalUriHandler.current
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(UI.shapes.r4)
             .background(UI.colors.pure)
-            .clickable {
-                openUrl(
-                    uriHandler = uriHandler,
-                    url = Constants.URL_IVY_WALLET_REPO
-                )
-            }
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Spacer(Modifier.width(16.dp))
-
-        IvyIcon(
-            icon = R.drawable.github_logo
-        )
-
-        Column(
+        Text(
+            text = "Built with love for my wife ❤️",
+            style = UI.typo.nB2.style(
+                color = UI.colors.pureInverse,
+                fontWeight = FontWeight.Medium
+            ),
+            textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 24.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.ivy_wallet_open_source),
-                style = UI.typo.b2.style(
-                    fontWeight = FontWeight.ExtraBold
-                )
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            Text(
-                text = Constants.URL_IVY_WALLET_REPO,
-                style = UI.typo.c.style(
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Blue
-                )
-            )
-        }
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        )
     }
 }
 

@@ -47,26 +47,19 @@ import com.ivy.legacy.Constants
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.rootScreen
 import com.ivy.legacy.utils.drawColoredShadow
-import com.ivy.navigation.AttributionsScreen
-import com.ivy.navigation.ContributorsScreen
 import com.ivy.navigation.DynamicBudgetConfigScreen
 import com.ivy.navigation.ExchangeRatesScreen
 import com.ivy.navigation.FeaturesScreen
 import com.ivy.navigation.ImportScreen
-import com.ivy.navigation.Navigation
 import com.ivy.navigation.ReleasesScreen
 import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
 import com.ivy.wallet.domain.data.IvyCurrency
-import com.ivy.wallet.ui.theme.Blue
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientGreen
-import com.ivy.wallet.ui.theme.GradientIvy
 import com.ivy.wallet.ui.theme.Gray
-import com.ivy.wallet.ui.theme.MediumBlack
 import com.ivy.wallet.ui.theme.Red
-import com.ivy.wallet.ui.theme.Red3
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.components.IvySwitch
 import com.ivy.wallet.ui.theme.components.IvyToolbar
@@ -75,7 +68,6 @@ import com.ivy.wallet.ui.theme.modal.CurrencyModal
 import com.ivy.wallet.ui.theme.modal.DeleteModal
 import com.ivy.wallet.ui.theme.modal.NameModal
 import com.ivy.wallet.ui.theme.modal.ProgressModal
-import java.util.Locale
 
 @ExperimentalFoundationApi
 @Composable
@@ -98,7 +90,6 @@ fun BoxWithConstraintsScope.SettingsScreen() {
         treatTransfersAsIncomeExpense = uiState.treatTransfersAsIncomeExpense,
         nameLocalAccount = uiState.name,
         startDateOfMonth = uiState.startDateOfMonth.toInt(),
-        languageOptionVisible = uiState.languageOptionVisible,
         onSetCurrency = {
             viewModel.onEvent(SettingsEvent.SetCurrency(it))
         },
@@ -134,9 +125,6 @@ fun BoxWithConstraintsScope.SettingsScreen() {
         },
         onDeleteCloudUserData = {
             viewModel.onEvent(SettingsEvent.DeleteCloudUserData)
-        },
-        onSwitchLanguage = {
-            viewModel.onEvent(SettingsEvent.SwitchLanguage)
         }
     )
 }
@@ -150,7 +138,6 @@ private fun BoxWithConstraintsScope.UI(
     onSwitchTheme: () -> Unit,
     lockApp: Boolean,
     nameLocalAccount: String?,
-    languageOptionVisible: Boolean,
     onSetCurrency: (String) -> Unit,
     startDateOfMonth: Int = 1,
     showNotifications: Boolean = true,
@@ -168,8 +155,7 @@ private fun BoxWithConstraintsScope.UI(
     onSetHideIncome: (Boolean) -> Unit = {},
     onSetStartDateOfMonth: (Int) -> Unit = {},
     onDeleteAllUserData: () -> Unit = {},
-    onDeleteCloudUserData: () -> Unit = {},
-    onSwitchLanguage: () -> Unit = {}
+    onDeleteCloudUserData: () -> Unit = {}
 ) {
     var currencyModalVisible by remember { mutableStateOf(false) }
     var nameModalVisible by remember { mutableStateOf(false) }
@@ -316,19 +302,6 @@ private fun BoxWithConstraintsScope.UI(
 //
 //            Spacer(Modifier.height(12.dp))
 
-            if (languageOptionVisible) {
-                SettingsDefaultButton(
-                    icon = R.drawable.ic_vue_location_global,
-                    iconPadding = 6.dp,
-                    text = stringResource(R.string.language),
-                    description = Locale.getDefault().displayName
-                ) {
-                    onSwitchLanguage()
-                }
-
-                Spacer(Modifier.height(12.dp))
-            }
-
             SettingsDefaultButton(
                 icon = R.drawable.ic_currency,
                 text = stringResource(R.string.exchange_rates),
@@ -418,78 +391,19 @@ private fun BoxWithConstraintsScope.UI(
 
             Spacer(Modifier.height(16.dp))
 
-            val rootScreen = rootScreen()
-            SettingsPrimaryButton(
-                icon = R.drawable.ic_custom_star_m,
-                text = stringResource(R.string.rate_us_on_google_play),
-                backgroundGradient = GradientIvy
-            ) {
-                rootScreen.reviewIvyWallet(dismissReviewCard = false)
+            SettingsButtonRow(onClick = null) {
+                Text(
+                    text = "Built with love for my wife ❤️",
+                    style = UI.typo.nB2.style(
+                        color = UI.colors.pureInverse,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                )
             }
-
-            Spacer(Modifier.height(12.dp))
-
-            SettingsPrimaryButton(
-                icon = R.drawable.ic_custom_family_m,
-                text = stringResource(R.string.share_ivy_wallet),
-                backgroundGradient = Gradient.solid(Red3)
-            ) {
-                rootScreen.shareIvyWallet()
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            SettingsPrimaryButton(
-                icon = R.drawable.github_logo,
-                iconPadding = 10.dp,
-                text = stringResource(R.string.ivy_wallet_is_opensource),
-                backgroundGradient = Gradient.solid(MediumBlack)
-            ) {
-                rootScreen.openUrlInBrowser(url = Constants.URL_IVY_WALLET_REPO)
-            }
-        }
-
-        item {
-            SettingsSectionDivider(text = stringResource(R.string.product))
-
-            Spacer(Modifier.height(12.dp))
-
-            IvyTelegram()
-
-            Spacer(Modifier.height(16.dp))
-
-            HelpCenter()
-
-            Spacer(Modifier.height(12.dp))
-
-            Releases(nav = nav)
-
-            Spacer(Modifier.height(12.dp))
-
-            ReportBug()
-
-            Spacer(Modifier.height(12.dp))
-
-            val rootActivity = rootScreen()
-            RequestFeature {
-                rootActivity.openUrlInBrowser(Constants.URL_GITHUB_NEW_ISSUE)
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            ContactSupport()
-
-            Spacer(Modifier.height(12.dp))
-
-            Contributors(nav = nav)
-
-            Spacer(Modifier.height(12.dp))
-
-            Attributions()
-
-            Spacer(Modifier.height(12.dp))
-
-            TCAndPrivacyPolicy()
         }
 
         item {
@@ -507,6 +421,21 @@ private fun BoxWithConstraintsScope.UI(
             ) {
                 deleteAllDataModalVisible = true
             }
+        }
+
+        item {
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                text = "Built with love for my wife ❤️\nPocketMoney is a fork of Ivy Wallet (GPL-3.0)",
+                style = UI.typo.c.style(
+                    color = Gray,
+                    textAlign = TextAlign.Center
+                )
+            )
         }
 
         item {
@@ -655,100 +584,6 @@ private fun CustomFeatures(
                 fontWeight = FontWeight.Bold
             )
         )
-    }
-}
-
-@Composable
-private fun IvyTelegram() {
-    val rootActivity = rootScreen()
-    SettingsPrimaryButton(
-        icon = R.drawable.ic_telegram_24dp,
-        text = stringResource(R.string.ivy_telegram),
-        backgroundGradient = Gradient.solid(Blue),
-        iconPadding = 10.dp
-    ) {
-        rootActivity.openUrlInBrowser(Constants.URL_IVY_TELEGRAM_INVITE)
-    }
-}
-
-@Composable
-private fun HelpCenter() {
-    val uriHandler = LocalUriHandler.current
-    SettingsDefaultButton(
-        icon = R.drawable.ic_custom_education_m,
-        text = stringResource(R.string.help_center),
-    ) {
-        uriHandler.openUri(Constants.URL_HELP_CENTER)
-    }
-}
-
-@Composable
-private fun ReportBug() {
-    val uriHandler = LocalUriHandler.current
-    SettingsDefaultButton(
-        icon = R.drawable.ic_vue_dev_arrow,
-        text = stringResource(R.string.report_bug),
-        iconPadding = 10.dp,
-    ) {
-        uriHandler.openUri(Constants.URL_GITHUB_NEW_ISSUE)
-    }
-}
-
-@Composable
-private fun RequestFeature(
-    onClick: () -> Unit
-) {
-    SettingsDefaultButton(
-        icon = R.drawable.ic_custom_programming_m,
-        text = stringResource(R.string.request_a_feature),
-    ) {
-        onClick()
-    }
-}
-
-@Composable
-private fun ContactSupport() {
-    val rootActivity = rootScreen()
-    SettingsDefaultButton(
-        icon = R.drawable.ic_support,
-        text = stringResource(R.string.contact_support),
-    ) {
-        rootActivity.openUrlInBrowser(Constants.URL_IVY_TELEGRAM_INVITE)
-    }
-}
-
-@Composable
-private fun Releases(nav: Navigation) {
-    SettingsDefaultButton(
-        icon = R.drawable.ic_vue_money_tag,
-        text = stringResource(R.string.releases),
-        iconPadding = 8.dp
-    ) {
-        nav.navigateTo(ReleasesScreen)
-    }
-}
-
-@Composable
-private fun Contributors(nav: Navigation) {
-    SettingsDefaultButton(
-        icon = R.drawable.ic_vue_people_people,
-        text = stringResource(R.string.project_contributors),
-        iconPadding = 8.dp
-    ) {
-        nav.navigateTo(ContributorsScreen)
-    }
-}
-
-@Composable
-private fun Attributions() {
-    val nav = navigation()
-
-    SettingsDefaultButton(
-        icon = R.drawable.ic_vue_location_global,
-        text = stringResource(R.string.attributions),
-        iconPadding = 6.dp
-    ) {
-        nav.navigateTo(AttributionsScreen)
     }
 }
 
@@ -1191,8 +1026,7 @@ private fun Preview(theme: Theme = Theme.LIGHT) {
             onSwitchTheme = {},
             lockApp = false,
             currencyCode = "BGN",
-            onSetCurrency = {},
-            languageOptionVisible = true
+            onSetCurrency = {}
         )
     }
 }

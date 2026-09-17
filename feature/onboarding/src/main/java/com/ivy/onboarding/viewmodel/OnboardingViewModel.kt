@@ -65,7 +65,7 @@ class OnboardingViewModel @Inject constructor(
     private val _state = mutableStateOf(OnboardingState.SPLASH)
     val state: State<OnboardingState> = _state
 
-    private val _currency = mutableStateOf(IvyCurrency.getDefault())
+    private val _currency = mutableStateOf(IvyCurrency.fromCode("TND") ?: IvyCurrency.getDefault())
     private val _opGoogleSignIn = mutableStateOf<OpResult<Unit>?>(null)
     private val _accounts = mutableStateOf(listOf<AccountBalance>().toImmutableList())
     private val _accountSuggestions = mutableStateOf(listOf<CreateAccountData>().toImmutableList())
@@ -119,8 +119,8 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private suspend fun initiateSettings(isSystemDarkMode: Boolean) {
-        val defaultCurrency = IvyCurrency.getDefault()
-        _currency.value = defaultCurrency
+        val tndCurrency = IvyCurrency.fromCode("TND") ?: IvyCurrency.getDefault()
+        _currency.value = tndCurrency
 
         ioThread {
             if (settingsDao.findAll().isEmpty()) {
@@ -128,9 +128,15 @@ class OnboardingViewModel @Inject constructor(
                     Settings(
                         theme = if (isSystemDarkMode) Theme.DARK else Theme.LIGHT,
                         name = "",
-                        baseCurrency = defaultCurrency.code,
+                        baseCurrency = "TND",
                         bufferAmount = 1000.0.toBigDecimal()
                     ).toEntity()
+                )
+            } else {
+                settingsWriter.save(
+                    settingsDao.findFirst().copy(
+                        currency = "TND"
+                    )
                 )
             }
         }
@@ -150,7 +156,6 @@ class OnboardingViewModel @Inject constructor(
                 OnboardingEvent.OnAddAccountsSkip -> onAddAccountsSkip()
                 OnboardingEvent.OnAddCategoriesDone -> onAddCategoriesDone()
                 OnboardingEvent.OnAddCategoriesSkip -> onAddCategoriesSkip()
-                is OnboardingEvent.SetBaseCurrency -> setBaseCurrency(event.baseCurrency)
                 OnboardingEvent.StartFresh -> startFresh()
                 OnboardingEvent.StartImport -> startImport()
             }
@@ -168,36 +173,30 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun importSkip() {
-        router.importSkip()
+        viewModelScope.launch {
+            router.importSkip(
+                accountsWithBalance = { accountsWithBalance() }
+            )
+        }
     }
 
     fun importFinished(success: Boolean) {
-        router.importFinished(success)
+        viewModelScope.launch {
+            router.importFinished(
+                success = success,
+                accountsWithBalance = { accountsWithBalance() }
+            )
+        }
     }
 
     private fun startFresh() {
-        router.startFresh()
-    }
-    // Step 2 ---------------------------------------------------------------------------------------
-
-    private suspend fun setBaseCurrency(baseCurrency: IvyCurrency) {
-        updateBaseCurrency(baseCurrency)
-        router.setBaseCurrencyNext(
-            baseCurrency = baseCurrency,
-            accountsWithBalance = { accountsWithBalance() }
-        )
-    }
-
-    private suspend fun updateBaseCurrency(baseCurrency: IvyCurrency) {
-        ioThread {
-            settingsWriter.save(
-                settingsDao.findFirst().copy(
-                    currency = baseCurrency.code
-                )
+        viewModelScope.launch {
+            router.startFresh(
+                accountsWithBalance = { accountsWithBalance() }
             )
         }
-        _currency.value = baseCurrency
     }
+    // Step 2 ---------------------------------------------------------------------------------------
 
     // --------------------- Accounts ---------------------------------------------------------------
     private suspend fun editAccount(account: Account, newBalance: Double) {

@@ -12,6 +12,7 @@ import com.ivy.domain.usecase.budget.DynamicBudgetConfig
 import com.ivy.domain.usecase.budget.DynamicBudgetConfigStore
 import com.ivy.navigation.Navigation
 import com.ivy.ui.ComposeViewModel
+import com.ivy.wallet.domain.action.settings.SettingsAct
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -31,6 +32,7 @@ private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/uuuu")
 @HiltViewModel
 class DynamicBudgetConfigViewModel @Inject constructor(
     private val store: DynamicBudgetConfigStore,
+    private val settingsAct: SettingsAct,
     private val nav: Navigation,
 ) : ComposeViewModel<DynamicBudgetConfigState, DynamicBudgetConfigEvent>() {
 
@@ -45,6 +47,7 @@ class DynamicBudgetConfigViewModel @Inject constructor(
     private var customEndInput by mutableStateOf("")
     private var customEndError by mutableStateOf<String?>(null)
     private var saving by mutableStateOf(false)
+    private var isBaseCurrencyTnd by mutableStateOf(true)
 
     private var originalConfig: DynamicBudgetConfig? = null
 
@@ -67,6 +70,7 @@ class DynamicBudgetConfigViewModel @Inject constructor(
             customEndError = customEndError,
             saving = saving,
             hasExistingBudget = (originalConfig?.budgetLimitMinorUnits ?: 0L) > 0L,
+            isBaseCurrencyTnd = isBaseCurrencyTnd,
         )
     }
 
@@ -107,6 +111,9 @@ class DynamicBudgetConfigViewModel @Inject constructor(
     private suspend fun load() {
         loading = true
         try {
+            val settings = settingsAct.getSettings()
+            isBaseCurrencyTnd = settings.baseCurrency.equals("TND", ignoreCase = true)
+
             val config = store.load()
             originalConfig = config
 

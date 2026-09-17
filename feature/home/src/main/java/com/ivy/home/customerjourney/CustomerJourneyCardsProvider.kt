@@ -171,8 +171,8 @@ class CustomerJourneyCardsProvider @Inject constructor(
             deps.timeProvider.localDateNow().isBefore(expiry) &&
             !deps.pollRepository.hasVoted(PollId.PaidIvy)
       },
-      title = "How much are you willing to pay for Ivy Wallet?",
-      description = "Google Play requires us to update Ivy Wallet to target API level 35 (Android 15). We'd like to know if you will be interested to pay on a subscription basis so we can maintain the app.",
+      title = "How much are you willing to pay for PocketMoney?",
+      description = "Google Play requires us to update PocketMoney to target API level 35 (Android 15). We'd like to know if you will be interested to pay on a subscription basis so we can maintain the app.",
       cta = "Vote",
       ctaIcon = R.drawable.ic_telegram_24dp,
       hasDismiss = false,

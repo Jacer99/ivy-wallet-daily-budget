@@ -69,9 +69,9 @@ class OnboardingRouter(
                     true
                 }
 
-                OnboardingState.CURRENCY -> {
+                OnboardingState.ACCOUNTS -> {
                     if (isLoginCache) {
-                        // user with Ivy account
+                        // user with PocketMoney account
                         viewModelScope.launch {
                             logoutLogic.logout()
                             isLoginCache = false
@@ -82,11 +82,6 @@ class OnboardingRouter(
                         // fresh user
                         state.value = OnboardingState.CHOOSE_PATH
                     }
-                    true
-                }
-
-                OnboardingState.ACCOUNTS -> {
-                    state.value = OnboardingState.CURRENCY
                     true
                 }
 
@@ -114,10 +109,17 @@ class OnboardingRouter(
     // ------------------------------------- Step 0 -------------------------------------------------
 
     // ------------------------------------- Step 1 - Login -----------------------------------------
-    suspend fun googleLoginNext() {
+    suspend fun googleLoginNext(
+        accountsWithBalance: suspend () -> ImmutableList<AccountBalance>,
+    ) {
         if (isLogin()) {
             // Route logged user
-            state.value = OnboardingState.CURRENCY
+            val tnd = IvyCurrency.fromCode("TND") ?: IvyCurrency.getDefault()
+            routeToAccounts(
+                baseCurrency = tnd,
+                accountsWithBalance = accountsWithBalance
+            )
+            completeOnboarding(baseCurrency = tnd)
         } else {
             // Route new user
             state.value = OnboardingState.CHOOSE_PATH
@@ -143,36 +145,39 @@ class OnboardingRouter(
         )
     }
 
-    fun importSkip() {
-        state.value = OnboardingState.CURRENCY
-    }
-
-    fun importFinished(success: Boolean) {
-        if (success) {
-            state.value = OnboardingState.CURRENCY
-        }
-    }
-
-    fun startFresh() {
-        state.value = OnboardingState.CURRENCY
-    }
-    // ------------------------------------- Step 2 -------------------------------------------------
-
-    // ------------------------------------- Step 3 - Currency --------------------------------------
-    suspend fun setBaseCurrencyNext(
-        baseCurrency: IvyCurrency,
+    suspend fun importSkip(
         accountsWithBalance: suspend () -> ImmutableList<AccountBalance>,
     ) {
+        val tnd = IvyCurrency.fromCode("TND") ?: IvyCurrency.getDefault()
         routeToAccounts(
-            baseCurrency = baseCurrency,
+            baseCurrency = tnd,
             accountsWithBalance = accountsWithBalance
         )
+    }
 
-        if (isLogin()) {
-            completeOnboarding(baseCurrency = baseCurrency)
+    suspend fun importFinished(
+        success: Boolean,
+        accountsWithBalance: suspend () -> ImmutableList<AccountBalance>,
+    ) {
+        if (success) {
+            val tnd = IvyCurrency.fromCode("TND") ?: IvyCurrency.getDefault()
+            routeToAccounts(
+                baseCurrency = tnd,
+                accountsWithBalance = accountsWithBalance
+            )
         }
     }
-    // ------------------------------------- Step 3 -------------------------------------------------
+
+    suspend fun startFresh(
+        accountsWithBalance: suspend () -> ImmutableList<AccountBalance>,
+    ) {
+        val tnd = IvyCurrency.fromCode("TND") ?: IvyCurrency.getDefault()
+        routeToAccounts(
+            baseCurrency = tnd,
+            accountsWithBalance = accountsWithBalance
+        )
+    }
+    // ------------------------------------- Step 2 -------------------------------------------------
 
     // ------------------------------------- Step 4 - Accounts --------------------------------------
     suspend fun accountsNext() {
@@ -234,7 +239,7 @@ class OnboardingRouter(
         ioThread {
             transactionReminderLogic.scheduleReminder()
 
-            AssetCode.from(baseCurrency?.code ?: IvyCurrency.getDefault().code)
+            AssetCode.from(baseCurrency?.code ?: "TND")
                 .onRight {
                     syncExchangeRatesUseCase.sync(baseCurrency = it)
                 }

@@ -12,7 +12,6 @@ import com.ivy.legacy.utils.onScreenStart
 import com.ivy.navigation.OnboardingScreen
 import com.ivy.onboarding.steps.OnboardingAccounts
 import com.ivy.onboarding.steps.OnboardingCategories
-import com.ivy.onboarding.steps.OnboardingSetCurrency
 import com.ivy.onboarding.steps.OnboardingSplashLogin
 import com.ivy.onboarding.steps.OnboardingType
 import com.ivy.onboarding.viewmodel.OnboardingViewModel
@@ -78,13 +77,6 @@ private fun BoxWithConstraintsScope.UI(
             OnboardingType(
                 onStartImport = { onEvent(OnboardingEvent.StartImport) },
                 onStartFresh = { onEvent(OnboardingEvent.StartFresh) }
-            )
-        }
-
-        OnboardingState.CURRENCY -> {
-            OnboardingSetCurrency(
-                preselectedCurrency = currency,
-                onSetCurrency = { onEvent(OnboardingEvent.SetBaseCurrency(it)) }
             )
         }
 

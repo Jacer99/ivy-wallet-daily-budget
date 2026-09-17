@@ -127,6 +127,15 @@ fun DynamicBudgetConfigUi(
                         modifier = Modifier.fillMaxWidth(),
                     )
 
+                    if (!uiState.isBaseCurrencyTnd) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "PocketMoney's spending budget is TND-only. Expenses in other currencies won't count toward your allowance.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
                     Spacer(Modifier.height(24.dp))
 
                     Text(
