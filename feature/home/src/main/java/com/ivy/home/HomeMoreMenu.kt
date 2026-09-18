@@ -2,7 +2,6 @@ package com.ivy.home
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,15 +12,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,26 +35,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.ivy.base.legacy.Theme
 import com.ivy.design.l0_system.UI
-import com.ivy.design.l0_system.style
 import com.ivy.design.utils.thenIf
-import com.ivy.legacy.Constants
 import com.ivy.legacy.ivyWalletCtx
 import com.ivy.legacy.utils.clickableNoIndication
 import com.ivy.legacy.utils.colorLerp
+import com.ivy.legacy.utils.format
 import com.ivy.legacy.utils.lerp
 import com.ivy.legacy.utils.navigationBarInset
 import com.ivy.legacy.utils.rememberInteractionSource
@@ -73,13 +72,11 @@ import com.ivy.navigation.SearchScreen
 import com.ivy.navigation.SettingsScreen
 import com.ivy.navigation.navigation
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.Blue
-import com.ivy.wallet.ui.theme.Gray
-import com.ivy.wallet.ui.theme.components.BufferBattery
+import com.ivy.ui.component.LiquidGlassCard
+import com.ivy.ui.component.pocketMoneyBackground
 import com.ivy.wallet.ui.theme.components.CircleButtonFilled
 import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.modal.AddModalBackHandling
-import com.ivy.wallet.ui.theme.wallet.AmountCurrencyB1
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -125,44 +122,16 @@ fun BoxWithConstraintsScope.MoreMenu(
         fraction = percentExpanded
     )
 
-    // Background
-    val colorMedium = UI.colors.medium
-    if (percentExpanded > 0.01f) {
-        Canvas(
-            modifier = modifier
-                .fillMaxSize()
-                .clickableNoIndication(rememberInteractionSource()) {
-                    // do nothing
-                }
-                .zIndex(500f)
-        ) {
-            val radiusCollapsed = buttonSizePx / 2f
-            val radiusExpanded = ivyContext.screenHeight * 1.5f
-            val radius = lerp(radiusCollapsed, radiusExpanded, percentExpanded)
-
-            val yBackground = lerp(
-                start = yBaseCollapsed + radius,
-                end = yBaseExpanded,
-                fraction = percentExpanded
-            )
-
-            drawCircle(
-                color = colorMedium,
-                center = Offset(
-                    x = xBase - buttonSizePx / 2f,
-                    y = yBackground
-                ),
-                radius = radius
-            )
-        }
-    }
-
     if (percentExpanded > 0.01f) {
         Column(
             modifier = modifier
+                .fillMaxSize()
+                .pocketMoneyBackground()
+                .clickableNoIndication(rememberInteractionSource()) {
+                    // Consume click events
+                }
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .fillMaxSize()
                 .alpha(percentExpanded)
                 .verticalScroll(rememberScrollState())
                 .zIndex(510f)
@@ -241,14 +210,14 @@ private fun ColumnScope.Content(
         )
     }
 
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(20.dp))
 
     QuickAccess(
         theme = theme,
         onSwitchTheme = onSwitchTheme
     )
 
-    Spacer(Modifier.height(40.dp))
+    Spacer(Modifier.height(36.dp))
 
     Buffer(
         buffer = buffer,
@@ -257,7 +226,7 @@ private fun ColumnScope.Content(
         onBufferClick = onBufferClick
     )
 
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(20.dp))
 
     OpenSource()
 
@@ -268,53 +237,54 @@ private fun ColumnScope.Content(
 private fun SearchButton(
     onClick: () -> Unit
 ) {
-    Row(
+    LiquidGlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clip(UI.shapes.rFull)
-            .background(UI.colors.pure)
-            .border(1.dp, Gray, UI.shapes.rFull)
             .clickable {
                 onClick()
             },
-        verticalAlignment = Alignment.CenterVertically
+        shape = CircleShape
     ) {
-        Spacer(Modifier.width(12.dp))
-
-        IvyIcon(icon = R.drawable.ic_search)
-
-        Spacer(Modifier.width(12.dp))
-
-        Text(
-            modifier = Modifier.padding(
-                vertical = 12.dp,
-            ),
-            text = stringResource(R.string.search_transactions),
-            style = UI.typo.b2.style(
-                fontWeight = FontWeight.SemiBold,
-                color = UI.colors.pureInverse
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IvyIcon(
+                icon = R.drawable.ic_search,
+                tint = UI.colors.mediumInverse
             )
-        )
 
-        Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(12.dp))
+
+            Text(
+                text = stringResource(R.string.search_transactions),
+                style = TextStyle(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = UI.colors.mediumInverse
+                )
+            )
+        }
     }
 }
 
 @Composable
 private fun ColumnScope.OpenSource() {
-    Box(
+    LiquidGlassCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(UI.shapes.r4)
-            .background(UI.colors.pure)
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(26.dp)
     ) {
         Text(
             text = "Built with love for my wife ❤️",
-            style = UI.typo.nB2.style(
-                color = UI.colors.pureInverse,
-                fontWeight = FontWeight.Medium
+            style = TextStyle(
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = UI.colors.pureInverse
             ),
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -331,45 +301,197 @@ private fun ColumnScope.Buffer(
     balance: Double,
     onBufferClick: () -> Unit
 ) {
+    val bufferExceeded = balance < buffer
+    val leftToSpend = balance - buffer
+
+    // Savings goal row
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 24.dp)
             .clickableNoIndication(rememberInteractionSource()) {
                 onBufferClick()
             }
             .testTag("savings_goal_row"),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(24.dp))
-
         Text(
             text = stringResource(R.string.savings_goal),
-            style = UI.typo.b1.style(
-                color = UI.colors.pureInverse,
-                fontWeight = FontWeight.ExtraBold
+            style = TextStyle(
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = UI.colors.pureInverse
             )
         )
 
         Spacer(Modifier.weight(1f))
 
-        AmountCurrencyB1(
-            amount = buffer,
-            currency = currency,
-            amountFontWeight = FontWeight.ExtraBold
-        )
-
-        Spacer(Modifier.width(32.dp))
+        Row(
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Text(
+                text = buffer.format(currency),
+                style = TextStyle(
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = UI.colors.pureInverse
+                )
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = currency,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = UI.colors.mediumInverse
+                ),
+                modifier = Modifier.padding(bottom = 2.dp)
+            )
+        }
     }
 
-    Spacer(Modifier.height(12.dp))
+    Spacer(Modifier.height(16.dp))
 
-    BufferBattery(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        buffer = buffer,
-        currency = currency,
-        balance = balance,
+    if (bufferExceeded) {
+        BufferExceededCard(
+            exceededAmount = kotlin.math.abs(leftToSpend),
+            currency = currency,
+            onClick = onBufferClick
+        )
+    } else {
+        BufferRemainingCard(
+            remainingAmount = leftToSpend,
+            currency = currency,
+            onClick = onBufferClick
+        )
+    }
+}
+
+@Composable
+private fun BufferExceededCard(
+    exceededAmount: Double,
+    currency: String,
+    onClick: () -> Unit
+) {
+    LiquidGlassCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .border(
+                width = 0.5.dp,
+                color = Color(0xFFFF9F0A).copy(alpha = 0.35f),
+                shape = RoundedCornerShape(26.dp)
+            )
+            .clickable { onClick() },
+        shape = RoundedCornerShape(26.dp),
+        fillColor = Color(0xFFFF9F0A).copy(alpha = 0.14f)
     ) {
-        onBufferClick()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFFF9F0A).copy(alpha = 0.25f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "!",
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFFFF9F0A)
+                    )
+                )
+            }
+
+            Spacer(Modifier.width(14.dp))
+
+            Column {
+                Text(
+                    text = stringResource(R.string.buffer_exceeded_by),
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.mediumInverse
+                    )
+                )
+
+                Spacer(Modifier.height(2.dp))
+
+                Text(
+                    text = "${exceededAmount.format(currency)} $currency",
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = UI.colors.pureInverse
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BufferRemainingCard(
+    remainingAmount: Double,
+    currency: String,
+    onClick: () -> Unit
+) {
+    LiquidGlassCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(26.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF10B981).copy(alpha = 0.20f)),
+                contentAlignment = Alignment.Center
+            ) {
+                IvyIcon(
+                    icon = R.drawable.ic_buffer_ok,
+                    tint = Color(0xFF10B981)
+                )
+            }
+
+            Spacer(Modifier.width(14.dp))
+
+            Column {
+                Text(
+                    text = stringResource(R.string.left_to_spend),
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.mediumInverse
+                    )
+                )
+
+                Spacer(Modifier.height(2.dp))
+
+                Text(
+                    text = "${remainingAmount.format(currency)} $currency",
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = UI.colors.pureInverse
+                    )
+                )
+            }
+        }
     }
 }
 
@@ -381,173 +503,143 @@ private fun QuickAccess(
     Column {
         val nav = navigation()
 
+        val themeIcon = when (theme) {
+            Theme.AUTO -> R.drawable.home_more_menu_auto_mode
+            Theme.LIGHT -> R.drawable.home_more_menu_light_mode
+            Theme.DARK, Theme.AMOLED_DARK -> R.drawable.home_more_menu_dark_mode
+        }
+
+        val themeLabel = when (theme) {
+            Theme.AUTO -> "System"
+            Theme.LIGHT -> stringResource(R.string.light_mode)
+            Theme.DARK, Theme.AMOLED_DARK -> stringResource(R.string.dark_mode)
+        }
+
         Text(
             modifier = Modifier.padding(start = 24.dp),
             text = stringResource(R.string.quick_access),
-            style = UI.typo.b2.style()
+            style = TextStyle(
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = UI.colors.mediumInverse
+            )
         )
 
         Spacer(Modifier.height(16.dp))
 
+        // First Row: Settings, Categories, Light/Dark toggle, Planned Payments
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Top
         ) {
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
+            QuickAccessButton(
                 icon = R.drawable.home_more_menu_settings,
-                label = stringResource(R.string.settings)
-            ) {
-                nav.navigateTo(SettingsScreen)
-            }
+                label = stringResource(R.string.settings),
+                onClick = { nav.navigateTo(SettingsScreen) }
+            )
 
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
+            QuickAccessButton(
                 icon = R.drawable.home_more_menu_categories,
-                label = stringResource(R.string.categories)
-            ) {
-                nav.navigateTo(CategoriesScreen)
-            }
+                label = stringResource(R.string.categories),
+                onClick = { nav.navigateTo(CategoriesScreen) }
+            )
 
-            Spacer(Modifier.weight(1f))
+            QuickAccessButton(
+                icon = themeIcon,
+                label = themeLabel,
+                onClick = onSwitchTheme
+            )
 
-            MoreMenuButton(
-                icon = when (theme) {
-                    Theme.LIGHT -> R.drawable.home_more_menu_light_mode
-                    Theme.DARK -> R.drawable.home_more_menu_dark_mode
-                    Theme.AMOLED_DARK -> R.drawable.home_more_menu_amoled_dark_mode
-                    Theme.AUTO -> R.drawable.home_more_menu_auto_mode
-                },
-                label = when (theme) {
-                    Theme.LIGHT -> stringResource(R.string.light_mode)
-                    Theme.DARK -> stringResource(R.string.dark_mode)
-                    Theme.AMOLED_DARK -> stringResource(R.string.amoled_mode)
-                    Theme.AUTO -> stringResource(R.string.auto_mode)
-                },
-                backgroundColor = when (theme) {
-                    Theme.LIGHT -> UI.colors.pure
-                    Theme.DARK -> UI.colors.pureInverse
-                    Theme.AMOLED_DARK -> UI.colors.pureInverse
-                    Theme.AUTO -> UI.colors.pure
-                },
-                tint = when (theme) {
-                    Theme.LIGHT -> UI.colors.pureInverse
-                    Theme.DARK -> UI.colors.pure
-                    Theme.AMOLED_DARK -> UI.colors.pure
-                    Theme.AUTO -> UI.colors.pureInverse
-                }
-            ) {
-                onSwitchTheme()
-            }
-
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
+            QuickAccessButton(
                 icon = R.drawable.home_more_menu_planned_payments,
-                label = stringResource(R.string.planned_payments)
-            ) {
-                nav.navigateTo(PlannedPaymentsScreen)
-            }
-
-            Spacer(Modifier.weight(1f))
+                label = stringResource(R.string.planned_payments),
+                onClick = { nav.navigateTo(PlannedPaymentsScreen) }
+            )
         }
 
         Spacer(Modifier.height(16.dp))
 
-        // Second Row
+        // Second Row: Spending budget, Reports, Budgets, Loans
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Top
         ) {
-            Spacer(Modifier.weight(1f))
-
-            val context = LocalContext.current
-//        MoreMenuButton(
-//            icon = R.drawable.home_more_menu_reports,
-//            label = "Charts"
-//        ) {
-//            ivyContext.navigateTo(Screen.Charts)
-//        }
-
-            MoreMenuButton(
+            QuickAccessButton(
                 icon = R.drawable.ic_budget_xs,
                 label = "Spending budget",
-            ) {
-                nav.navigateTo(DynamicBudgetConfigScreen)
-            }
+                onClick = { nav.navigateTo(DynamicBudgetConfigScreen) }
+            )
 
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
+            QuickAccessButton(
                 icon = R.drawable.home_more_menu_reports,
                 label = stringResource(R.string.reports),
-            ) {
-                nav.navigateTo(ReportScreen)
-            }
+                onClick = { nav.navigateTo(ReportScreen) }
+            )
 
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
+            QuickAccessButton(
                 icon = R.drawable.home_more_menu_budgets,
                 label = stringResource(R.string.budgets),
-            ) {
-                nav.navigateTo(BudgetScreen)
-            }
+                onClick = { nav.navigateTo(BudgetScreen) }
+            )
 
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
+            QuickAccessButton(
                 icon = R.drawable.home_more_menu_loans,
                 label = stringResource(R.string.loans),
-            ) {
-                nav.navigateTo(LoansScreen)
-            }
-
-            Spacer(Modifier.weight(1f))
+                onClick = { nav.navigateTo(LoansScreen) }
+            )
         }
     }
 }
 
 @Composable
-private fun MoreMenuButton(
+private fun QuickAccessButton(
     @DrawableRes icon: Int,
     label: String,
-
-    backgroundColor: Color = UI.colors.pure,
-    tint: Color = UI.colors.pureInverse,
-    expandPadding: Dp = 14.dp,
-
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
+        modifier = modifier
+            .width(80.dp)
+            .clickableNoIndication(rememberInteractionSource()) { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircleButtonFilled(
-            icon = icon,
-            backgroundColor = backgroundColor,
-            tint = tint,
-            clickAreaPadding = expandPadding,
-            onClick = onClick
-        )
+        LiquidGlassCard(
+            modifier = Modifier
+                .size(56.dp)
+                .clickable { onClick() },
+            shape = CircleShape
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                IvyIcon(
+                    icon = icon,
+                    tint = UI.colors.pureInverse
+                )
+            }
+        }
 
         Spacer(Modifier.height(8.dp))
 
         Text(
-            modifier = Modifier
-                .defaultMinSize(minWidth = 92.dp)
-                .clickableNoIndication(rememberInteractionSource()) {
-                    onClick()
-                },
             text = label,
-            style = UI.typo.c.style(
-                color = UI.colors.pureInverse,
-                fontWeight = FontWeight.ExtraBold,
+            style = TextStyle(
+                fontSize = 11.sp,
+                lineHeight = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = UI.colors.mediumInverse,
                 textAlign = TextAlign.Center
-            )
+            ),
+            maxLines = 2,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

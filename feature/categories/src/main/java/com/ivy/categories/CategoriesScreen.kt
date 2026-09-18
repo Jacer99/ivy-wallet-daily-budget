@@ -1,13 +1,15 @@
 package com.ivy.categories
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +26,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.toArgb
@@ -40,7 +49,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import com.ivy.legacy.IvyWalletPreview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,7 +60,8 @@ import com.ivy.data.model.primitive.IconAsset
 import com.ivy.data.model.primitive.NotBlankTrimmedString
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
-import com.ivy.legacy.ui.SearchInput
+import com.ivy.legacy.IvyWalletPreview
+import com.ivy.legacy.ivyWalletCtx
 import com.ivy.legacy.utils.balancePrefix
 import com.ivy.legacy.utils.compactBalancePrefix
 import com.ivy.legacy.utils.format
@@ -62,6 +71,9 @@ import com.ivy.navigation.TransactionsScreen
 import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
+import com.ivy.ui.component.LiquidGlassCard
+import com.ivy.ui.component.pocketMoneyBackground
+import com.ivy.ui.component.specularBorder
 import com.ivy.ui.rememberScrollPositionListState
 import com.ivy.wallet.domain.data.SortOrder
 import com.ivy.wallet.ui.theme.Gradient
@@ -72,13 +84,9 @@ import com.ivy.wallet.ui.theme.GreenLight
 import com.ivy.wallet.ui.theme.IvyDark
 import com.ivy.wallet.ui.theme.Orange
 import com.ivy.wallet.ui.theme.White
-import com.ivy.wallet.ui.theme.components.BalanceRow
-import com.ivy.wallet.ui.theme.components.CircleButtonFilled
 import com.ivy.wallet.ui.theme.components.ItemIconSDefaultIcon
 import com.ivy.wallet.ui.theme.components.IvyIcon
-import com.ivy.wallet.ui.theme.components.ReorderButton
 import com.ivy.wallet.ui.theme.components.ReorderModalSingleType
-import com.ivy.wallet.ui.theme.findContrastTextColor
 import com.ivy.wallet.ui.theme.modal.IvyModal
 import com.ivy.wallet.ui.theme.modal.ModalSet
 import com.ivy.wallet.ui.theme.modal.ModalTitle
@@ -110,7 +118,8 @@ private fun BoxWithConstraintsScope.UI(
     onEvent: (CategoriesScreenEvent) -> Unit = {}
 ) {
     val nav = navigation()
-    val ivyContext = com.ivy.legacy.ivyWalletCtx()
+    val isDark = !UI.colors.isLight
+    val ivyContext = ivyWalletCtx()
     var listState = rememberLazyListState()
     if (!state.categories.isEmpty()) {
         listState = rememberScrollPositionListState(
@@ -121,138 +130,184 @@ private fun BoxWithConstraintsScope.UI(
                 ?: 0
         )
     }
-    LazyColumn(
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding(),
-        state = listState
+            .pocketMoneyBackground(isDark)
     ) {
-        item {
-            Spacer(Modifier.height(32.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(Modifier.width(24.dp))
-
-                Text(
-                    text = stringResource(R.string.categories),
-                    style = UI.typo.h2.style(
-                        color = UI.colors.pureInverse,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                )
-
-                Spacer(Modifier.weight(1f))
-
-                CircleButtonFilled(
-                    icon = R.drawable.ic_sort_by_alpha_24,
-                    onClick = {
-                        onEvent(CategoriesScreenEvent.OnSortOrderModalVisible(visible = true))
-                    },
-                    clickAreaPadding = 12.dp
-                )
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                ReorderButton {
-                    onEvent(CategoriesScreenEvent.OnReorderModalVisible(true))
-                }
-
-                Spacer(Modifier.width(24.dp))
-            }
-
-            if (state.showCategorySearchBar) {
-                Spacer(Modifier.height(16.dp))
-                SearchField(onSearch = { onEvent(CategoriesScreenEvent.OnSearchQueryUpdate(it)) })
-            }
-            Spacer(Modifier.height(16.dp))
-        }
-
-        items(state.categories, key = { it.category.id.value }) { categoryData ->
-            CategoryCard(
-                currency = state.baseCurrency,
-                categoryData = categoryData,
-                compactModeEnabled = state.compactCategoriesModeEnabled,
-                onLongClick = {
-                    onEvent(CategoriesScreenEvent.OnReorderModalVisible(true))
-                }
-            ) {
-                nav.navigateTo(
-                    TransactionsScreen(
-                        accountId = null,
-                        categoryId = categoryData.category.id.value
-                    )
-                )
-            }
-        }
-
-        item {
-            Spacer(Modifier.height(150.dp)) // scroll hack
-        }
-    }
-    CategoriesBottomBar(
-        onAddCategory = {
-            onEvent(
-                CategoriesScreenEvent.OnCategoryModalVisible(
-                    CategoryModalData(category = null)
-                )
-            )
-        },
-        onClose = {
-            nav.back()
-        },
-    )
-
-    ReorderModalSingleType(
-        visible = state.reorderModalVisible,
-        initialItems = state.categories,
-        dismiss = {
-            onEvent(CategoriesScreenEvent.OnReorderModalVisible(false))
-        },
-        onReordered = {
-            onEvent(CategoriesScreenEvent.OnReorder(it))
-        }
-    ) { _, item ->
-        Text(
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 24.dp)
-                .padding(vertical = 8.dp),
-            text = item.category.name.value,
-            style = UI.typo.b1.style(
-                color = item.category.color.value.toComposeColor(),
-                fontWeight = FontWeight.Bold
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+            state = listState,
+            contentPadding = PaddingValues(bottom = 110.dp)
+        ) {
+            item {
+                Spacer(Modifier.height(24.dp))
+
+                // --- Header & Sort / Filter Bar ---------------------------
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.categories),
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            color = UI.colors.pureInverse
+                        )
+                    )
+
+                    Spacer(Modifier.weight(1f))
+
+                    // Circular frosted sort button
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isDark) Color.White.copy(alpha = 0.08f)
+                                else Color.White.copy(alpha = 0.60f)
+                            )
+                            .specularBorder(CircleShape, isDark, strokeWidth = 0.5.dp)
+                            .clickable {
+                                onEvent(CategoriesScreenEvent.OnSortOrderModalVisible(visible = true))
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        IvyIcon(
+                            icon = R.drawable.ic_sort_by_alpha_24,
+                            tint = UI.colors.pureInverse,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // Circular frosted reorder button
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isDark) Color.White.copy(alpha = 0.08f)
+                                else Color.White.copy(alpha = 0.60f)
+                            )
+                            .specularBorder(CircleShape, isDark, strokeWidth = 0.5.dp)
+                            .clickable {
+                                onEvent(CategoriesScreenEvent.OnReorderModalVisible(true))
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        IvyIcon(
+                            icon = R.drawable.ic_reorder,
+                            tint = UI.colors.pureInverse,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Frosted glass search pill
+                SearchField(
+                    onSearch = { onEvent(CategoriesScreenEvent.OnSearchQueryUpdate(it)) },
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+
+                Spacer(Modifier.height(8.dp))
+            }
+
+            items(state.categories, key = { it.category.id.value }) { categoryData ->
+                CategoryCard(
+                    currency = state.baseCurrency,
+                    categoryData = categoryData,
+                    compactModeEnabled = state.compactCategoriesModeEnabled,
+                    onLongClick = {
+                        onEvent(CategoriesScreenEvent.OnReorderModalVisible(true))
+                    }
+                ) {
+                    nav.navigateTo(
+                        TransactionsScreen(
+                            accountId = null,
+                            categoryId = categoryData.category.id.value
+                        )
+                    )
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(110.dp)) // bottom floating bar clearance
+            }
+        }
+
+        // Floating frosted glass CTA bottom bar
+        CategoriesBottomBar(
+            onAddCategory = {
+                onEvent(
+                    CategoriesScreenEvent.OnCategoryModalVisible(
+                        CategoryModalData(category = null)
+                    )
+                )
+            },
+            onClose = {
+                nav.back()
+            },
+        )
+
+        ReorderModalSingleType(
+            visible = state.reorderModalVisible,
+            initialItems = state.categories,
+            dismiss = {
+                onEvent(CategoriesScreenEvent.OnReorderModalVisible(false))
+            },
+            onReordered = {
+                onEvent(CategoriesScreenEvent.OnReorder(it))
+            }
+        ) { _, item ->
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 24.dp)
+                    .padding(vertical = 8.dp),
+                text = item.category.name.value,
+                style = UI.typo.b1.style(
+                    color = item.category.color.value.toComposeColor(),
+                    fontWeight = FontWeight.Bold
+                )
             )
+        }
+
+        this@UI.CategoryModal(
+            modal = state.categoryModalData,
+            onCreateCategory = {
+                onEvent(CategoriesScreenEvent.OnCreateCategory(it))
+            },
+            onEditCategory = { },
+            dismiss = {
+                onEvent(CategoriesScreenEvent.OnCategoryModalVisible(null))
+            }
+        )
+
+        this@UI.SortModal(
+            initialType = state.sortOrder,
+            items = state.sortOrderItems,
+            visible = state.sortModalVisible,
+            dismiss = {
+                onEvent(CategoriesScreenEvent.OnSortOrderModalVisible(visible = false))
+            },
+            onSortOrderChange = {
+                onEvent(CategoriesScreenEvent.OnReorder(state.categories, it))
+            }
         )
     }
-
-    CategoryModal(
-        modal = state.categoryModalData,
-        onCreateCategory = {
-            onEvent(CategoriesScreenEvent.OnCreateCategory(it))
-        },
-        onEditCategory = { },
-        dismiss = {
-            onEvent(CategoriesScreenEvent.OnCategoryModalVisible(null))
-        }
-    )
-
-    SortModal(
-        initialType = state.sortOrder,
-        items = state.sortOrderItems,
-        visible = state.sortModalVisible,
-        dismiss = {
-            onEvent(CategoriesScreenEvent.OnSortOrderModalVisible(visible = false))
-        },
-        onSortOrderChange = {
-            onEvent(CategoriesScreenEvent.OnReorder(state.categories, it))
-        }
-    )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CategoryCard(
     currency: String,
@@ -261,125 +316,265 @@ private fun CategoryCard(
     onLongClick: () -> Unit,
     onClick: () -> Unit
 ) {
-    val contrastColor = findContrastTextColor(categoryData.category.color.value.toComposeColor())
+    val isDark = !UI.colors.isLight
+    val category = categoryData.category
+    val categoryColor = category.color.value.toComposeColor()
+    val tintAlpha = if (isDark) 0.20f else 0.12f
+    val glassTint = categoryColor.copy(alpha = tintAlpha)
+    val cardShape = remember { RoundedCornerShape(26.dp) }
+    val circleShape = remember { CircleShape }
+    val compactCardShape = remember { RoundedCornerShape(20.dp) }
 
     if (!compactModeEnabled) {
-        Spacer(Modifier.height(16.dp))
-        DefaultCategoryCard(onClick, categoryData, currency)
-    } else {
-        Spacer(Modifier.height(8.dp))
-        CompactCategoryCard(
-            categoryData = categoryData,
-            contrastColor = contrastColor,
-            currency = currency,
-            onClick = onClick
-        )
-    }
-}
-
-@Composable
-private fun DefaultCategoryCard(
-    onClick: () -> Unit,
-    categoryData: CategoryData,
-    currency: String
-) {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth()
-            .clip(UI.shapes.r4)
-            .border(2.dp, UI.colors.medium, UI.shapes.r4)
-            .clickable(
-                onClick = onClick
-            )
-    ) {
-        CategoryHeader(
-            categoryData = categoryData,
-            currency = currency,
-            contrastColor = findContrastTextColor(categoryData.category.color.value.toComposeColor())
-        )
-
         Spacer(Modifier.height(12.dp))
-
-        // Emitting content
-        AddedSpent(
-            currency = currency,
-            monthlyIncome = categoryData.monthlyIncome,
-            monthlyExpenses = categoryData.monthlyExpenses
-        )
-
-        Spacer(Modifier.height(12.dp))
-    }
-}
-
-@Composable
-private fun CompactCategoryCard(
-    categoryData: CategoryData,
-    contrastColor: Color,
-    currency: String,
-    onClick: () -> Unit
-) {
-    val category = categoryData.category
-    val balancePrefixValue = compactBalancePrefix(
-        income = categoryData.monthlyIncome,
-        expenses = categoryData.monthlyExpenses
-    )
-
-    Box(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .border(2.dp, UI.colors.medium, UI.shapes.r4)
-            .clickable(
-                onClick = onClick
-            ),
-    ) {
-        Row(
+        LiquidGlassCard(
+            shape = cardShape,
+            isDark = isDark,
+            fillColor = glassTint,
+            strokeWidth = 0.5.dp,
             modifier = Modifier
-                .padding(all = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick
+                )
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(category.color.value.toComposeColor()),
-                contentAlignment = Alignment.Center,
-            ) {
-                ItemIconSDefaultIcon(
-                    iconName = category.icon?.id,
-                    defaultIcon = R.drawable.ic_custom_account_s,
-                    tint = contrastColor
-                )
-            }
-
-            Row(
-                modifier =
-                Modifier
-                    .padding(horizontal = 8.dp)
                     .fillMaxWidth()
-                    .fillMaxHeight(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(20.dp)
             ) {
-                Text(
-                    text = category.name.value,
-                    style = UI.typo.b2.style(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-
+                // Header Row: Icon, Category Name, and Monthly Total Balance
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Format the monthly balance according to the currency format and remove
-                    // any '+' or '-' signs that might be included from the prefix to ensure
-                    // a clean and consistent representation.
-                    val currencyFormatted =
-                        categoryData.monthlyBalance.format(currency).replace(Regex("[+-]"), "")
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(circleShape)
+                            .background(categoryColor.copy(alpha = if (isDark) 0.35f else 0.25f))
+                            .specularBorder(circleShape, isDark, strokeWidth = 0.5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ItemIconSDefaultIcon(
+                            iconName = category.icon?.id,
+                            defaultIcon = R.drawable.ic_custom_category_s,
+                            tint = UI.colors.pureInverse
+                        )
+                    }
+
+                    Spacer(Modifier.width(14.dp))
 
                     Text(
+                        text = category.name.value,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = UI.colors.pureInverse
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    val rawPrefix = balancePrefix(
+                        income = categoryData.monthlyIncome,
+                        expenses = categoryData.monthlyExpenses
+                    )
+                    val balancePrefixValue = if (rawPrefix.isNullOrBlank()) "" else rawPrefix
+                    val formattedAmount = categoryData.monthlyBalance
+                        .format(currency)
+                        .replace(Regex("[+-]"), "")
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$balancePrefixValue$formattedAmount",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                color = UI.colors.pureInverse
+                            )
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = currency,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = UI.colors.mediumInverse
+                            )
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Subtle translucent horizontal divider
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(
+                            if (isDark) Color.White.copy(alpha = 0.10f)
+                            else Color.Black.copy(alpha = 0.08f)
+                        )
+                )
+
+                Spacer(Modifier.height(14.dp))
+
+                // Monthly sub-metrics ("EXPENSES THIS MONTH", "INCOME THIS MONTH")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Expenses this month
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = stringResource(R.string.month_expenses).uppercase(),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = UI.colors.mediumInverse,
+                                letterSpacing = 0.5.sp
+                            )
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            val expFormatted = categoryData.monthlyExpenses
+                                .format(currency)
+                                .replace(Regex("[+-]"), "")
+                            Text(
+                                text = expFormatted,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = UI.colors.pureInverse
+                                )
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = currency,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = UI.colors.mediumInverse,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                        }
+                    }
+
+                    // Subtle vertical translucent divider
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(32.dp)
+                            .background(
+                                if (isDark) Color.White.copy(alpha = 0.10f)
+                                else Color.Black.copy(alpha = 0.08f)
+                            )
+                    )
+
+                    // Income this month
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 16.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = stringResource(R.string.month_income).uppercase(),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = UI.colors.mediumInverse,
+                                letterSpacing = 0.5.sp
+                            )
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            val incFormatted = categoryData.monthlyIncome
+                                .format(currency)
+                                .replace(Regex("[+-]"), "")
+                            Text(
+                                text = incFormatted,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = UI.colors.pureInverse
+                                )
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = currency,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = UI.colors.mediumInverse,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Spacer(Modifier.height(8.dp))
+        LiquidGlassCard(
+            shape = compactCardShape,
+            isDark = isDark,
+            fillColor = glassTint,
+            strokeWidth = 0.5.dp,
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(circleShape)
+                        .background(categoryColor.copy(alpha = if (isDark) 0.35f else 0.25f))
+                        .specularBorder(circleShape, isDark, strokeWidth = 0.5.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ItemIconSDefaultIcon(
+                        iconName = category.icon?.id,
+                        defaultIcon = R.drawable.ic_custom_account_s,
+                        tint = UI.colors.pureInverse
+                    )
+                }
+
+                Spacer(Modifier.width(12.dp))
+
+                Text(
+                    text = category.name.value,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.pureInverse
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+
+                val rawCompactPrefix = compactBalancePrefix(
+                    income = categoryData.monthlyIncome,
+                    expenses = categoryData.monthlyExpenses
+                )
+                val balancePrefixValue = if (rawCompactPrefix.isBlank()) "" else rawCompactPrefix
+                val currencyFormatted = categoryData.monthlyBalance
+                    .format(currency)
+                    .replace(Regex("[+-]"), "")
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
                         text = "$balancePrefixValue$currencyFormatted",
-                        style = UI.typo.nB1.style(
+                        style = MaterialTheme.typography.bodyLarge.copy(
                             color = UI.colors.pureInverse,
                             fontWeight = FontWeight.Bold
                         )
@@ -387,8 +582,8 @@ private fun CompactCategoryCard(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = currency,
-                        style = UI.typo.nB2.style(
-                            color = UI.colors.pureInverse,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = UI.colors.mediumInverse,
                             fontWeight = FontWeight.Medium
                         )
                     )
@@ -408,8 +603,7 @@ fun AddedSpent(
     dividerColor: Color = UI.colors.medium,
     center: Boolean = true,
     dividerSpacer: Dp? = null,
-
-    ) {
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -497,67 +691,6 @@ private fun LabelAmount(
     }
 }
 
-@Composable
-private fun CategoryHeader(
-    categoryData: CategoryData,
-    currency: String,
-    contrastColor: Color,
-) {
-    val category = categoryData.category
-    val balancePrefixValue = balancePrefix(
-        income = categoryData.monthlyIncome,
-        expenses = categoryData.monthlyExpenses
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(category.color.value.toComposeColor(), UI.shapes.r4Top)
-    ) {
-        Spacer(Modifier.height(16.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Spacer(Modifier.width(20.dp))
-
-            ItemIconSDefaultIcon(
-                iconName = category.icon?.id,
-                defaultIcon = R.drawable.ic_custom_category_s,
-                tint = contrastColor
-            )
-
-            Spacer(Modifier.width(8.dp))
-
-            Text(
-                text = category.name.value,
-                style = UI.typo.b1.style(
-                    color = contrastColor,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            )
-        }
-
-        Spacer(Modifier.height(4.dp))
-
-        BalanceRow(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-
-            textColor = contrastColor,
-            currency = currency,
-            balance = categoryData.monthlyBalance,
-
-            balanceFontSize = 30.sp,
-            currencyFontSize = 30.sp,
-
-            currencyUpfront = false,
-            balanceAmountPrefix = balancePrefixValue
-        )
-
-        Spacer(Modifier.height(16.dp))
-    }
-}
-
 @Suppress("UnusedParameter")
 @Composable
 fun BoxWithConstraintsScope.SortModal(
@@ -623,60 +756,78 @@ private fun SelectTypeButton(
     textSelectedColor: Color = White,
     onClick: () -> Unit
 ) {
+    val isDark = !UI.colors.isLight
+    val shape = remember { RoundedCornerShape(16.dp) }
+
+    val selectedBrush = remember(isDark) {
+        if (isDark) {
+            Brush.horizontalGradient(
+                listOf(
+                    Color(0xFF7C4DFF).copy(alpha = 0.35f),
+                    Color(0xFF00F2FE).copy(alpha = 0.25f)
+                )
+            )
+        } else {
+            Brush.horizontalGradient(
+                listOf(
+                    Color(0xFF9E4622).copy(alpha = 0.25f),
+                    Color(0xFFC2623A).copy(alpha = 0.18f)
+                )
+            )
+        }
+    }
+
+    val unselectedColor = remember(isDark) {
+        if (isDark) {
+            Color.White.copy(alpha = 0.06f)
+        } else {
+            Color.White.copy(alpha = 0.50f)
+        }
+    }
+
     Row(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .height(64.dp)
-            .clip(UI.shapes.r4)
+            .height(60.dp)
+            .clip(shape)
             .background(
-                brush = if (selected) selectedGradient.asHorizontalBrush() else SolidColor(UI.colors.medium),
-                shape = UI.shapes.r4
+                brush = if (selected) selectedBrush else SolidColor(unselectedColor)
             )
-            .clickable {
-                onClick()
-            }
-            .padding(vertical = 16.dp),
+            .specularBorder(shape, isDark, strokeWidth = 0.5.dp)
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(16.dp))
-
-        val textColor = if (selected) textSelectedColor else UI.colors.pureInverse
+        val textColor = if (selected) {
+            if (isDark) Color(0xFF99F6E4) else Color(0xFFC2623A)
+        } else {
+            UI.colors.pureInverse
+        }
 
         IvyIcon(
             icon = icon,
             tint = textColor,
-            modifier = Modifier.fillMaxHeight()
+            modifier = Modifier.size(24.dp)
         )
 
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(14.dp))
 
         Text(
-            modifier = Modifier.wrapContentHeight(),
+            modifier = Modifier.weight(1f),
             text = text,
             style = UI.typo.b1.style(
-                color = textColor
+                color = textColor,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
             ),
-            textAlign = TextAlign.Center,
         )
 
         if (selected) {
-            Spacer(Modifier.weight(1f))
-
             IvyIcon(
                 icon = R.drawable.ic_check,
-                tint = textSelectedColor
+                tint = textColor,
+                modifier = Modifier.size(20.dp)
             )
-
-            Text(
-                text = stringResource(R.string.selected_text),
-                style = UI.typo.b2.style(
-                    fontWeight = FontWeight.SemiBold,
-                    color = textSelectedColor
-                )
-            )
-
-            Spacer(Modifier.width(24.dp))
         }
     }
 }
@@ -766,8 +917,7 @@ private fun Preview(
                     monthlyExpenses = 340.0,
                     monthlyIncome = 400.0
                 ),
-
-                )
+            )
         )
         UI(state = state)
     }
@@ -846,8 +996,7 @@ private fun PreviewWithSearchBarEnabled(
                     monthlyExpenses = 340.0,
                     monthlyIncome = 400.0
                 ),
-
-                )
+            )
         )
         UI(state = state)
     }
@@ -856,21 +1005,87 @@ private fun PreviewWithSearchBarEnabled(
 @Composable
 private fun SearchField(
     onSearch: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
+    val isDark = !UI.colors.isLight
     var searchQueryTextFieldValue by remember {
         mutableStateOf(selectEndTextFieldValue(""))
     }
 
-    SearchInput(
-        searchQueryTextFieldValue = searchQueryTextFieldValue,
-        hint = "Search categories",
-        focus = false,
-        showClearIcon = searchQueryTextFieldValue.text.isNotEmpty(),
-        onSetSearchQueryTextField = {
-            searchQueryTextFieldValue = it
-            onSearch(it.text)
+    LiquidGlassCard(
+        shape = CircleShape,
+        isDark = isDark,
+        fillColor = if (isDark) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.65f),
+        strokeWidth = 0.5.dp,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IvyIcon(
+                icon = R.drawable.ic_search,
+                tint = UI.colors.mediumInverse,
+                modifier = Modifier.size(20.dp)
+            )
+
+            Spacer(Modifier.width(10.dp))
+
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (searchQueryTextFieldValue.text.isEmpty()) {
+                    Text(
+                        text = "Search categories",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = UI.colors.mediumInverse
+                        )
+                    )
+                }
+                BasicTextField(
+                    value = searchQueryTextFieldValue,
+                    onValueChange = {
+                        searchQueryTextFieldValue = it
+                        onSearch(it.text)
+                    },
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        color = UI.colors.pureInverse,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    cursorBrush = SolidColor(if (isDark) Color(0xFF7C4DFF) else Color(0xFFC2623A)),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (searchQueryTextFieldValue.text.isNotEmpty()) {
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(UI.colors.mediumInverse.copy(alpha = 0.2f))
+                        .clickable {
+                            searchQueryTextFieldValue = selectEndTextFieldValue("")
+                            onSearch("")
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Clear",
+                        tint = UI.colors.pureInverse,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
         }
-    )
+    }
 }
 
 /** For screenshot testing */

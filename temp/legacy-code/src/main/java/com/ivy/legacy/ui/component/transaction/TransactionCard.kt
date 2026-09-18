@@ -1,9 +1,9 @@
 package com.ivy.legacy.ui.component.transaction
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -14,26 +14,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.base.legacy.LegacyTag
 import com.ivy.base.legacy.Transaction
 import com.ivy.base.model.TransactionType
@@ -48,8 +51,7 @@ import com.ivy.design.api.LocalTimeProvider
 import com.ivy.design.l0_system.BlueLight
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
-import com.ivy.design.l1_buildingBlocks.IvyText
-import com.ivy.design.l1_buildingBlocks.SpacerHor
+import com.ivy.design.system.isAppInDarkTheme
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.data.AppBaseData
 import com.ivy.legacy.datamodel.Account
@@ -62,6 +64,8 @@ import com.ivy.navigation.Navigation
 import com.ivy.navigation.TransactionsScreen
 import com.ivy.navigation.navigation
 import com.ivy.ui.R
+import com.ivy.ui.component.LiquidGlassCard
+import com.ivy.ui.component.specularBorder
 import com.ivy.ui.time.TimeFormatter
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Blue
@@ -79,12 +83,8 @@ import com.ivy.wallet.ui.theme.Orange
 import com.ivy.wallet.ui.theme.Red
 import com.ivy.wallet.ui.theme.White
 import com.ivy.wallet.ui.theme.components.ItemIconSDefaultIcon
-import com.ivy.wallet.ui.theme.components.IvyButton
 import com.ivy.wallet.ui.theme.components.IvyIcon
-import com.ivy.wallet.ui.theme.findContrastTextColor
-import com.ivy.wallet.ui.theme.gradientExpenses
 import com.ivy.wallet.ui.theme.toComposeColor
-import com.ivy.wallet.ui.theme.wallet.AmountCurrencyB1
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.time.LocalDateTime
@@ -103,198 +103,228 @@ fun TransactionCard(
     onSkipTransaction: (Transaction) -> Unit = {},
     onClick: (Transaction) -> Unit,
 ) {
-    Column(
+    val isDark = isAppInDarkTheme()
+    val cardShape = remember { RoundedCornerShape(20.dp) }
+
+    LiquidGlassCard(
+        shape = cardShape,
+        isDark = isDark,
+        strokeWidth = 0.5.dp,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(top = 12.dp)
-            .clip(UI.shapes.r4)
+            .padding(top = 10.dp)
             .clickable {
                 if (baseData.accounts.find { it.id == transaction.accountId } != null) {
                     onClick(transaction)
                 }
             }
-            .background(UI.colors.medium, UI.shapes.r4)
             .testTag("transaction_card")
     ) {
-        // TODO: Optimize this
-        val transactionCurrency =
-            baseData.accounts.find { it.id == transaction.accountId }?.currency
-                ?: baseData.baseCurrency
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            val transactionCurrency =
+                baseData.accounts.find { it.id == transaction.accountId }?.currency
+                    ?: baseData.baseCurrency
 
-        val toAccountCurrency =
-            baseData.accounts.find { it.id == transaction.toAccountId }?.currency
-                ?: baseData.baseCurrency
+            val toAccountCurrency =
+                baseData.accounts.find { it.id == transaction.toAccountId }?.currency
+                    ?: baseData.baseCurrency
 
-        Spacer(Modifier.height(20.dp))
+            TransactionHeaderRow(
+                transaction = transaction,
+                categories = baseData.categories,
+                accounts = baseData.accounts,
+                shouldShowAccountSpecificColorInTransactions = shouldShowAccountSpecificColorInTransactions
+            )
 
-        TransactionHeaderRow(
-            transaction = transaction,
-            categories = baseData.categories,
-            accounts = baseData.accounts,
-            shouldShowAccountSpecificColorInTransactions = shouldShowAccountSpecificColorInTransactions
-        )
+            if (transaction.dueDate != null) {
+                Spacer(Modifier.height(10.dp))
+                val timeFormatter = LocalTimeFormatter.current
+                val timeProvider = LocalTimeProvider.current
+                val dueDateColor = remember(transaction.dueDate, isDark) {
+                    if (transaction.dueDate!!.isAfter(timeProvider.utcNow())) {
+                        Orange
+                    } else {
+                        if (isDark) Color(0xFFF43F5E) else Color(0xFFB91C1C)
+                    }
+                }
+                Text(
+                    text = stringResource(
+                        R.string.due_on,
+                        with(timeFormatter) {
+                            transaction.dueDate!!.formatLocal(
+                                TimeFormatter.Style.DateOnly(includeWeekDay = true)
+                            )
+                        }
+                    ).uppercase(),
+                    style = TextStyle(
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp,
+                        color = dueDateColor
+                    )
+                )
+            }
 
-        if (transaction.dueDate != null) {
+            if (transaction.title.isNotNullOrBlank()) {
+                Spacer(Modifier.height(if (transaction.dueDate != null) 6.dp else 10.dp))
+                Text(
+                    text = transaction.title!!,
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = UI.colors.pureInverse
+                    )
+                )
+            }
+
+            val description = getTransactionDescription(transaction)
+            if (!description.isNullOrBlank()) {
+                Spacer(Modifier.height(if (transaction.title.isNotNullOrBlank()) 4.dp else 6.dp))
+                Text(
+                    text = description,
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = UI.colors.mediumInverse
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
             Spacer(Modifier.height(12.dp))
-            val timeFormatter = LocalTimeFormatter.current
-            val timeProvider = LocalTimeProvider.current
-            Text(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                text = stringResource(
-                    R.string.due_on,
-                    with(timeFormatter) {
-                        transaction.dueDate!!.formatLocal(
-                            TimeFormatter.Style.DateOnly(
-                                includeWeekDay = true
+
+            TypeAmountCurrency(
+                transactionType = transaction.type,
+                dueDate = with(LocalTimeConverter.current) {
+                    transaction.dueDate?.toLocalDateTime()
+                },
+                currency = transactionCurrency,
+                amount = transaction.amount.toDouble(),
+                isDark = isDark
+            )
+
+            if (transaction.type == TransactionType.TRANSFER && toAccountCurrency != transactionCurrency) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    modifier = Modifier.padding(start = 48.dp),
+                    text = "${
+                        transaction.toAmount.toDouble()
+                            .format(IvyCurrency.getDecimalPlaces(toAccountCurrency))
+                    } $toAccountCurrency",
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = UI.colors.mediumInverse
+                    )
+                )
+            }
+
+            if (transaction.dueDate != null && transaction.dateTime == null) {
+                // Settle / Pay CTA button for planned transactions
+                Spacer(Modifier.height(14.dp))
+                val isExpense = transaction.type == TransactionType.EXPENSE
+                val buttonShape = remember { RoundedCornerShape(16.dp) }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Skip button
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(buttonShape)
+                            .background(
+                                if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.60f),
+                                buttonShape
+                            )
+                            .specularBorder(buttonShape, isDark, 0.5.dp)
+                            .clickable { onSkipTransaction(transaction) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.skip),
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = UI.colors.pureInverse
                             )
                         )
                     }
-                ).uppercase(),
-                style = UI.typo.nC.style(
-                    color = if (transaction.dueDate!!.isAfter(timeProvider.utcNow())) {
-                        Orange
-                    } else {
-                        UI.colors.gray
-                    },
-                    fontWeight = FontWeight.Bold
-                )
-            )
-        }
 
-        if (transaction.title.isNotNullOrBlank()) {
-            Spacer(
-                Modifier.height(
-                    if (transaction.dueDate != null) 8.dp else 12.dp
-                )
-            )
-            Text(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                text = transaction.title!!,
-                style = UI.typo.b1.style(
-                    fontWeight = FontWeight.ExtraBold,
-                    color = UI.colors.pureInverse
-                )
-            )
-        }
+                    // Pay / Get button
+                    val payBg = remember(isExpense, isDark) {
+                        if (isExpense) {
+                            if (isDark) Color(0xFFF43F5E).copy(alpha = 0.25f) else Color(0xFFB91C1C).copy(alpha = 0.15f)
+                        } else {
+                            if (isDark) Color(0xFF00F2FE).copy(alpha = 0.25f) else Color(0xFF1E823E).copy(alpha = 0.15f)
+                        }
+                    }
+                    val payTextColor = remember(isExpense, isDark) {
+                        if (isExpense) {
+                            if (isDark) Color(0xFFFECDD3) else Color(0xFFB91C1C)
+                        } else {
+                            if (isDark) Color(0xFF67E8F9) else Color(0xFF1E823E)
+                        }
+                    }
 
-        val description = getTransactionDescription(transaction)
-        if (!description.isNullOrBlank()) {
-            Spacer(Modifier.height(if (transaction.title.isNotNullOrBlank()) 4.dp else 8.dp))
-            Text(
-                text = description,
-                modifier = Modifier.padding(horizontal = 24.dp),
-                style = UI.typo.nC.style(
-                    color = UI.colors.gray,
-                    fontWeight = FontWeight.Bold
-                ),
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        if (transaction.dueDate != null) {
-            Spacer(Modifier.height(12.dp))
-        } else {
-            Spacer(Modifier.height(16.dp))
-        }
-
-        TypeAmountCurrency(
-            transactionType = transaction.type,
-            dueDate = with(LocalTimeConverter.current) {
-                transaction.dueDate?.toLocalDateTime()
-            },
-            currency = transactionCurrency,
-            amount = transaction.amount.toDouble()
-        )
-
-        if (transaction.type == TransactionType.TRANSFER && toAccountCurrency != transactionCurrency) {
-            Text(
-                modifier = Modifier.padding(start = 68.dp),
-                text = "${
-                    transaction.toAmount.toDouble()
-                        .format(IvyCurrency.getDecimalPlaces(toAccountCurrency))
-                } $toAccountCurrency",
-                style = UI.typo.nB2.style(
-                    color = Gray,
-                    fontWeight = FontWeight.Normal
-                )
-            )
-        }
-
-        if (transaction.dueDate != null && transaction.dateTime == null) {
-            // Pay/Get button
-            Spacer(Modifier.height(16.dp))
-            val isExpense = transaction.type == TransactionType.EXPENSE
-            Row {
-                IvyButton(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 24.dp),
-                    text = stringResource(R.string.skip),
-                    wrapContentMode = false,
-                    backgroundGradient = Gradient.solid(UI.colors.pure),
-                    textStyle = UI.typo.b2.style(
-                        color = UI.colors.pureInverse,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    onSkipTransaction(transaction)
-                }
-
-                Spacer(Modifier.width(8.dp))
-
-                IvyButton(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 24.dp),
-                    text = if (isExpense) stringResource(R.string.pay) else stringResource(R.string.get),
-                    wrapContentMode = false,
-                    backgroundGradient = if (isExpense) gradientExpenses() else GradientGreen,
-                    textStyle = UI.typo.b2.style(
-                        color = if (isExpense) UI.colors.pure else White,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    onPayOrGet(transaction)
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(buttonShape)
+                            .background(payBg, buttonShape)
+                            .specularBorder(buttonShape, isDark, 0.5.dp)
+                            .clickable { onPayOrGet(transaction) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (isExpense) stringResource(R.string.pay) else stringResource(R.string.get),
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = payTextColor
+                            )
+                        )
+                    }
                 }
             }
-        }
 
-        if (transaction.tags.isNotEmpty()) {
-            TransactionTags(transaction.tags)
+            if (transaction.tags.isNotEmpty()) {
+                TransactionTags(transaction.tags)
+            }
         }
-
-        Spacer(Modifier.height(20.dp))
     }
 }
 
 @Composable
 private fun ColumnScope.TransactionTags(tags: ImmutableList<LegacyTag>) {
-    Spacer(Modifier.height(12.dp))
+    Spacer(Modifier.height(10.dp))
 
-    LazyRow(
-        modifier = Modifier.padding(horizontal = 24.dp)
-    ) {
+    LazyRow {
         item {
-            // Tag Text
             Text(
                 text = "Tags:",
-                style = UI.typo.nC.style(
-                    color = UI.colors.gray,
-                    fontWeight = FontWeight.Normal
+                style = TextStyle(
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = UI.colors.mediumInverse
                 )
             )
-
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
         }
 
         items(tags, key = { it.id }) { tag ->
             Text(
                 text = "#${tag.name}",
-                style = UI.typo.nC.style(
-                    color = BlueLight,
-                    fontWeight = FontWeight.Normal
+                style = TextStyle(
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = BlueLight
                 )
             )
             Spacer(modifier = Modifier.width(6.dp))
@@ -318,12 +348,10 @@ private fun TransactionHeaderRow(
     )
 
     if (transaction.type == TransactionType.TRANSFER) {
-        Column(
-            modifier = Modifier.padding(horizontal = 20.dp),
-        ) {
+        Column {
             if (category != null) {
                 CategoryBadgeDisplay(category, nav)
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
             }
             TransferHeader(
                 accounts = accounts,
@@ -333,9 +361,8 @@ private fun TransactionHeaderRow(
         }
     } else {
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             if (category != null) {
                 CategoryBadgeDisplay(category, nav)
@@ -346,26 +373,45 @@ private fun TransactionHeaderRow(
                 accounts = accounts
             )
 
-            val accountBackgroundColor = if (shouldShowAccountSpecificColorInTransactions) {
-                account?.color?.toComposeColor() ?: UI.colors.pure
-            } else {
-                UI.colors.pure
-            }
+            val isDark = isAppInDarkTheme()
+            val badgeShape = remember { CircleShape }
 
-            TransactionBadge(
-                text = account?.name ?: stringResource(R.string.deleted),
-                backgroundColor = accountBackgroundColor,
-                icon = account?.icon,
-                defaultIcon = R.drawable.ic_custom_account_s
-            ) {
-                account?.let {
-                    nav.navigateTo(
-                        TransactionsScreen(
-                            accountId = account.id,
-                            categoryId = null
-                        )
+            Row(
+                modifier = Modifier
+                    .clip(badgeShape)
+                    .background(
+                        if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.60f),
+                        badgeShape
                     )
-                }
+                    .specularBorder(badgeShape, isDark, 0.5.dp)
+                    .clickable {
+                        account?.let {
+                            nav.navigateTo(
+                                TransactionsScreen(
+                                    accountId = account.id,
+                                    categoryId = null
+                                )
+                            )
+                        }
+                    }
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val dotColor = account?.color?.toComposeColor() ?: UI.colors.mediumInverse
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(dotColor, CircleShape)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = account?.name ?: stringResource(R.string.deleted),
+                    style = TextStyle(
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.mediumInverse
+                    )
+                )
             }
         }
     }
@@ -375,18 +421,54 @@ private fun TransactionHeaderRow(
 fun CategoryBadgeDisplay(
     category: Category,
     nav: Navigation,
+    modifier: Modifier = Modifier
 ) {
-    TransactionBadge(
-        text = category.name.value,
-        backgroundColor = category.color.value.toComposeColor(),
-        icon = category.icon?.id,
-        defaultIcon = R.drawable.ic_custom_category_s
+    val isDark = isAppInDarkTheme()
+    val categoryColor = category.color.value.toComposeColor()
+    val circleShape = remember { CircleShape }
+    val badgeShape = remember { RoundedCornerShape(14.dp) }
+
+    Row(
+        modifier = modifier
+            .clip(badgeShape)
+            .background(
+                categoryColor.copy(alpha = if (isDark) 0.25f else 0.15f),
+                badgeShape
+            )
+            .specularBorder(badgeShape, isDark, 0.5.dp)
+            .clickable {
+                nav.navigateTo(
+                    TransactionsScreen(
+                        accountId = null,
+                        categoryId = category.id.value
+                    )
+                )
+            }
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Navigation logic
-        nav.navigateTo(
-            TransactionsScreen(
-                accountId = null,
-                categoryId = category.id.value
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(circleShape)
+                .background(categoryColor.copy(alpha = if (isDark) 0.40f else 0.30f), circleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            ItemIconSDefaultIcon(
+                iconName = category.icon?.id,
+                defaultIcon = R.drawable.ic_custom_category_s,
+                tint = UI.colors.pureInverse
+            )
+        }
+
+        Spacer(Modifier.width(8.dp))
+
+        Text(
+            text = category.name.value,
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = UI.colors.pureInverse
             )
         )
     }
@@ -414,145 +496,70 @@ private fun getTransactionDescription(transaction: Transaction): String? {
 }
 
 @Composable
-private fun TransactionBadge(
-    text: String,
-    backgroundColor: Color,
-    icon: String?,
-    @DrawableRes
-    defaultIcon: Int,
-
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .clip(UI.shapes.rFull)
-            .background(backgroundColor, UI.shapes.rFull)
-            .clickable {
-                onClick()
-            }
-            .padding(end = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        SpacerHor(width = 8.dp)
-
-        val contrastColor = findContrastTextColor(backgroundColor)
-
-        ItemIconSDefaultIcon(
-            iconName = icon,
-            defaultIcon = defaultIcon,
-            tint = contrastColor
-        )
-
-        SpacerHor(width = 4.dp)
-
-        IvyText(
-            text = text,
-            typo = UI.typo.c.style(
-                color = contrastColor,
-                fontWeight = FontWeight.ExtraBold
-            )
-        )
-
-        SpacerHor(width = 20.dp)
-    }
-}
-
-private const val TransferHeaderGradientThreshold = 0.35f
-
-@Composable
 private fun TransferHeader(
     accounts: List<Account>,
     transaction: Transaction,
     shouldShowAccountSpecificColorInTransactions: Boolean
 ) {
+    val isDark = isAppInDarkTheme()
     val account = remember(accounts, transaction) {
         accounts.find { transaction.accountId == it.id }
     }
     val toAccount = remember(accounts, transaction) {
         accounts.find { transaction.toAccountId == it.id }
     }
+    val pillShape = remember { CircleShape }
 
     Row(
         modifier = Modifier
-            .then(
-                if (shouldShowAccountSpecificColorInTransactions && account != null && toAccount != null) {
-                    Modifier
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                0f to account.color.toComposeColor(),
-                                (TransferHeaderGradientThreshold) to account.color.toComposeColor(),
-                                (1f - TransferHeaderGradientThreshold) to toAccount.color.toComposeColor(),
-                                1f to toAccount.color.toComposeColor()
-                            ),
-                            shape = UI.shapes.rFull
-                        )
-                } else {
-                    Modifier.background(UI.colors.pure, UI.shapes.rFull)
-                }
-            ),
+            .clip(pillShape)
+            .background(
+                if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.60f),
+                pillShape
+            )
+            .specularBorder(pillShape, isDark, 0.5.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(8.dp))
-
-        val accountContrastColor =
-            if (shouldShowAccountSpecificColorInTransactions && account != null) {
-                findContrastTextColor(account.color.toComposeColor())
-            } else {
-                UI.colors.pureInverse
-            }
-
         ItemIconSDefaultIcon(
             iconName = account?.icon,
             defaultIcon = R.drawable.ic_custom_account_s,
-            tint = accountContrastColor
+            tint = UI.colors.pureInverse
         )
 
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(6.dp))
 
         Text(
-            modifier = Modifier
-                .padding(vertical = 8.dp),
-            // used toString() in case of null
             text = account?.name.toString(),
-            style = UI.typo.c.style(
-                fontWeight = FontWeight.ExtraBold,
-                color = accountContrastColor
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = UI.colors.pureInverse
             )
         )
 
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(8.dp))
 
-        IvyIcon(icon = R.drawable.ic_arrow_right, tint = accountContrastColor)
+        IvyIcon(icon = R.drawable.ic_arrow_right, tint = UI.colors.mediumInverse)
 
-        Spacer(Modifier.width(12.dp))
-
-        val toAccountContrastColor =
-            if (shouldShowAccountSpecificColorInTransactions && toAccount != null) {
-                findContrastTextColor(toAccount.color.toComposeColor())
-            } else {
-                UI.colors.pureInverse
-            }
+        Spacer(Modifier.width(8.dp))
 
         ItemIconSDefaultIcon(
             iconName = toAccount?.icon,
             defaultIcon = R.drawable.ic_custom_account_s,
-            tint = toAccountContrastColor
+            tint = UI.colors.pureInverse
         )
 
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(6.dp))
 
         Text(
-            modifier = Modifier
-                .padding(vertical = 8.dp),
-            // used toString() in case of null
             text = toAccount?.name.toString(),
-            style = UI.typo.c.style(
-                fontWeight = FontWeight.ExtraBold,
-                color = toAccountContrastColor
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = UI.colors.pureInverse
             )
         )
-
-        Spacer(Modifier.width(20.dp))
     }
 }
 
@@ -562,94 +569,77 @@ fun TypeAmountCurrency(
     dueDate: LocalDateTime?,
     currency: String,
     amount: Double,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isDark: Boolean = isAppInDarkTheme()
 ) {
+    val pureInverse = UI.colors.pureInverse
+
     Row(
         modifier = modifier.testTag("type_amount_currency"),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(24.dp))
-
-        val style = when (transactionType) {
-            TransactionType.INCOME -> {
-                AmountTypeStyle(
-                    icon = R.drawable.ic_income,
-                    gradient = GradientGreen,
-                    iconTint = White,
-                    textColor = Green
-                )
-            }
-
-            TransactionType.EXPENSE -> {
-                when {
-                    dueDate != null && dueDate.isAfter(timeNowUTC()) -> {
-                        // Upcoming Expense
-                        AmountTypeStyle(
-                            icon = R.drawable.ic_expense,
-                            gradient = GradientOrangeRevert,
-                            iconTint = White,
-                            textColor = Orange
-                        )
-                    }
-
-                    dueDate != null && dueDate.isBefore(dateNowUTC().atStartOfDay()) -> {
-                        // Overdue Expense
-                        AmountTypeStyle(
-                            icon = R.drawable.ic_overdue,
-                            gradient = GradientRed,
-                            iconTint = White,
-                            textColor = Red
-                        )
-                    }
-
-                    else -> {
-                        // Normal Expense
-                        AmountTypeStyle(
-                            icon = R.drawable.ic_expense,
-                            gradient = Gradient.black(),
-                            iconTint = White,
-                            textColor = UI.colors.pureInverse
-                        )
-                    }
-                }
-            }
-
-            TransactionType.TRANSFER -> {
-                // Transfer
-                AmountTypeStyle(
-                    icon = R.drawable.ic_transfer,
-                    gradient = GradientIvy,
-                    iconTint = White,
-                    textColor = Ivy
-                )
+        val amountColor = remember(transactionType, isDark, pureInverse) {
+            when (transactionType) {
+                TransactionType.EXPENSE -> if (isDark) Color(0xFFFECDD3) else Color(0xFFB91C1C)
+                TransactionType.INCOME -> if (isDark) Color(0xFF67E8F9) else Color(0xFF1E823E)
+                TransactionType.TRANSFER -> pureInverse
             }
         }
 
-        IvyIcon(
+        val iconBg = remember(transactionType, isDark) {
+            when (transactionType) {
+                TransactionType.EXPENSE -> if (isDark) Color(0xFFF43F5E).copy(alpha = 0.20f) else Color(0xFFB91C1C).copy(alpha = 0.12f)
+                TransactionType.INCOME -> if (isDark) Color(0xFF00F2FE).copy(alpha = 0.20f) else Color(0xFF1E823E).copy(alpha = 0.12f)
+                TransactionType.TRANSFER -> if (isDark) Color(0xFF7C4DFF).copy(alpha = 0.20f) else Color(0xFF9E4622).copy(alpha = 0.12f)
+            }
+        }
+
+        Box(
             modifier = Modifier
-                .background(style.gradient.asHorizontalBrush(), CircleShape),
-            icon = style.icon,
-            tint = style.iconTint
-        )
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(iconBg, CircleShape)
+                .specularBorder(CircleShape, isDark, 0.5.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            IvyIcon(
+                icon = when (transactionType) {
+                    TransactionType.INCOME -> R.drawable.ic_income
+                    TransactionType.EXPENSE -> R.drawable.ic_expense
+                    TransactionType.TRANSFER -> R.drawable.ic_transfer
+                },
+                tint = amountColor,
+                modifier = Modifier.size(16.dp)
+            )
+        }
 
         Spacer(Modifier.width(12.dp))
 
-        AmountCurrencyB1(
-            amount = amount,
-            currency = currency,
-            textColor = style.textColor
-        )
-
-        Spacer(Modifier.width(24.dp))
+        Row(
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Text(
+                text = amount.format(currency),
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = amountColor,
+                    letterSpacing = (-0.02).sp
+                )
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = currency,
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = UI.colors.mediumInverse
+                ),
+                modifier = Modifier.padding(bottom = 2.dp)
+            )
+        }
     }
 }
-
-private data class AmountTypeStyle(
-    @DrawableRes val icon: Int,
-    val gradient: Gradient,
-    val iconTint: Color,
-    val textColor: Color
-)
 
 @Preview
 @Composable
@@ -682,230 +672,6 @@ private fun PreviewUpcomingExpense() {
                         type = TransactionType.EXPENSE,
                     ),
                     shouldShowAccountSpecificColorInTransactions = false,
-                    onPayOrGet = {},
-                ) {
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewUpcomingExpenseBadgeSecondRow() {
-    IvyWalletPreview {
-        LazyColumn(Modifier.fillMaxSize()) {
-            val cash = Account(name = "Cash", Green.toArgb())
-            val food = Category(
-                name = NotBlankTrimmedString.unsafe("Food-Travel-Entertaiment-Food"),
-                color = ColorInt(Blue.toArgb()),
-                icon = null,
-                id = CategoryId(UUID.randomUUID()),
-                orderNum = 0.0,
-            )
-
-            item {
-                TransactionCard(
-                    baseData = AppBaseData(
-                        baseCurrency = "BGN",
-                        categories = persistentListOf(food),
-                        accounts = persistentListOf(cash)
-                    ),
-                    transaction = Transaction(
-                        accountId = cash.id,
-                        title = "Lidl pazar",
-                        categoryId = food.id.value,
-                        amount = 250.75.toBigDecimal(),
-                        dueDate = timeNowUTC().plusDays(5).toInstant(ZoneOffset.UTC),
-                        dateTime = null,
-                        type = TransactionType.EXPENSE,
-                    ),
-                    shouldShowAccountSpecificColorInTransactions = false,
-                    onPayOrGet = {},
-                ) {
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewOverdueExpense() {
-    IvyWalletPreview {
-        LazyColumn(Modifier.fillMaxSize()) {
-            val cash = Account(name = "Cash", color = Green.toArgb())
-            val food = Category(
-                name = NotBlankTrimmedString.unsafe("Rent"),
-                color = ColorInt(Green.toArgb()),
-                icon = null,
-                id = CategoryId(UUID.randomUUID()),
-                orderNum = 0.0,
-            )
-
-            item {
-                TransactionCard(
-                    baseData = AppBaseData(
-                        baseCurrency = "BGN",
-                        categories = persistentListOf(food),
-                        accounts = persistentListOf(cash)
-                    ),
-                    transaction = Transaction(
-                        accountId = cash.id,
-                        title = "Rent",
-                        categoryId = food.id.value,
-                        amount = 500.0.toBigDecimal(),
-                        dueDate = timeNowUTC().minusDays(5).toInstant(ZoneOffset.UTC),
-                        dateTime = null,
-                        type = TransactionType.EXPENSE
-                    ),
-                    shouldShowAccountSpecificColorInTransactions = false,
-                    onPayOrGet = {},
-                ) {
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewNormalExpense() {
-    IvyWalletPreview {
-        LazyColumn(Modifier.fillMaxSize()) {
-            val cash = Account(name = "Cash", color = Green.toArgb())
-            val food = Category(
-                name = NotBlankTrimmedString.unsafe("Bitovi"),
-                color = ColorInt(Orange.toArgb()),
-                icon = IconAsset.unsafe("groceries"),
-                id = CategoryId(UUID.randomUUID()),
-                orderNum = 0.0,
-            )
-
-            item {
-                TransactionCard(
-                    baseData = AppBaseData(
-                        baseCurrency = "BGN",
-                        categories = persistentListOf(food),
-                        accounts = persistentListOf(cash)
-                    ),
-                    transaction = Transaction(
-                        accountId = cash.id,
-                        title = "Близкия магазин",
-                        categoryId = food.id.value,
-                        amount = 32.51.toBigDecimal(),
-                        dateTime = timeNowUTC().toInstant(ZoneOffset.UTC),
-                        type = TransactionType.EXPENSE
-                    ),
-                    shouldShowAccountSpecificColorInTransactions = false,
-                    onPayOrGet = {},
-                ) {
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewIncome() {
-    IvyWalletPreview {
-        LazyColumn(Modifier.fillMaxSize()) {
-            val cash = Account(name = "DSK Bank", color = Green.toArgb())
-            val category = Category(
-                name = NotBlankTrimmedString.unsafe("Salary"),
-                color = ColorInt(GreenDark.toArgb()),
-                icon = null,
-                id = CategoryId(UUID.randomUUID()),
-                orderNum = 0.0,
-            )
-
-            item {
-                TransactionCard(
-                    baseData = AppBaseData(
-                        baseCurrency = "BGN",
-                        categories = persistentListOf(category),
-                        accounts = persistentListOf(cash)
-                    ),
-                    transaction = Transaction(
-                        accountId = cash.id,
-                        title = "Qredo Salary May",
-                        categoryId = category.id.value,
-                        amount = 8049.70.toBigDecimal(),
-                        dateTime = timeNowUTC().toInstant(ZoneOffset.UTC),
-                        type = TransactionType.INCOME
-                    ),
-                    shouldShowAccountSpecificColorInTransactions = false,
-                    onPayOrGet = {},
-                ) {
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewTransfer() {
-    IvyWalletPreview {
-        LazyColumn(Modifier.fillMaxSize()) {
-            val acc1 = Account(name = "DSK Bank", color = Green.toArgb(), icon = "bank")
-            val acc2 = Account(name = "Revolut", color = IvyDark.toArgb(), icon = "revolut")
-
-            item {
-                TransactionCard(
-                    baseData = AppBaseData(
-                        baseCurrency = "BGN",
-                        categories = persistentListOf(),
-                        accounts = persistentListOf(acc1, acc2)
-                    ),
-                    transaction = Transaction(
-                        accountId = acc1.id,
-                        toAccountId = acc2.id,
-                        title = "Top-up revolut",
-                        amount = 1000.0.toBigDecimal(),
-                        dateTime = timeNowUTC().toInstant(ZoneOffset.UTC),
-                        type = TransactionType.TRANSFER
-                    ),
-                    shouldShowAccountSpecificColorInTransactions = false,
-                    onPayOrGet = {},
-                ) {
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewTransfer_differentCurrency() {
-    IvyWalletPreview {
-        LazyColumn(Modifier.fillMaxSize()) {
-            val acc1 = Account(name = "DSK Bank", color = Green.toArgb(), icon = "bank")
-            val acc2 = Account(
-                name = "Revolut",
-                currency = "EUR",
-                color = IvyDark.toArgb(),
-                icon = "revolut"
-            )
-
-            item {
-                TransactionCard(
-                    baseData = AppBaseData(
-                        baseCurrency = "BGN",
-                        categories = persistentListOf(),
-                        accounts = persistentListOf(acc1, acc2)
-                    ),
-                    transaction = Transaction(
-                        accountId = acc1.id,
-                        toAccountId = acc2.id,
-                        title = "Top-up revolut",
-                        amount = 1000.0.toBigDecimal(),
-                        toAmount = 510.toBigDecimal(),
-                        dateTime = timeNowUTC().toInstant(ZoneOffset.UTC),
-                        type = TransactionType.TRANSFER
-                    ),
-                    shouldShowAccountSpecificColorInTransactions = true,
                     onPayOrGet = {},
                 ) {
                 }

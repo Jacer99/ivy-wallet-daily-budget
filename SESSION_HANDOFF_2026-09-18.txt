@@ -1,0 +1,152 @@
+================================================================
+POCKETMONEY — MASTER HANDOFF — 2026-09-18 (end of day)
+================================================================
+
+THIS FILE SUPERSEDES ALL EARLIER HANDOFFS.
+It is the single source of truth. If it conflicts with
+SESSION_HANDOFF_2026-09-17, THIS FILE WINS.
+
+================================================================
+0. TOP OF MIND FOR NEXT SESSION (PROMPT 2 READY)
+================================================================
+
+1. Galaxy S25 Ultra FAB / Speed Dial Layout:
+   - "Add Expense" center FAB is currently off-center on the wide
+     display of the Samsung Galaxy S25 Ultra.
+   - Reduce the diameter of the 3 action FABs slightly (from 74dp to
+     64dp) and ensure the container uses proper horizontal alignment
+     (`Arrangement.Center` with balanced spacing) so "Add Expense" is
+     strictly centered above the dock FAB.
+
+2. Home & Account Transaction Cards Theming:
+   - Transactions listed on the Home feed and under account vaults
+     remain on legacy flat cards.
+   - Refactor `TransactionCard.kt` and `HistoryDateDivider.kt` to use
+     `LiquidGlassCard(shape = RoundedCornerShape(20.dp))` with
+     translucent category tints and high-contrast typography.
+
+3. Statistics / Pie Chart Screen Theming:
+   - Tapping "Income" or "Expenses" twin cards navigates to
+     `PieChartStatisticScreen`.
+   - The pie chart canvas, category list rows, and transaction
+     breakdown are currently unthemed legacy cards.
+   - Apply `.pocketMoneyBackground()` and `LiquidGlassCard` containers.
+
+4. Transaction Creation & Edit Sheet (`EditTransactionScreen.kt`):
+   - Wrap amount input, category picker, account selector, and
+     allowance toggle in `LiquidGlassCard(shape = RoundedCornerShape(22.dp))`.
+   - Frosted glass modal keypad for `AmountModal`.
+
+================================================================
+1. WHAT TO PASTE TO AI AT SESSION START
+================================================================
+
+Paste this entire file.
+
+Then run and paste output:
+
+    cd "C:\Dev\Ivy-wallet"
+    git log --oneline -5
+    git status
+
+Working tree should be clean on branch development.
+
+================================================================
+2. ENVIRONMENT — DO NOT ALTER
+================================================================
+
+Product:        PocketMoney
+Tagline:        "One number a day."
+Fork of:        Ivy Wallet (GPL-3.0), archived 2024-11-05
+Local path:     C:\Dev\Ivy-wallet
+Branch:         development
+Baseline tag:   ivy-original-baseline
+Remotes:
+  origin   → https://github.com/Jacer99/ivy-wallet-daily-budget.git
+  upstream → https://github.com/Ivy-Apps/ivy-wallet.git (read-only)
+
+Toolchain (frozen):
+  Gradle wrapper:     8.8
+  Gradle JDK:         17  (C:\Users\JACER\.jdks\jbr-17.0.14)
+  Kotlin:             2.0.20
+  AGP:                8.5.2
+  Android Studio:     2026.1.4
+  Target phone:       Samsung Galaxy S25 Ultra (both users)
+
+PowerShell: every fresh window starts in C:\Users\JACER.
+Always "cd C:\Dev\Ivy-wallet" first.
+
+================================================================
+3. WHAT LANDED TODAY (2026-09-18)
+================================================================
+
+1. Liquid Glass & Ambient Glow UI Primitives:
+   - `Modifier.pocketMoneyBackground(isDark)`: Reusable 3-stop radial
+     mesh background (Dark: #0B0B14 cosmic mesh; Light: #F4F3F8 pearl mesh)
+     with 400ms cross-fade animation.
+   - `Modifier.specularBorder(shape, isDark)`: 0.5dp top-down lighting
+     gradient rim simulating refraction.
+   - `LiquidGlassCard`: Adaptive composable container with translucent
+     fill (obsidian in dark, crisp pearl in light with ambient shadow).
+
+2. Theme Engine Unification:
+   - Replaced hardcoded `isSystemInDarkTheme()` with `isAppInDarkTheme()`
+     (`!UI.colors.isLight`) across all glass primitives and theme roots.
+   - Quick Access theme button cycles: System (AUTO) → Light → Dark.
+   - Fixed light mode contrast bug: Hero numbers use warm copper gradient
+     brush, twin cards use Nordic Moss / Burnished Espresso gradients,
+     and text uses semantic `pureInverse` (#111111).
+
+3. Merge Conflicts Resolved & Clean Compilation:
+   - Cleaned conflict markers from `DynamicBudgetEngine.kt`, `HomeHeader.kt`,
+     and `HomeTab.kt`.
+   - Collapsed sticky top bar on Home now displays the Safe-to-Spend hero
+     amount instead of total account balance.
+   - Added mock `app/google-services.json` supporting both `com.ivy.wallet`
+     and `com.ivy.wallet.debug` for reliable local debug APK builds.
+
+4. UI Polish & Padding Fixes:
+   - Removed unstyled "Budget / Spent / Available / Days left" ghost text.
+   - Fixed "null0.00 TND" prefix concatenation bug in `CategoriesScreen.kt`.
+   - Added `contentPadding = PaddingValues(bottom = 110.dp)` across Home,
+     Categories, and Accounts LazyColumns to prevent bottom dock overlap.
+
+================================================================
+4. LOCKED ARCHITECTURAL DECISIONS
+================================================================
+
+D1. TND is the only currency in v1. No multi-currency.
+D2. English-only. Non-English values-*/ directories deleted.
+D3. No cloud, no accounts, no sharing in v1. Local-only.
+D4. No parallel transaction systems. Everything reuses Ivy.
+D5. Money is Long minor units in new code (TND = 3 decimals).
+D6. Native Compose Canvas/Brush/drawBehind only. No third-party blur libs.
+D7. Theme switching relies on `!UI.colors.isLight`. Never hardcode
+    `isSystemInDarkTheme()` inside screen composables.
+D8. No red or punitive alert colors on the Safe-to-Spend hero card.
+D9. Reservations are OUT of v1. Do not display reserved budget.
+D10. Always provide 110dp bottom contentPadding for scrollable lists
+     above the floating navigation dock.
+
+================================================================
+5. ROADMAP — NEXT SESSIONS
+================================================================
+
+SESSION 1 (Immediate Next):
+  ☐ Prompt 2: Add/Edit Transaction Flow + Transaction Cards
+      - Center and scale down Add Transaction speed dial FABs (S25 Ultra layout).
+      - Theme `TransactionCard.kt` and `HistoryDateDivider.kt` with Liquid Glass.
+      - Theme `PieChartStatisticScreen.kt` (Home Income/Expense stats).
+      - Theme `EditTransactionScreen.kt` and `AmountModal.kt`.
+      - Theme `AccountDetailsScreen.kt` and `ChoosePeriodModal.kt`.
+
+SESSION 2:
+  ☐ Prompt 3: Settings Cleanup & Ivy Link Removal
+      - Remove legacy Ivy release link/date in header.
+      - Theme preferences, backup, and appearance sections.
+  ☐ Prompt 4: Secondary Modules
+      - Planned Payments, Budgets, and Loans tracker styling.
+
+================================================================
+END OF HANDOFF
+================================================================

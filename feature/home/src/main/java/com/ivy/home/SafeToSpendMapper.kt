@@ -52,6 +52,8 @@ internal fun mapToSafeToSpendCardState(
         null
     }
 
+    val displayPeriodRemaining = if (snapshot.periodRemaining < 0L) 0L else snapshot.periodRemaining
+
     return SafeToSpendCardState.Active(
         remainingAllowanceMinorUnits = displayRemaining,
         openingAllowanceMinorUnits = snapshot.openingAllowance,
@@ -59,5 +61,9 @@ internal fun mapToSafeToSpendCardState(
         tomorrowProjectionMinorUnits = snapshot.tomorrowProjection,
         message = message,
         paydayLabel = paydayLabel,
+        periodBudgetMinorUnits = snapshot.capacity,
+        periodSpentMinorUnits = snapshot.periodSpentRaw,
+        periodAvailableMinorUnits = displayPeriodRemaining,
+        daysLeft = snapshot.daysRemaining,
     )
 }

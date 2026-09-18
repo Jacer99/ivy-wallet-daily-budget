@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,22 +36,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ivy.legacy.datamodel.Account
+import com.ivy.base.model.TransactionType
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.system.isAppInDarkTheme
+import com.ivy.design.utils.thenIf
 import com.ivy.frp.test.TestingContext
 import com.ivy.legacy.IvyWalletPreview
+import com.ivy.legacy.datamodel.Account
 import com.ivy.legacy.ivyWalletCtx
 import com.ivy.legacy.utils.addKeyboardListener
 import com.ivy.legacy.utils.clickableNoIndication
@@ -60,13 +69,13 @@ import com.ivy.legacy.utils.keyboardOnlyWindowInsets
 import com.ivy.legacy.utils.lerp
 import com.ivy.legacy.utils.navigationBarInsets
 import com.ivy.legacy.utils.onScreenStart
-import com.ivy.legacy.utils.springBounce
-import com.ivy.design.utils.thenIf
-import com.ivy.legacy.utils.verticalSwipeListener
-import com.ivy.base.model.TransactionType
 import com.ivy.legacy.utils.rememberInteractionSource
 import com.ivy.legacy.utils.rememberSwipeListenerState
+import com.ivy.legacy.utils.springBounce
+import com.ivy.legacy.utils.verticalSwipeListener
 import com.ivy.ui.R
+import com.ivy.ui.component.LiquidGlassTokens
+import com.ivy.ui.component.specularBorder
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.Green
@@ -112,10 +121,11 @@ fun BoxWithConstraintsScope.EditBottomSheet(
     onSelectedAccountChanged: (Account) -> Unit,
     onToAccountChanged: (Account) -> Unit,
     onAddNewAccount: () -> Unit,
-    modifier: Modifier = Modifier, // Modifier comes after other parameters
+    modifier: Modifier = Modifier,
     convertedAmount: Double? = null,
     convertedAmountCurrencyCode: String? = null,
 ) {
+    val isDark = isAppInDarkTheme()
     val rootView = LocalView.current
     var keyboardShown by remember { mutableStateOf(false) }
 
@@ -165,24 +175,20 @@ fun BoxWithConstraintsScope.EditBottomSheet(
         }
     }
 
+    val sheetShape = remember { RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp) }
+    val sheetBg = remember(isDark) {
+        if (isDark) Color(0xFF0B0B14).copy(alpha = 0.94f) else Color(0xFFFFFFFF).copy(alpha = 0.94f)
+    }
+
     Column(
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(top = 24.dp)
-//            .drawColoredShadow(
-//                color = UI.colors.mediumInverse,
-//                alpha = if (UI.colors.isLight) 0.3f else 0.2f,
-//                borderRadius = 24.dp,
-//                shadowRadius = 24.dp
-//            )
-            .border(
-                width = 2.dp,
-                color = UI.colors.medium,
-                shape = UI.shapes.r2Top
-            )
-            .background(UI.colors.pure, UI.shapes.r2Top)
+            .clip(sheetShape)
+            .background(sheetBg, sheetShape)
+            .specularBorder(sheetShape, isDark, 0.5.dp)
             .verticalSwipeListener(
                 sensitivity = SWIPE_UP_EXPANDED_THRESHOLD,
                 state = rememberSwipeListenerState(),
@@ -196,7 +202,6 @@ fun BoxWithConstraintsScope.EditBottomSheet(
             )
             .consumeClicks(rememberInteractionSource())
     ) {
-        // Accounts label
         val label = when (type) {
             TransactionType.INCOME -> stringResource(R.string.add_money_to)
             TransactionType.EXPENSE -> stringResource(R.string.pay_with)
@@ -250,8 +255,7 @@ fun BoxWithConstraintsScope.EditBottomSheet(
         if (lastSpacer > 0) {
             Spacer(Modifier.height(lastSpacer.dp))
         }
-//
-        // system stuff + keyboard padding
+
         Spacer(Modifier.height(densityScope { bottomBarHeight.toDp() }))
         Spacer(Modifier.height(keyboardShownInsetDp))
     }
@@ -287,9 +291,10 @@ fun BoxWithConstraintsScope.EditBottomSheet(
             Text(
                 modifier = Modifier.padding(start = 32.dp),
                 text = stringResource(R.string.account),
-                style = UI.typo.b1.style(
-                    color = UI.colors.pureInverse,
-                    fontWeight = FontWeight.ExtraBold
+                style = TextStyle(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = UI.colors.pureInverse
                 )
             )
 
@@ -344,7 +349,6 @@ private fun BottomBar(
                     )
                 }
             }
-//            .gradientCutBackground()
             .padding(bottom = 12.dp)
             .padding(bottom = navBarPadding),
         lineColor = UI.colors.medium
@@ -465,8 +469,6 @@ private fun SheetHeader(
             modifier = Modifier
                 .layout { measurable, constraints ->
                     val placeable = measurable.measure(constraints)
-
-//                    val x = lerp(0, ivyContext.screenWidth, (1f - percentExpanded))
                     val height = placeable.height * percentExpanded
 
                     layout(placeable.width, height.roundToInt()) {
@@ -483,9 +485,10 @@ private fun SheetHeader(
             Text(
                 modifier = Modifier.padding(start = 32.dp),
                 text = label,
-                style = UI.typo.b1.style(
-                    color = UI.colors.pureInverse,
-                    fontWeight = FontWeight.ExtraBold
+                style = TextStyle(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = UI.colors.pureInverse
                 )
             )
 
@@ -505,9 +508,10 @@ private fun SheetHeader(
                 Text(
                     modifier = Modifier.padding(start = 32.dp),
                     text = stringResource(R.string.to),
-                    style = UI.typo.b1.style(
-                        color = UI.colors.pureInverse,
-                        fontWeight = FontWeight.ExtraBold
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = UI.colors.pureInverse
                     )
                 )
 
@@ -542,10 +546,10 @@ private fun AccountsRow(
             val selectedIndex = accounts.indexOf(selectedAccount)
             if (selectedIndex != -1) {
                 launch {
-                    if (TestingContext.inTest) return@launch // breaks UI tests
+                    if (TestingContext.inTest) return@launch
 
                     lazyState.scrollToItem(
-                        index = selectedIndex, // +1 because Spacer width 24.dp
+                        index = selectedIndex,
                     )
                 }
             }
@@ -562,7 +566,7 @@ private fun AccountsRow(
         }
 
         itemsIndexed(accounts) { _, account ->
-            Account(
+            AccountItem(
                 account = account,
                 selected = selectedAccount == account,
                 testTag = childrenTestTag ?: "account"
@@ -585,53 +589,52 @@ private fun AccountsRow(
 }
 
 @Composable
-private fun Account(
+private fun AccountItem(
     account: Account,
     selected: Boolean,
     testTag: String,
     onClick: () -> Unit
 ) {
-    val accountColor = account.color.toComposeColor()
-    val textColor =
-        if (selected) findContrastTextColor(accountColor) else UI.colors.pureInverse
+    val isDark = isAppInDarkTheme()
+    val pillShape = remember { CircleShape }
 
-    val medium = UI.colors.medium
-    val rFull = UI.shapes.rFull
+    val bg = remember(selected, account.color, isDark) {
+        if (selected) {
+            account.color.toComposeColor().copy(alpha = if (isDark) 0.35f else 0.25f)
+        } else {
+            if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.60f)
+        }
+    }
+    val borderCol = remember(selected, account.color, isDark) {
+        if (selected) account.color.toComposeColor() else (if (isDark) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.10f))
+    }
 
     Row(
         modifier = Modifier
-            .clip(UI.shapes.rFull)
-            .thenIf(!selected) {
-                border(2.dp, medium, rFull)
-            }
-            .thenIf(selected) {
-                background(accountColor, rFull)
-            }
+            .clip(pillShape)
+            .background(bg, pillShape)
+            .border(1.dp, borderCol, pillShape)
             .clickable(onClick = onClick)
             .testTag(testTag)
-            .padding(8.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(12.dp))
-
         ItemIconSDefaultIcon(
             iconName = account.icon,
             defaultIcon = R.drawable.ic_custom_account_s,
-            tint = textColor
+            tint = UI.colors.pureInverse
         )
 
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(6.dp))
 
         Text(
-            modifier = Modifier.padding(vertical = 10.dp),
             text = account.name,
-            style = UI.typo.b2.style(
-                color = textColor,
-                fontWeight = FontWeight.ExtraBold
+            style = TextStyle(
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = UI.colors.pureInverse
             )
         )
-
-        Spacer(Modifier.width(24.dp))
     }
 }
 
@@ -639,33 +642,36 @@ private fun Account(
 private fun AddAccount(
     onClick: () -> Unit
 ) {
+    val isDark = isAppInDarkTheme()
+    val pillShape = remember { CircleShape }
+
     Row(
         modifier = Modifier
-            .clip(UI.shapes.rFull)
-            .border(2.dp, UI.colors.medium, UI.shapes.rFull)
+            .clip(pillShape)
+            .background(
+                if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.60f),
+                pillShape
+            )
+            .specularBorder(pillShape, isDark, 0.5.dp)
             .clickable(onClick = onClick)
-            .padding(8.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(12.dp))
-
         IvyIcon(
             icon = R.drawable.ic_plus,
             tint = UI.colors.pureInverse
         )
 
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(6.dp))
 
         Text(
-            modifier = Modifier.padding(vertical = 10.dp),
             text = stringResource(R.string.add_account),
-            style = UI.typo.b2.style(
-                color = UI.colors.pureInverse,
-                fontWeight = FontWeight.ExtraBold
+            style = TextStyle(
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = UI.colors.pureInverse
             )
         )
-
-        Spacer(Modifier.width(24.dp))
     }
 }
 
@@ -680,7 +686,6 @@ private fun Amount(
     onShowAmountModal: () -> Unit,
     showConvertedAmountText: String? = null,
     onAccountMiniClick: () -> Unit
-
 ) {
     Row(
         modifier = Modifier,
@@ -720,9 +725,10 @@ private fun Amount(
             if (showConvertedAmountText != null) {
                 Text(
                     text = showConvertedAmountText,
-                    style = UI.typo.nB2.style(
-                        color = UI.colors.pureInverse,
-                        fontWeight = FontWeight.SemiBold
+                    style = TextStyle(
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = UI.colors.pureInverse
                     )
                 )
             }
@@ -773,9 +779,10 @@ private fun LabelAccountMini(
     ) {
         Text(
             text = label,
-            style = UI.typo.nC.style(
-                color = UI.colors.mediumInverse,
-                fontWeight = FontWeight.Medium
+            style = TextStyle(
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = UI.colors.mediumInverse
             )
         )
 
@@ -783,87 +790,11 @@ private fun LabelAccountMini(
 
         Text(
             text = account?.name?.toUpperCase(Locale.getDefault()) ?: "",
-            style = UI.typo.nB2.style(
-                color = UI.colors.pureInverse,
-                fontWeight = FontWeight.ExtraBold
+            style = TextStyle(
+                fontSize = 13.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = UI.colors.pureInverse
             )
         )
-    }
-}
-
-@Preview
-@Composable
-private fun Preview() {
-    IvyWalletPreview {
-        val acc1 = Account("Cash", color = Green.toArgb())
-
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            EditBottomSheet(
-                amountModalShown = false,
-                setAmountModalShown = {},
-                initialTransactionId = null,
-                type = TransactionType.INCOME,
-                ActionButton = {
-                    ModalSet {
-                    }
-                },
-                accounts = listOf(
-                    acc1,
-                    Account("DSK", color = GreenDark.toArgb()),
-                    Account("phyre", color = GreenLight.toArgb()),
-                    Account("Revolut", color = IvyDark.toArgb()),
-                ),
-                selectedAccount = acc1,
-                toAccount = null,
-                amount = 12350.0,
-                currency = "BGN",
-                onAmountChanged = {},
-                onSelectedAccountChanged = {},
-                onToAccountChanged = {},
-                onAddNewAccount = {}
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun Preview_Transfer() {
-    IvyWalletPreview {
-        val acc1 = Account("Cash", color = Green.toArgb())
-        val acc2 = Account("DSK", color = GreenDark.toArgb())
-
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            EditBottomSheet(
-                amountModalShown = false,
-                setAmountModalShown = {},
-                initialTransactionId = UUID.randomUUID(),
-                ActionButton = {
-                    ModalSave {
-                    }
-                },
-                type = TransactionType.TRANSFER,
-                accounts = listOf(
-                    acc1,
-                    acc2,
-                    Account("phyre", color = GreenLight.toArgb(), icon = "cash"),
-                    Account("Revolut", color = IvyDark.toArgb()),
-                ),
-                selectedAccount = acc1,
-                toAccount = acc2,
-                amount = 12350.0,
-                currency = "BGN",
-                onAmountChanged = {},
-                onSelectedAccountChanged = {},
-                onToAccountChanged = {},
-                onAddNewAccount = {}
-            )
-        }
     }
 }

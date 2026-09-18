@@ -5,6 +5,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,19 +29,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.data.model.IntervalType
 import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeProvider
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.system.isAppInDarkTheme
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.data.model.FromToTimeRange
 import com.ivy.legacy.data.model.LastNTimeRange
+import com.ivy.legacy.data.model.Month
 import com.ivy.legacy.data.model.Month.Companion.fromMonthValue
 import com.ivy.legacy.data.model.Month.Companion.monthsList
 import com.ivy.legacy.data.model.TimePeriod
@@ -49,6 +56,7 @@ import com.ivy.legacy.utils.dateNowUTC
 import com.ivy.legacy.utils.formatDateOnlyWithYear
 import com.ivy.legacy.utils.onScreenStart
 import com.ivy.ui.R
+import com.ivy.ui.component.specularBorder
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientIvy
 import com.ivy.wallet.ui.theme.Gray
@@ -75,7 +83,6 @@ data class ChoosePeriodModalData(
 @Composable
 fun BoxWithConstraintsScope.ChoosePeriodModal(
     modal: ChoosePeriodModalData?,
-
     dismiss: () -> Unit,
     onPeriodSelected: (TimePeriod) -> Unit
 ) {
@@ -103,7 +110,7 @@ fun BoxWithConstraintsScope.ChoosePeriodModal(
             }
         }
     ) {
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         ChooseMonth(
             selectedMonthYear = period?.month?.let {
@@ -116,7 +123,7 @@ fun BoxWithConstraintsScope.ChoosePeriodModal(
             )
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         IvyDividerLine(
             modifier = Modifier
@@ -124,7 +131,7 @@ fun BoxWithConstraintsScope.ChoosePeriodModal(
                 .padding(horizontal = 24.dp)
         )
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         FromToRange(
             timeRange = period?.fromToRange
@@ -134,7 +141,7 @@ fun BoxWithConstraintsScope.ChoosePeriodModal(
             )
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         LastNPeriod(
             modalScrollState = modalScrollState,
@@ -145,7 +152,7 @@ fun BoxWithConstraintsScope.ChoosePeriodModal(
             )
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         AllTime(
             timeRange = period?.fromToRange
@@ -166,16 +173,16 @@ private fun ColumnScope.ChooseMonth(
     onSelected: (MonthYear) -> Unit,
 ) {
     Text(
-        modifier = Modifier
-            .padding(start = 32.dp),
+        modifier = Modifier.padding(start = 32.dp),
         text = stringResource(R.string.choose_month),
-        style = UI.typo.b1.style(
-            color = if (selectedMonthYear != null) UI.colors.pureInverse else Gray,
+        style = TextStyle(
+            fontSize = 15.sp,
+            color = if (selectedMonthYear != null) UI.colors.pureInverse else UI.colors.mediumInverse,
             fontWeight = FontWeight.ExtraBold
         )
     )
 
-    Spacer(Modifier.height(24.dp))
+    Spacer(Modifier.height(16.dp))
 
     val currentYear = dateNowUTC().year
     val months = remember(currentYear) {
@@ -221,7 +228,7 @@ private fun ColumnScope.ChooseMonth(
         verticalAlignment = Alignment.CenterVertically
     ) {
         item {
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(20.dp))
         }
 
         items(items = months) { monthYear ->
@@ -232,24 +239,22 @@ private fun ColumnScope.ChooseMonth(
                 onSelected(monthYear)
             }
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(10.dp))
         }
     }
 }
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 data class MonthYear(
-    val month: com.ivy.legacy.data.model.Month,
+    val month: Month,
     val year: Int
 ) {
     fun forDisplay(
         currentYear: Int
     ): String {
         return if (year != currentYear) {
-            // not current year
             "${month.name}, $year"
         } else {
-            // current year
             month.name
         }
     }
@@ -262,27 +267,50 @@ private fun MonthButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val background = if (selected) GradientIvy else Gradient.solid(UI.colors.medium)
-    Text(
+    val isDark = isAppInDarkTheme()
+    val pillShape = remember { CircleShape }
+    val pureInverse = UI.colors.pureInverse
+
+    val fill = remember(selected, isDark) {
+        if (selected) {
+            if (isDark) Color(0xFF7C4DFF).copy(alpha = 0.35f) else Color(0xFF9E4622).copy(alpha = 0.25f)
+        } else {
+            if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.60f)
+        }
+    }
+    val borderCol = remember(selected, isDark) {
+        if (selected) {
+            if (isDark) Color(0xFF00F2FE).copy(alpha = 0.50f) else Color(0xFFC2623A).copy(alpha = 0.50f)
+        } else {
+            if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.10f)
+        }
+    }
+    val textColor = remember(selected, isDark, pureInverse) {
+        if (selected) {
+            if (isDark) Color(0xFF67E8F9) else Color(0xFF9E4622)
+        } else {
+            pureInverse
+        }
+    }
+
+    Box(
         modifier = modifier
-            .clip(UI.shapes.rFull)
-            .background(
-                brush = background.asHorizontalBrush(),
-                shape = UI.shapes.rFull
+            .clip(pillShape)
+            .background(fill, pillShape)
+            .border(0.5.dp, borderCol, pillShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            style = TextStyle(
+                fontSize = 13.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = textColor
             )
-            .clickable {
-                onClick()
-            }
-            .padding(horizontal = 24.dp)
-            .padding(
-                vertical = 12.dp,
-            ),
-        text = text,
-        style = UI.typo.b2.style(
-            fontWeight = FontWeight.Bold,
-            color = if (selected) White else Gray
         )
-    )
+    }
 }
 
 @Composable
@@ -292,11 +320,11 @@ private fun ColumnScope.FromToRange(
     onSelected: (FromToTimeRange?) -> Unit,
 ) {
     Text(
-        modifier = Modifier
-            .padding(start = 32.dp),
+        modifier = Modifier.padding(start = 32.dp),
         text = stringResource(R.string.or_custom_range),
-        style = UI.typo.b1.style(
-            color = if (timeRange != null) UI.colors.pureInverse else Gray,
+        style = TextStyle(
+            fontSize = 15.sp,
+            color = if (timeRange != null) UI.colors.pureInverse else UI.colors.mediumInverse,
             fontWeight = FontWeight.ExtraBold
         )
     )
@@ -353,14 +381,20 @@ private fun IntervalFromToDate(
     otherEndDateTime: LocalDateTime?,
     onSelected: (LocalDateTime?) -> Unit
 ) {
+    val isDark = isAppInDarkTheme()
     val ivyContext = ivyWalletCtx()
+    val pillShape = remember { CircleShape }
 
     Row(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth()
-            .clip(UI.shapes.rFull)
-            .border(2.dp, UI.colors.medium, UI.shapes.rFull)
+            .clip(pillShape)
+            .background(
+                if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.60f),
+                pillShape
+            )
+            .specularBorder(pillShape, isDark, 0.5.dp)
             .clickable {
                 ivyContext.datePicker(
                     minDate = if (border == IntervalBorder.TO) {
@@ -381,56 +415,43 @@ private fun IntervalFromToDate(
                 ) {
                     onSelected(it.atStartOfDay())
                 }
-            },
+            }
+            .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(32.dp))
-
         Text(
-            modifier = Modifier
-                .padding(
-                    vertical = 16.dp,
-                ),
             text = if (border == IntervalBorder.FROM) {
                 stringResource(R.string.from)
             } else {
-                stringResource(
-                    R.string.to
-                )
+                stringResource(R.string.to)
             },
-            style = UI.typo.b2.style(
+            style = TextStyle(
+                fontSize = 13.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = if (dateTime != null) Green else UI.colors.pureInverse
+                color = if (dateTime != null) (if (isDark) Color(0xFF67E8F9) else Color(0xFF1E823E)) else UI.colors.pureInverse
             )
         )
 
-        if (dateTime != null) {
-            Spacer(Modifier.width(16.dp))
-        } else {
-            Spacer(Modifier.weight(1f))
-        }
+        Spacer(Modifier.weight(1f))
 
         Text(
             text = dateTime?.toLocalDate()?.formatDateOnlyWithYear()
                 ?: stringResource(R.string.add_date),
-            style = UI.typo.nB2.style(
+            style = TextStyle(
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (dateTime != null) UI.colors.pureInverse else Gray
+                color = if (dateTime != null) UI.colors.pureInverse else UI.colors.mediumInverse
             )
         )
 
         if (dateTime != null) {
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.width(12.dp))
 
             CircleButtonFilled(
                 icon = R.drawable.ic_dismiss
             ) {
                 onSelected(null)
             }
-
-            Spacer(Modifier.width(4.dp))
-        } else {
-            Spacer(Modifier.width(32.dp))
         }
     }
 }
@@ -444,7 +465,6 @@ private enum class IntervalBorder {
 private fun ColumnScope.LastNPeriod(
     modalScrollState: ScrollState,
     lastNTimeRange: LastNTimeRange?,
-
     onSelected: (LastNTimeRange) -> Unit
 ) {
     val rootView = LocalView.current
@@ -462,11 +482,11 @@ private fun ColumnScope.LastNPeriod(
     }
 
     Text(
-        modifier = Modifier
-            .padding(start = 32.dp),
+        modifier = Modifier.padding(start = 32.dp),
         text = stringResource(R.string.or_in_the_last),
-        style = UI.typo.b1.style(
-            color = if (lastNTimeRange != null) UI.colors.pureInverse else Gray,
+        style = TextStyle(
+            fontSize = 15.sp,
+            color = if (lastNTimeRange != null) UI.colors.pureInverse else UI.colors.mediumInverse,
             fontWeight = FontWeight.ExtraBold
         )
     )
@@ -480,7 +500,7 @@ private fun ColumnScope.LastNPeriod(
             onSelected(
                 lastNTimeRange?.copy(
                     periodN = it
-                ) ?: com.ivy.legacy.data.model.LastNTimeRange(
+                ) ?: LastNTimeRange(
                     periodN = it,
                     periodType = IntervalType.WEEK
                 )
@@ -490,7 +510,7 @@ private fun ColumnScope.LastNPeriod(
             onSelected(
                 lastNTimeRange?.copy(
                     periodType = it
-                ) ?: com.ivy.legacy.data.model.LastNTimeRange(
+                ) ?: LastNTimeRange(
                     periodN = 1,
                     periodType = it
                 )
@@ -510,11 +530,11 @@ private fun ColumnScope.AllTime(
             timeRange.to != null && timeRange.to!!.isAfter(timeProvider.utcNow())
 
     Text(
-        modifier = Modifier
-            .padding(start = 32.dp),
+        modifier = Modifier.padding(start = 32.dp),
         text = stringResource(R.string.or_all_time),
-        style = UI.typo.b1.style(
-            color = if (active) UI.colors.pureInverse else Gray,
+        style = TextStyle(
+            fontSize = 15.sp,
+            color = if (active) UI.colors.pureInverse else UI.colors.mediumInverse,
             fontWeight = FontWeight.ExtraBold
         )
     )
@@ -547,46 +567,6 @@ private fun Preview_MonthSelected() {
             modal = ChoosePeriodModalData(
                 period = TimePeriod(
                     month = fromMonthValue(3)
-                )
-            ),
-            dismiss = {}
-        ) {
-        }
-    }
-}
-
-@Suppress("MagicNumber")
-@Preview
-@Composable
-private fun Preview_FromTo() {
-    IvyWalletPreview {
-        ChoosePeriodModal(
-            modal = ChoosePeriodModalData(
-                period = TimePeriod(
-                    fromToRange = FromToTimeRange(
-                        from = LocalTimeProvider.current.utcNow(),
-                        to = LocalTimeProvider.current.utcNow()
-                            .plusSeconds(TimeUnit.DAYS.toSeconds(36L))
-                    )
-                )
-            ),
-            dismiss = {}
-        ) {
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun Preview_LastN() {
-    IvyWalletPreview {
-        ChoosePeriodModal(
-            modal = ChoosePeriodModalData(
-                period = TimePeriod(
-                    lastNRange = LastNTimeRange(
-                        periodN = 1,
-                        periodType = IntervalType.WEEK
-                    )
                 )
             ),
             dismiss = {}

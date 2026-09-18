@@ -187,9 +187,9 @@ class EditTransactionViewModel @Inject constructor(
             )
 
             tags = tagList.await()
-            val loadedBudgetConfig = budgetConfig.await()
-            hasBudget = loadedBudgetConfig.budgetLimitMinorUnits > 0L
-            budgetPeriodType = loadedBudgetConfig.periodType
+            val config = budgetConfig.await()
+            hasBudget = config.budgetLimitMinorUnits > 0L
+            budgetPeriodType = if (hasBudget) config.periodType else null
             transactionAssociatedTags =
                 tagRepository.findByAssociatedId(AssociationId(loadedTransaction().id)).map(Tag::id)
                     .toImmutableList()
@@ -431,7 +431,12 @@ class EditTransactionViewModel @Inject constructor(
             categoryRepository.findById(CategoryId(it))
         }
         amount = transaction.amount.toDouble()
-        allocationMode = transaction.allocationMode.toAllocationModeOrToday()
+        val rawMode = transaction.allocationMode.toAllocationModeOrToday()
+        allocationMode = if (budgetPeriodType is BudgetPeriodType.Weekly && rawMode == AllocationMode.MONTH) {
+            AllocationMode.WEEK
+        } else {
+            rawMode
+        }
 
         updateCurrency(account = selectedAccount)
 

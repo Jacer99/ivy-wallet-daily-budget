@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.system.isAppInDarkTheme
 import com.ivy.domain.di.FeaturesEntryPoint
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.utils.amountToDouble
@@ -51,6 +55,8 @@ import com.ivy.legacy.utils.hideKeyboard
 import com.ivy.legacy.utils.localDecimalSeparator
 import com.ivy.legacy.utils.onScreenStart
 import com.ivy.ui.R
+import com.ivy.ui.component.LiquidGlassCard
+import com.ivy.ui.component.specularBorder
 import com.ivy.wallet.ui.theme.Red
 import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.modal.IvyModal
@@ -76,6 +82,7 @@ fun BoxWithConstraintsScope.AmountModal(
     amountSpacerTop: Dp = 64.dp,
     onAmountChanged: (Double) -> Unit,
 ) {
+    val isDark = isAppInDarkTheme()
     var amount by remember(id) {
         mutableStateOf(
             if (currency.isNotEmpty()) {
@@ -97,18 +104,26 @@ fun BoxWithConstraintsScope.AmountModal(
         visible = visible,
         dismiss = dismiss,
         PrimaryAction = {
-            IvyIcon(
-                modifier = circleButtonModifier(
-                    size = 52.dp,
-                    onClick = {
-                        calculatorModalVisible = true
-                    }
+            val calcBtnShape = remember { CircleShape }
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(calcBtnShape)
+                    .background(
+                        if (isDark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.60f),
+                        calcBtnShape
+                    )
+                    .specularBorder(calcBtnShape, isDark, 0.5.dp)
+                    .clickable { calculatorModalVisible = true }
+                    .testTag("btn_calculator"),
+                contentAlignment = Alignment.Center
+            ) {
+                IvyIcon(
+                    icon = R.drawable.ic_custom_calculator_m,
+                    tint = UI.colors.pureInverse,
+                    modifier = Modifier.size(24.dp)
                 )
-                    .testTag("btn_calculator")
-                    .padding(all = 4.dp),
-                icon = R.drawable.ic_custom_calculator_m,
-                tint = UI.colors.pureInverse
-            )
+            }
 
             Spacer(Modifier.width(16.dp))
 
@@ -195,29 +210,44 @@ fun AmountCurrency(
     amount: String,
     currency: String,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+    val isDark = isAppInDarkTheme()
+    val cardShape = remember { RoundedCornerShape(22.dp) }
+
+    LiquidGlassCard(
+        shape = cardShape,
+        isDark = isDark,
+        strokeWidth = 0.5.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
     ) {
-        Spacer(Modifier.weight(1f))
-
-        Text(
-            text = amount.ifBlank { "0" },
-            style = UI.typo.nH2.style(
-                fontWeight = FontWeight.Bold,
-                color = UI.colors.pureInverse
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = amount.ifBlank { "0" },
+                style = TextStyle(
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = UI.colors.pureInverse,
+                    letterSpacing = (-0.02).sp
+                )
             )
-        )
-        Spacer(Modifier.width(4.dp))
-        Text(
-            text = currency,
-            style = UI.typo.nH2.style(
-                fontWeight = FontWeight.Normal,
-                color = UI.colors.pureInverse
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = currency,
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = UI.colors.mediumInverse
+                ),
+                modifier = Modifier.padding(bottom = 4.dp)
             )
-        )
-
-        Spacer(Modifier.weight(1f))
+        }
     }
 }
 
@@ -319,14 +349,6 @@ fun AmountKeyboard(
     FourthRowExtra: (@Composable RowScope.() -> Unit)? = null,
     onBackspace: () -> Unit,
 ) {
-    /**
-     * Retrieve `features` via EntryPointAccessors. `isStandardLayout` is stable and
-     * only changes via settings, so there isn't unnecessary recompositions.
-     * `isStandardLayout` doesn't change while the keyboard is shown.
-     * `AmountKeyboard` is self-contained, making it easy to reuse without passing parameters.
-     * Layout changes are rare, so recomposition has minimal impact on performance.
-     **/
-
     val context = LocalContext.current
     val features = remember {
         EntryPointAccessors.fromApplication(
@@ -336,14 +358,13 @@ fun AmountKeyboard(
     }
     val isStandardLayout = features.standardKeypadLayout.asEnabledState()
 
-    // Decide the order of the numbers based on the keypad layout
     val countButtonValues = if (isStandardLayout) {
         listOf(
             listOf("1", "2", "3"),
             listOf("4", "5", "6"),
             listOf("7", "8", "9"),
         )
-    } else { // Calculator like numeric keypad layout
+    } else {
         listOf(
             listOf("7", "8", "9"),
             listOf("4", "5", "6"),
@@ -365,7 +386,6 @@ fun AmountKeyboard(
         Spacer(Modifier.height(8.dp))
     }
 
-    // Loop through the rows to create CircleNumberButtons
     countButtonValues.forEachIndexed { rowIndex, rowNumbers ->
         Row(
             modifier = Modifier
@@ -416,13 +436,27 @@ fun AmountKeyboard(
             onNumberPressed = onNumberPressed
         )
 
-        IvyIcon(
-            modifier = circleButtonModifier(onClick = onBackspace)
-                .padding(all = 24.dp)
+        val isDark = isAppInDarkTheme()
+        val btnShape = remember { CircleShape }
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .clip(btnShape)
+                .background(
+                    if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.50f),
+                    btnShape
+                )
+                .specularBorder(btnShape, isDark, 0.5.dp)
+                .clickable { onBackspace() }
                 .testTag("key_del"),
-            icon = R.drawable.ic_backspace,
-            tint = Red
-        )
+            contentAlignment = Alignment.Center
+        ) {
+            IvyIcon(
+                icon = R.drawable.ic_backspace,
+                tint = if (isDark) Color(0xFFF43F5E) else Color(0xFFB91C1C),
+                modifier = Modifier.size(22.dp)
+            )
+        }
 
         FourthRowExtra?.invoke(this)
     }
@@ -454,39 +488,36 @@ fun KeypadCircleButton(
     text: String,
     testTag: String,
     textColor: Color = UI.colors.pureInverse,
-    fontSize: TextUnit = 32.sp,
-    btnSize: Dp = 80.dp,
+    fontSize: TextUnit = 28.sp,
+    btnSize: Dp = 72.dp,
     onClick: () -> Unit,
 ) {
-    Text(
-        modifier = circleButtonModifier(size = btnSize, onClick = onClick)
-            .testTag(testTag),
-        text = text,
-        fontSize = fontSize,
-        style = UI.typo.nH2.style(
-            color = textColor,
-            fontWeight = FontWeight.Bold
-        ).copy(
-            textAlign = TextAlign.Center
-        )
-    )
-}
+    val isDark = isAppInDarkTheme()
+    val btnShape = remember { CircleShape }
 
-@SuppressLint("ComposableModifierFactory", "ModifierFactoryExtensionFunction")
-@Composable
-private fun circleButtonModifier(
-    size: Dp = 80.dp,
-    onClick: () -> Unit,
-): Modifier {
-    return Modifier
-        .size(size)
-        .clip(CircleShape)
-        .clickable(
-            onClick = onClick
+    Box(
+        modifier = Modifier
+            .size(btnSize)
+            .clip(btnShape)
+            .background(
+                if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.55f),
+                btnShape
+            )
+            .specularBorder(btnShape, isDark, 0.5.dp)
+            .clickable(onClick = onClick)
+            .testTag(testTag),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = fontSize,
+            style = TextStyle(
+                color = textColor,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
         )
-        .background(UI.colors.pure, UI.shapes.rFull)
-        .border(2.dp, UI.colors.medium, UI.shapes.rFull)
-        .wrapContentHeight()
+    }
 }
 
 @Preview

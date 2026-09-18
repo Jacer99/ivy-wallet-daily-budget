@@ -5,7 +5,9 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,20 +17,32 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import com.ivy.design.system.isAppInDarkTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.base.model.TransactionType
 import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeFormatter
@@ -51,22 +65,11 @@ import com.ivy.legacy.utils.verticalSwipeListener
 import com.ivy.navigation.PieChartStatisticScreen
 import com.ivy.navigation.navigation
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.Gradient
-import com.ivy.wallet.ui.theme.GradientGreen
-import com.ivy.wallet.ui.theme.Gray
-import com.ivy.wallet.ui.theme.Green
-import com.ivy.wallet.ui.theme.White
+import com.ivy.ui.component.LiquidGlassTokens
+import com.ivy.ui.component.glassSpecularBorder
 import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.components.IvyOutlinedButton
-import com.ivy.wallet.ui.theme.wallet.AmountCurrencyB1
-import java.math.BigDecimal
-import java.math.RoundingMode
 import kotlin.math.absoluteValue
-
-private fun formatTndAmount(minorUnits: Long): String =
-    BigDecimal.valueOf(minorUnits, 3)
-        .setScale(2, RoundingMode.HALF_UP)
-        .toPlainString()
 
 @ExperimentalAnimationApi
 @Composable
@@ -97,7 +100,6 @@ internal fun HomeHeader(
             period = period,
             currency = currency,
             safeToSpend = safeToSpend,
-
             onShowMonthModal = onShowMonthModal,
             onSelectNextMonth = onSelectNextMonth,
             onSelectPreviousMonth = onSelectPreviousMonth,
@@ -219,6 +221,8 @@ fun CashFlowInfo(
     modifier: Modifier = Modifier,
     safeToSpendIsActive: Boolean = false,
 ) {
+    val isDark = isAppInDarkTheme()
+
     Column(
         modifier = modifier
             .verticalSwipeListener(
@@ -235,31 +239,83 @@ fun CashFlowInfo(
             monthlyIncome = monthlyIncome,
             monthlyExpenses = monthlyExpenses,
             hideIncome = hideIncome,
-            onHiddenIncomeClick = onHiddenIncomeClick
+            onHiddenIncomeClick = onHiddenIncomeClick,
+            isDark = isDark,
         )
 
         val cashflow = monthlyIncome - monthlyExpenses
         if (cashflow != 0.0 && !hideBalance) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-            Text(
-                modifier = Modifier.padding(
-                    start = 24.dp,
-                ),
-                text = stringResource(
-                    R.string.cashflow,
-                    (if (cashflow > 0) "+" else ""),
-                    cashflow.format(currency),
-                    currency,
-                ),
-                style = UI.typo.nB2.style(
-                    color = if (cashflow < 0) Gray else Green,
-                ),
-            )
+            // Cashflow Sub-Indicator Pill (Centered floating frosted pill with pulsing colored dot)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                val pillShape = remember { CircleShape }
+                val pillBackground = remember(isDark) {
+                    if (isDark) Color(0xFF0C1322).copy(alpha = 0.82f) else Color(0xFFFBF9F4).copy(alpha = 0.88f)
+                }
+                val pillBorder = remember(isDark) {
+                    if (isDark) Color.White.copy(alpha = 0.12f) else Color(0xFFE8DFCF)
+                }
+                val dotColor = remember(cashflow, isDark) {
+                    if (cashflow < 0) {
+                        if (isDark) Color(0xFFF43F5E) else Color(0xFFC2532F)
+                    } else {
+                        if (isDark) Color(0xFF00F2FE) else Color(0xFF2D5540)
+                    }
+                }
+                val textColor = remember(isDark) {
+                    if (isDark) Color(0xFF94A3B8) else Color(0xFF57534E)
+                }
+                val amountColor = remember(cashflow, isDark) {
+                    if (cashflow < 0) {
+                        if (isDark) Color(0xFFFB7185) else Color(0xFFC2532F)
+                    } else {
+                        if (isDark) Color(0xFF67E8F9) else Color(0xFF2D5540)
+                    }
+                }
 
-            Spacer(Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(pillShape)
+                        .background(pillBackground, pillShape)
+                        .border(1.dp, pillBorder, pillShape)
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(dotColor, pillShape)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Cashflow: ",
+                        style = TextStyle(
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = textColor
+                        )
+                    )
+                    Text(
+                        text = "${if (cashflow > 0) "+" else ""}${cashflow.format(currency)} $currency",
+                        style = TextStyle(
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = amountColor
+                        )
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(6.dp))
         } else {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
         }
     }
 }
@@ -272,127 +328,208 @@ private fun IncomeExpenses(
     monthlyExpenses: Double,
     hideIncome: Boolean,
     onHiddenIncomeClick: () -> Unit,
+    isDark: Boolean,
 ) {
+    val nav = navigation()
+
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Spacer(Modifier.width(16.dp))
-
-        val nav = navigation()
-
-        HeaderCard(
-            percentVisible = percentExpanded,
-            icon = R.drawable.ic_income,
-            backgroundGradient = GradientGreen,
-            textColor = White,
+        // Twin Income Card
+        TwinCashflowCard(
+            modifier = Modifier.weight(1f),
             label = stringResource(R.string.income),
-            currency = currency,
             amount = monthlyIncome,
-            testTag = "home_card_income"
-        ) {
-            if (hideIncome) {
-                onHiddenIncomeClick()
-            } else {
-                nav.navigateTo(
-                    PieChartStatisticScreen(
-                        type = TransactionType.INCOME,
-                    ),
-                )
-            }
-        }
-
-        Spacer(Modifier.width(12.dp))
-
-        HeaderCard(
-            percentVisible = percentExpanded,
-            icon = R.drawable.ic_expense,
-            backgroundGradient = Gradient(UI.colors.pureInverse, UI.colors.gray),
-            textColor = UI.colors.pure,
-            label = stringResource(R.string.expenses),
             currency = currency,
-            amount = monthlyExpenses.absoluteValue,
-            testTag = "home_card_expense",
-        ) {
-            nav.navigateTo(
-                PieChartStatisticScreen(
-                    type = TransactionType.EXPENSE,
-                ),
-            )
-        }
+            isIncome = true,
+            isDark = isDark,
+            testTag = "home_card_income",
+            onClick = {
+                if (hideIncome) {
+                    onHiddenIncomeClick()
+                } else {
+                    nav.navigateTo(PieChartStatisticScreen(type = TransactionType.INCOME))
+                }
+            }
+        )
 
-        Spacer(Modifier.width(16.dp))
+        // Twin Expense Card
+        TwinCashflowCard(
+            modifier = Modifier.weight(1f),
+            label = stringResource(R.string.expenses),
+            amount = monthlyExpenses.absoluteValue,
+            currency = currency,
+            isIncome = false,
+            isDark = isDark,
+            testTag = "home_card_expense",
+            onClick = {
+                nav.navigateTo(PieChartStatisticScreen(type = TransactionType.EXPENSE))
+            }
+        )
     }
 }
 
 @Composable
-private fun RowScope.HeaderCard(
-    @DrawableRes icon: Int,
-    backgroundGradient: Gradient,
-    percentVisible: Float,
-    textColor: Color,
+private fun TwinCashflowCard(
     label: String,
-    currency: String,
     amount: Double,
+    currency: String,
+    isIncome: Boolean,
+    isDark: Boolean,
     testTag: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val cardShape = remember { RoundedCornerShape(18.dp) }
+    val circleShape = remember { CircleShape }
+    val backgroundBrush = remember(isIncome, isDark) {
+        if (isIncome) {
+            if (isDark) LiquidGlassTokens.DarkIncomeGradient else LiquidGlassTokens.LightIncomeGradient
+        } else {
+            if (isDark) LiquidGlassTokens.DarkExpenseGradient else LiquidGlassTokens.LightExpenseGradient
+        }
+    }
+    val borderColor = remember(isIncome, isDark) {
+        if (isIncome) {
+            if (isDark) Color(0xFF00F2FE).copy(alpha = 0.30f) else Color(0xFF30D158).copy(alpha = 0.35f)
+        } else {
+            if (isDark) Color(0xFFD946EF).copy(alpha = 0.30f) else Color(0xFFFF453A).copy(alpha = 0.35f)
+        }
+    }
+    val labelColor = remember(isIncome, isDark) {
+        if (isIncome) {
+            if (isDark) Color(0xFFCFFAFE) else Color(0xFFE2F3E7)
+        } else {
+            if (isDark) Color(0xFFE2E8F0) else Color(0xFFFCEBE7)
+        }
+    }
+    val amountColor = remember(isIncome, isDark) {
+        if (isIncome) {
+            if (isDark) Color(0xFFA5F3FC) else Color.White
+        } else {
+            if (isDark) Color(0xFFFECDD3) else Color.White
+        }
+    }
+    val currencyColor = remember(isIncome, isDark) {
+        if (isIncome) {
+            if (isDark) Color(0xFF67E8F9) else Color(0xFFC0DFC9)
+        } else {
+            if (isDark) Color(0xFFFDA4AF) else Color(0xFFF0CBC0)
+        }
+    }
+    val subLabelColor = remember(isIncome, isDark) {
+        if (isIncome) {
+            if (isDark) Color(0xFF22D3EE) else Color(0xFFA1CBB0)
+        } else {
+            if (isDark) Color(0xFFE879F9) else Color(0xFFE5A898)
+        }
+    }
+    val badgeBg = remember(isIncome, isDark) {
+        if (isIncome) {
+            if (isDark) Color(0xFF00F2FE).copy(alpha = 0.20f) else Color.White.copy(alpha = 0.18f)
+        } else {
+            if (isDark) Color(0xFFF43F5E).copy(alpha = 0.20f) else Color.White.copy(alpha = 0.15f)
+        }
+    }
+    val badgeTint = remember(isIncome, isDark) {
+        if (isIncome) {
+            if (isDark) Color(0xFF67E8F9) else Color.White
+        } else {
+            if (isDark) Color(0xFFFB7185) else Color.White
+        }
+    }
+
     Column(
-        modifier = Modifier
-            .weight(1f)
-            .thenIf(percentVisible == 1f) {
-                drawColoredShadow(backgroundGradient.startColor)
-            }
-            .clip(UI.shapes.r4)
-            .background(backgroundGradient.asHorizontalBrush())
+        modifier = modifier
+            .clip(cardShape)
+            .background(backgroundBrush, cardShape)
+            .border(1.dp, borderColor, cardShape)
             .testTag(testTag)
-            .clickable(
-                onClick = onClick,
-            ),
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Spacer(Modifier.height(12.dp))
-
+        // Top Row: Label and Circular Translucent Badge
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(Modifier.width(16.dp))
-
-            IvyIcon(
-                icon = icon,
-                tint = textColor,
-            )
-
-            Spacer(Modifier.width(4.dp))
-
             Text(
                 text = label,
-                style = UI.typo.c.style(
-                    color = textColor,
-                    fontWeight = FontWeight.ExtraBold,
-                ),
-            )
-        }
-
-        Spacer(Modifier.height(4.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Spacer(Modifier.width(20.dp))
-
-            AmountCurrencyB1(
-                amount = amount,
-                currency = currency,
-                textColor = textColor,
-                shortenBigNumbers = true,
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = labelColor
+                )
             )
 
-            Spacer(Modifier.width(4.dp))
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .clip(circleShape)
+                    .background(badgeBg, circleShape)
+                    .thenIf(isDark) {
+                        border(
+                            1.dp,
+                            if (isIncome) Color(0xFF00F2FE).copy(alpha = 0.40f) else Color(0xFFF43F5E).copy(alpha = 0.40f),
+                            circleShape
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (isIncome) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                    contentDescription = null,
+                    tint = badgeTint,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(14.dp))
+
+        // Bottom Section: Amount, Currency, and "THIS MONTH"
+        Column {
+            Row(
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    text = amount.format(currency),
+                    style = TextStyle(
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = amountColor,
+                        letterSpacing = (-0.02).sp
+                    )
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = currency,
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = currencyColor
+                    ),
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+            }
+
+            Spacer(Modifier.height(3.dp))
+
+            Text(
+                text = "THIS MONTH",
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.08.sp,
+                    color = subLabelColor
+                )
+            )
+        }
     }
 }

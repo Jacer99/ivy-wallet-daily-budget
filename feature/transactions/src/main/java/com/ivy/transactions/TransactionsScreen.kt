@@ -2,19 +2,26 @@ package com.ivy.transactions
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,9 +38,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.base.legacy.Theme
 import com.ivy.base.legacy.Transaction
 import com.ivy.base.legacy.TransactionHistoryItem
@@ -44,7 +53,7 @@ import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeFormatter
 import com.ivy.design.api.LocalTimeProvider
 import com.ivy.design.l0_system.UI
-import com.ivy.design.l0_system.style
+import com.ivy.design.system.isAppInDarkTheme
 import com.ivy.design.utils.thenIf
 import com.ivy.legacy.Constants
 import com.ivy.legacy.IvyWalletPreview
@@ -59,6 +68,7 @@ import com.ivy.legacy.ui.component.ItemStatisticToolbar
 import com.ivy.legacy.ui.component.transaction.transactions
 import com.ivy.legacy.utils.balancePrefix
 import com.ivy.legacy.utils.clickableNoIndication
+import com.ivy.legacy.utils.format
 import com.ivy.legacy.utils.horizontalSwipeListener
 import com.ivy.legacy.utils.rememberInteractionSource
 import com.ivy.legacy.utils.rememberSwipeListenerState
@@ -70,6 +80,9 @@ import com.ivy.navigation.TransactionsScreen
 import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
+import com.ivy.ui.component.LiquidGlassCard
+import com.ivy.ui.component.pocketMoneyBackground
+import com.ivy.ui.component.specularBorder
 import com.ivy.ui.rememberScrollPositionListState
 import com.ivy.wallet.domain.pure.data.IncomeExpensePair
 import com.ivy.wallet.ui.theme.Gray
@@ -94,6 +107,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.math.BigDecimal
 import java.util.UUID
+import kotlin.math.absoluteValue
 
 @Composable
 fun BoxWithConstraintsScope.TransactionsScreen(screen: TransactionsScreen) {
@@ -262,8 +276,8 @@ private fun BoxWithConstraintsScope.UI(
     onSkipAllTransactions: (List<Transaction>) -> Unit = {},
     onChoosePeriodModal: (ChoosePeriodModalData?) -> Unit,
 ) {
+    val isDark = isAppInDarkTheme()
     val ivyContext = ivyWalletCtx()
-    val itemColor = (account?.color ?: category?.color?.value)?.toComposeColor() ?: Gray
 
     var categoryModalData: CategoryModalData? by remember { mutableStateOf(null) }
     var accountModalData: AccountModalData? by remember { mutableStateOf(null) }
@@ -272,7 +286,7 @@ private fun BoxWithConstraintsScope.UI(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(itemColor)
+            .pocketMoneyBackground(isDark)
             .thenIf(!initWithTransactions) {
                 horizontalSwipeListener(
                     sensitivity = 150,
@@ -298,26 +312,24 @@ private fun BoxWithConstraintsScope.UI(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(top = 16.dp)
-                .clip(UI.shapes.r1Top)
-                .background(UI.colors.pure)
                 .testTag("item_stats_lazy_column"),
             state = listState,
+            contentPadding = PaddingValues(bottom = 110.dp)
         ) {
             item {
-                Header(
+                HeaderHeroCard(
                     screen = screen,
                     history = history,
                     income = income,
                     expenses = expenses,
                     currency = currency,
                     baseCurrency = baseCurrency,
-                    itemColor = itemColor,
                     account = account,
                     category = category,
                     balance = balance,
                     balanceBaseCurrency = balanceBaseCurrency,
                     treatTransfersAsIncomeExpense = treatTransfersAsIncomeExpense,
+                    isDark = isDark,
 
                     onDelete = {
                         onDeleteModal1Visible(true)
@@ -375,7 +387,7 @@ private fun BoxWithConstraintsScope.UI(
 
             choosePeriodModal(
                 period = period,
-                itemColor = itemColor,
+                itemColor = Color.Transparent,
                 initWithTransactions = initWithTransactions,
                 onPreviousMonth = onPreviousMonth,
                 onNextMonth = onNextMonth,
@@ -409,9 +421,7 @@ private fun BoxWithConstraintsScope.UI(
                 setOverdueExpanded = setOverdueExpanded,
 
                 history = history,
-                lastItemSpacer = with(density) {
-                    (ivyContext.screenHeight * 0.7f).toDp()
-                },
+                lastItemSpacer = 24.dp,
 
                 onPayOrGet = onPayOrGet,
                 onSkipTransaction = onSkipTransaction,
@@ -485,16 +495,7 @@ private fun LazyListScope.choosePeriodModal(
     onChoosePeriodModal: (ChoosePeriodModalData?) -> Unit,
 ) {
     item {
-        // Rounded corners top effect
         Box {
-            Spacer(
-                Modifier
-                    .height(32.dp)
-                    .fillMaxWidth()
-                    .background(itemColor) // itemColor is displayed below the clip
-                    .background(UI.colors.pure, UI.shapes.r1Top)
-            )
-
             PeriodSelector(
                 modifier = Modifier.padding(top = 16.dp),
                 period = period,
@@ -585,18 +586,18 @@ private fun BoxWithConstraintsScope.DeleteModals(
 
 @Suppress("LongParameterList")
 @Composable
-private fun Header(
+private fun HeaderHeroCard(
     screen: TransactionsScreen,
     history: ImmutableList<TransactionHistoryItem>,
     currency: String,
     baseCurrency: String,
-    itemColor: Color,
     account: Account?,
     category: Category?,
     balance: Double,
     balanceBaseCurrency: Double?,
     income: Double,
     expenses: Double,
+    isDark: Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 
@@ -605,126 +606,156 @@ private fun Header(
     showAccountModal: () -> Unit,
     treatTransfersAsIncomeExpense: Boolean = false,
 ) {
-    val contrastColor = findContrastTextColor(itemColor)
+    val cardShape = remember { RoundedCornerShape(28.dp) }
+    val hideEditAndDeleteButtonForAccountTransfer =
+        screen.transactions.none { it.type == TransactionType.TRANSFER }
 
-    val darkColor = isDarkColor(itemColor)
-    setStatusBarDarkTextCompat(darkText = !darkColor)
+    val customVaultFill = remember(account, category, isDark) {
+        when {
+            account != null -> {
+                val accName = account.name.lowercase()
+                when {
+                    accName.contains("cash") -> Color(0xFF30D158).copy(alpha = if (isDark) 0.14f else 0.10f)
+                    accName.contains("revolut") -> Color(0xFF40C8FF).copy(alpha = if (isDark) 0.12f else 0.10f)
+                    else -> Color(0xFF8A6BFF).copy(alpha = if (isDark) 0.16f else 0.12f)
+                }
+            }
+            category != null -> category.color.value.toComposeColor().copy(alpha = if (isDark) 0.20f else 0.12f)
+            else -> if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.65f)
+        }
+    }
 
-    Column(
-        modifier = Modifier.background(itemColor)
+    LiquidGlassCard(
+        shape = cardShape,
+        isDark = isDark,
+        fillColor = customVaultFill,
+        strokeWidth = 0.5.dp,
+        modifier = Modifier
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .fillMaxWidth()
     ) {
-        Spacer(Modifier.height(20.dp))
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            ItemStatisticToolbar(
+                contrastColor = UI.colors.pureInverse,
+                onEdit = onEdit,
+                onDelete = onDelete,
+                showEditButton = hideEditAndDeleteButtonForAccountTransfer,
+                showDeleteButton = hideEditAndDeleteButtonForAccountTransfer,
+            )
 
-        val hideEditAndDeleteButtonForAccountTransfer =
-            screen.transactions.none { it.type == TransactionType.TRANSFER }
+            Spacer(Modifier.height(16.dp))
 
-        ItemStatisticToolbar(
-            contrastColor = contrastColor,
-            onEdit = onEdit,
-            onDelete = onDelete,
-            showEditButton = hideEditAndDeleteButtonForAccountTransfer,
-            showDeleteButton = hideEditAndDeleteButtonForAccountTransfer,
-        )
+            Item(
+                contrastColor = UI.colors.pureInverse,
+                account = account,
+                category = category,
+                showAccountModal = showAccountModal,
+                showCategoryModal = showCategoryModal
+            )
 
-        Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(12.dp))
 
-        Item(
-            contrastColor = contrastColor,
-            account = account,
-            category = category,
-            showAccountModal = showAccountModal,
-            showCategoryModal = showCategoryModal
-        )
-
-        BalanceRow(
-            modifier = Modifier
-                .padding(start = 32.dp)
-                .testTag("balance")
-                .clickableNoIndication(rememberInteractionSource()) {
+            // Large Vault Balance
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier.clickableNoIndication(rememberInteractionSource()) {
                     onBalanceClick()
-                },
-            textColor = contrastColor,
-            currency = currency,
-            balance = balance,
-            balanceAmountPrefix = if (category != null) {
-                balancePrefix(
-                    income = income,
-                    expenses = expenses
-                )
-            } else {
-                null
-            }
-        )
-
-        if (currency != baseCurrency && balanceBaseCurrency != null) {
-            BalanceRowMedium(
-                modifier = Modifier
-                    .padding(start = 32.dp)
-                    .clickableNoIndication(rememberInteractionSource()) {
-                        onBalanceClick()
-                    },
-                textColor = itemColor.dynamicContrast(),
-                currency = baseCurrency,
-                balance = balanceBaseCurrency,
-                balanceAmountPrefix = if (category != null) {
-                    balancePrefix(
-                        income = income,
-                        expenses = expenses
-                    )
-                } else {
-                    null
                 }
-            )
-        }
+            ) {
+                Text(
+                    text = balance.format(currency),
+                    style = TextStyle(
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = UI.colors.pureInverse,
+                        letterSpacing = (-0.02).sp
+                    )
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = currency,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.mediumInverse
+                    ),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
 
-        Spacer(Modifier.height(20.dp))
+            if (currency != baseCurrency && balanceBaseCurrency != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "≈ ${balanceBaseCurrency.format(baseCurrency)} $baseCurrency",
+                    style = TextStyle(
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = UI.colors.mediumInverse
+                    )
+                )
+            }
 
-        val nav = navigation()
-        IncomeExpensesCards(
-            history = history,
-            currency = currency,
-            income = income,
-            expenses = expenses,
+            Spacer(Modifier.height(18.dp))
 
-            hasAddButtons = true,
-
-            itemColor = itemColor,
-            incomeHeaderCardClicked = {
-                if (account != null) {
-                    nav.navigateTo(
-                        PieChartStatisticScreen(
-                            type = TransactionType.INCOME,
-                            accountList = persistentListOf(account.id),
-                            filterExcluded = false,
-                            treatTransfersAsIncomeExpense = treatTransfersAsIncomeExpense
+            // Split metrics: Income / Expense
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.income).uppercase(),
+                        style = TextStyle(
+                            fontSize = 10.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp,
+                            color = UI.colors.mediumInverse
+                        )
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "+${income.format(currency)} $currency",
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isDark) Color(0xFF30D158) else Color(0xFF1E823E)
                         )
                     )
                 }
-            },
-            expenseHeaderCardClicked = {
-                if (account != null) {
-                    nav.navigateTo(
-                        PieChartStatisticScreen(
-                            type = TransactionType.EXPENSE,
-                            accountList = persistentListOf(account.id),
-                            filterExcluded = false,
-                            treatTransfersAsIncomeExpense = treatTransfersAsIncomeExpense
+
+                Box(
+                    modifier = Modifier
+                        .width(0.5.dp)
+                        .height(26.dp)
+                        .background(if (isDark) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.10f))
+                )
+
+                Spacer(Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.expenses).uppercase(),
+                        style = TextStyle(
+                            fontSize = 10.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp,
+                            color = UI.colors.mediumInverse
+                        )
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "-${expenses.absoluteValue.format(currency)} $currency",
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isDark) Color(0xFFFF453A) else Color(0xFFD92D20)
                         )
                     )
                 }
             }
-        ) { trnType ->
-            nav.navigateTo(
-                EditTransactionScreen(
-                    initialTransactionId = null,
-                    type = trnType,
-                    accountId = account?.id,
-                    categoryId = category?.id?.value
-                )
-            )
         }
-
-        Spacer(Modifier.height(20.dp))
     }
 }
 
@@ -739,16 +770,10 @@ private fun Item(
 ) {
     Row(
         modifier = Modifier
-            .padding(start = 22.dp)
             .clickableNoIndication(rememberInteractionSource()) {
                 when {
-                    account != null -> {
-                        showAccountModal()
-                    }
-
-                    category != null -> {
-                        showCategoryModal()
-                    }
+                    account != null -> showAccountModal()
+                    category != null -> showCategoryModal()
                 }
             },
         verticalAlignment = Alignment.CenterVertically
@@ -765,9 +790,10 @@ private fun Item(
 
                 Text(
                     text = account.name,
-                    style = UI.typo.b1.style(
-                        color = contrastColor,
-                        fontWeight = FontWeight.ExtraBold
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = contrastColor
                     )
                 )
 
@@ -776,8 +802,10 @@ private fun Item(
 
                     Text(
                         text = stringRes(R.string.excluded),
-                        style = UI.typo.c.style(
-                            color = account.color.toComposeColor().dynamicContrast()
+                        style = TextStyle(
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = UI.colors.mediumInverse
                         )
                     )
                 }
@@ -794,15 +822,15 @@ private fun Item(
 
                 Text(
                     text = category.name.value,
-                    style = UI.typo.b1.style(
-                        color = contrastColor,
-                        fontWeight = FontWeight.ExtraBold
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = contrastColor
                     )
                 )
             }
 
             else -> {
-                // Unspecified
                 ItemIconMDefaultIcon(
                     iconName = null,
                     defaultIcon = R.drawable.ic_custom_category_m,
@@ -813,9 +841,10 @@ private fun Item(
 
                 Text(
                     text = Constants.CATEGORY_UNSPECIFIED_NAME,
-                    style = UI.typo.b1.style(
-                        color = contrastColor,
-                        fontWeight = FontWeight.ExtraBold
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = contrastColor
                     )
                 )
             }
@@ -830,7 +859,7 @@ private fun BoxWithConstraintsScope.Preview_empty() {
         UI(
             period = TimePeriod.currentMonth(
                 startDayOfMonth = 1
-            ), // preview
+            ),
             baseCurrency = "BGN",
             currency = "BGN",
 
@@ -862,112 +891,5 @@ private fun BoxWithConstraintsScope.Preview_empty() {
             screen = TransactionsScreen(),
             shouldShowAccountSpecificColorInTransactions = false
         )
-    }
-}
-
-@Preview
-@Composable
-private fun BoxWithConstraintsScope.Preview_crypto() {
-    IvyPreview {
-        UI(
-            period = TimePeriod.currentMonth(
-                startDayOfMonth = 1
-            ), // preview
-            baseCurrency = "BGN",
-            currency = "ADA",
-
-            categories = persistentListOf(),
-            accounts = persistentListOf(),
-
-            balance = 1314.578,
-            balanceBaseCurrency = 2879.28,
-            income = 8000.0,
-            expenses = 6000.0,
-
-            history = persistentListOf(),
-            category = null,
-            account = Account(
-                name = "DSK",
-                color = GreenDark.toArgb(),
-                icon = "pet",
-                includeInBalance = false
-            ),
-            onSetPeriod = { },
-            onPreviousMonth = {},
-            onNextMonth = {},
-            onDelete = {},
-            onEditAccount = { _, _ -> },
-            onEditCategory = {},
-            updateAccountNameConfirmation = {},
-            enableDeletionButton = true,
-            deleteModal1Visible = false,
-            onDeleteModal1Visible = {},
-            skipAllModalVisible = false,
-            onSkipAllModalVisible = {},
-            onChoosePeriodModal = {},
-            choosePeriodModal = null,
-            screen = TransactionsScreen(),
-            shouldShowAccountSpecificColorInTransactions = false
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun BoxWithConstraintsScope.Preview_empty_upcoming() {
-    IvyPreview {
-        UI(
-            period = TimePeriod(month = Month.monthsList().first(), year = 2023),
-            baseCurrency = "BGN",
-            currency = "BGN",
-
-            categories = persistentListOf(),
-            accounts = persistentListOf(),
-
-            balance = 1314.578,
-            balanceBaseCurrency = null,
-            income = 8000.0,
-            expenses = 6000.0,
-
-            history = persistentListOf(),
-            category = null,
-            account = Account("DSK", color = GreenDark.toArgb(), icon = "pet"),
-            onSetPeriod = { },
-            onPreviousMonth = {},
-            onNextMonth = {},
-            onDelete = {},
-            onEditAccount = { _, _ -> },
-            onEditCategory = {},
-            upcoming = persistentListOf(
-                Transaction(
-                    UUID(1L, 2L),
-                    TransactionType.EXPENSE,
-                    BigDecimal.valueOf(10L)
-                )
-            ),
-            updateAccountNameConfirmation = {},
-            enableDeletionButton = true,
-            deleteModal1Visible = false,
-            onDeleteModal1Visible = {},
-            skipAllModalVisible = false,
-            onSkipAllModalVisible = {},
-            onChoosePeriodModal = {},
-            choosePeriodModal = null,
-            screen = TransactionsScreen(),
-            shouldShowAccountSpecificColorInTransactions = false
-        )
-    }
-}
-
-/** For screenshot testing */
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun TransactionsUiTest(isDark: Boolean) {
-    val theme = when (isDark) {
-        true -> Theme.DARK
-        false -> Theme.LIGHT
-    }
-    IvyWalletPreview(theme) {
-        Preview_empty_upcoming()
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SegmentedButton
@@ -32,14 +33,15 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.base.legacy.Theme
 import com.ivy.base.model.TransactionType
 import com.ivy.data.model.AllocationMode
-import com.ivy.domain.usecase.budget.BudgetPeriodType
 import com.ivy.data.model.Category
 import com.ivy.data.model.Tag
 import com.ivy.data.model.TagId
@@ -47,7 +49,9 @@ import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.l0_system.Orange
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.system.isAppInDarkTheme
 import com.ivy.design.utils.hideKeyboard
+import com.ivy.domain.usecase.budget.BudgetPeriodType
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.data.EditTransactionDisplayLoan
 import com.ivy.legacy.datamodel.Account
@@ -63,6 +67,8 @@ import com.ivy.navigation.IvyPreview
 import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
+import com.ivy.ui.component.LiquidGlassCard
+import com.ivy.ui.component.pocketMoneyBackground
 import com.ivy.wallet.domain.data.CustomExchangeRateState
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.domain.deprecated.logic.model.CreateAccountData
@@ -251,8 +257,8 @@ private fun BoxWithConstraintsScope.UI(
     hasChanges: Boolean = false,
     hasBudget: Boolean = false,
     budgetPeriodType: BudgetPeriodType? = null,
-
-    ) {
+) {
+    val isDark = isAppInDarkTheme()
     var chooseCategoryModalVisible by remember { mutableStateOf(false) }
     var tagModelVisible by remember { mutableStateOf(false) }
     var categoryModalData: CategoryModalData? by remember { mutableStateOf(null) }
@@ -285,7 +291,6 @@ private fun BoxWithConstraintsScope.UI(
     val titleFocus = FocusRequester()
     val scrollState = rememberScrollState()
 
-    // This is to scroll the column to the customExchangeCard composable when it is shown
     var customExchangeRatePosition by remember { mutableFloatStateOf(0F) }
     LaunchedEffect(key1 = customExchangeRateState.showCard) {
         val scrollInt =
@@ -293,9 +298,12 @@ private fun BoxWithConstraintsScope.UI(
         scrollState.animateScrollTo(scrollInt)
     }
 
+    val cardShape = remember { RoundedCornerShape(22.dp) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .pocketMoneyBackground(isDark)
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(scrollState)
@@ -303,8 +311,6 @@ private fun BoxWithConstraintsScope.UI(
         Spacer(Modifier.height(16.dp))
 
         Toolbar(
-            // Setting the transaction type to TransactionType.TRANSFER for transactions associated
-            // with loan record to hide the ChangeTransactionType Button
             type = if (loanData.isLoanRecord) TransactionType.TRANSFER else transactionType,
             initialTransactionId = screen.initialTransactionId,
             onDeleteTrnModal = {
@@ -317,99 +323,126 @@ private fun BoxWithConstraintsScope.UI(
             onDuplicate = onDuplicate
         )
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
-        Title(
-            type = transactionType,
-            titleFocus = titleFocus,
-            initialTransactionId = screen.initialTransactionId,
+        LiquidGlassCard(
+            shape = cardShape,
+            isDark = isDark,
+            strokeWidth = 0.5.dp,
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Title(
+                    type = transactionType,
+                    titleFocus = titleFocus,
+                    initialTransactionId = screen.initialTransactionId,
 
-            titleTextFieldValue = titleTextFieldValue,
-            setTitleTextFieldValue = {
-                titleTextFieldValue = it
-            },
-            suggestions = titleSuggestions,
-            scrollState = scrollState,
+                    titleTextFieldValue = titleTextFieldValue,
+                    setTitleTextFieldValue = {
+                        titleTextFieldValue = it
+                    },
+                    suggestions = titleSuggestions,
+                    scrollState = scrollState,
 
-            onTitleChanged = onTitleChange,
-            onNext = {
-                when {
-                    shouldFocusAmount(amount = amount) -> {
-                        amountModalShown = true
+                    onTitleChanged = onTitleChange,
+                    onNext = {
+                        when {
+                            shouldFocusAmount(amount = amount) -> {
+                                amountModalShown = true
+                            }
+
+                            else -> {
+                                onSave(true)
+                            }
+                        }
                     }
-
-                    else -> {
-                        onSave(true)
-                    }
-                }
-            }
-        )
-
-        if (loanData.loanCaption != null) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                text = loanData.loanCaption!!,
-                style = UI.typo.nB2.style(
-                    color = UI.colors.mediumInverse,
-                    fontWeight = FontWeight.Normal
                 )
-            )
-        }
 
-        Spacer(Modifier.height(32.dp))
+                if (loanData.loanCaption != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
 
-        Category(category = category, onChooseCategory = {
-            chooseCategoryModalVisible = true
-        })
+                    Text(
+                        text = loanData.loanCaption!!,
+                        style = TextStyle(
+                            fontSize = 12.sp,
+                            color = UI.colors.mediumInverse,
+                            fontWeight = FontWeight.Normal
+                        )
+                    )
+                }
 
-        if (transactionType == TransactionType.EXPENSE && hasBudget) {
-            Spacer(Modifier.height(16.dp))
-            ApplyToAllowanceSelector(
-                selected = allocationMode,
-                budgetPeriodType = budgetPeriodType,
-                onSelect = onAllocationModeChange,
-            )
+                Spacer(Modifier.height(20.dp))
+
+                Category(category = category, onChooseCategory = {
+                    chooseCategoryModalVisible = true
+                })
+
+                if (transactionType == TransactionType.EXPENSE && hasBudget) {
+                    Spacer(Modifier.height(16.dp))
+                    ApplyToAllowanceSelector(
+                        selected = allocationMode,
+                        budgetPeriodType = budgetPeriodType,
+                        onSelect = onAllocationModeChange,
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                AddTagButton(transactionAssociatedTags = transactionAssociatedTags, onClick = {
+                    tagModelVisible = true
+                })
+            }
         }
 
         Spacer(Modifier.height(16.dp))
 
-        AddTagButton(transactionAssociatedTags = transactionAssociatedTags, onClick = {
-            tagModelVisible = true
-        })
-
-        Spacer(Modifier.height(32.dp))
-
-        val ivyContext = ivyWalletCtx()
-
-        val timeConverter = LocalTimeConverter.current
-        if (dueDate != null) {
-            DueDate(dueDate = dueDate) {
-                ivyContext.datePicker(
-                    initialDate = with(timeConverter) {
-                        dueDate.toLocalDate()
+        LiquidGlassCard(
+            shape = cardShape,
+            isDark = isDark,
+            strokeWidth = 0.5.dp,
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
+                val ivyContext = ivyWalletCtx()
+                val timeConverter = LocalTimeConverter.current
+                if (dueDate != null) {
+                    DueDate(dueDate = dueDate) {
+                        ivyContext.datePicker(
+                            initialDate = with(timeConverter) {
+                                dueDate.toLocalDate()
+                            }
+                        ) {
+                            onDueDateChange(it.atTime(12, 0))
+                        }
                     }
-                ) {
-                    onDueDateChange(it.atTime(12, 0))
+
+                    Spacer(Modifier.height(12.dp))
                 }
+
+                Description(
+                    description = description,
+                    onAddDescription = { descriptionModalVisible = true },
+                    onEditDescription = { descriptionModalVisible = true }
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                TransactionDateTime(
+                    dateTime = dateTime,
+                    dueDateTime = dueDate,
+                    onEditDate = onSetDate,
+                    onEditTime = onSetTime,
+                )
             }
-
-            Spacer(Modifier.height(12.dp))
         }
-
-        Description(
-            description = description,
-            onAddDescription = { descriptionModalVisible = true },
-            onEditDescription = { descriptionModalVisible = true }
-        )
-
-        TransactionDateTime(
-            dateTime = dateTime,
-            dueDateTime = dueDate,
-            onEditDate = onSetDate,
-            onEditTime = onSetTime,
-        )
 
         if (transactionType == TransactionType.TRANSFER && customExchangeRateState.showCard) {
             Spacer(Modifier.height(12.dp))
@@ -418,7 +451,6 @@ private fun BoxWithConstraintsScope.UI(
                 toCurrencyCode = customExchangeRateState.toCurrencyCode ?: baseCurrency,
                 exchangeRate = customExchangeRateState.exchangeRate,
                 onRefresh = {
-                    // Set exchangeRate to null to reset
                     onExchangeRateChange(null)
                 },
                 modifier = Modifier.onGloballyPositioned { coordinates ->
@@ -453,7 +485,7 @@ private fun BoxWithConstraintsScope.UI(
             )
         }
 
-        Spacer(Modifier.height(600.dp)) // scroll hack
+        Spacer(Modifier.height(600.dp))
     }
 
     onScreenStart {
@@ -475,17 +507,13 @@ private fun BoxWithConstraintsScope.UI(
 
         ActionButton = {
             if (screen.initialTransactionId != null) {
-                // Edit mode
                 if (dueDate != null) {
-                    // due date stuff
                     if (hasChanges) {
-                        // has changes
                         ModalSave {
                             onSave(false)
                             onSetHasChanges(false)
                         }
                     } else {
-                        // no changes, pay
                         ModalCheck(
                             label = if (transactionType == TransactionType.EXPENSE) {
                                 stringResource(
@@ -499,13 +527,11 @@ private fun BoxWithConstraintsScope.UI(
                         }
                     }
                 } else {
-                    // normal transaction
                     ModalSave {
                         onSave(true)
                     }
                 }
             } else {
-                // create new mode
                 ModalAdd {
                     onSave(true)
                 }
@@ -541,7 +567,6 @@ private fun BoxWithConstraintsScope.UI(
         }
     )
 
-    // Modals
     ChooseCategoryModal(
         visible = chooseCategoryModalVisible,
         initialCategory = category,
@@ -643,7 +668,6 @@ private fun BoxWithConstraintsScope.UI(
         visible = tagModelVisible,
         onDismiss = {
             tagModelVisible = false
-            // Reset TagList, avoids showing incorrect tag list when user has searched for a tag
             onTagOperation(EditTransactionViewEvent.TagEvent.OnTagSearch(""))
         },
         allTagList = tags,
@@ -687,10 +711,11 @@ private fun ApplyToAllowanceSelector(
     budgetPeriodType: BudgetPeriodType?,
     onSelect: (AllocationMode) -> Unit,
 ) {
-    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+    Column {
         Text(
             text = stringResource(R.string.allocation_mode_label),
-            style = UI.typo.nB2.style(
+            style = TextStyle(
+                fontSize = 12.sp,
                 color = UI.colors.mediumInverse,
                 fontWeight = FontWeight.Normal,
             )
@@ -698,7 +723,7 @@ private fun ApplyToAllowanceSelector(
 
         Spacer(Modifier.height(8.dp))
 
-        val options = if (budgetPeriodType == BudgetPeriodType.Weekly) {
+        val options = if (budgetPeriodType is BudgetPeriodType.Weekly) {
             listOf(
                 AllocationMode.TODAY to R.string.allocation_mode_today,
                 AllocationMode.WEEK to R.string.allocation_mode_week,
@@ -729,7 +754,7 @@ private fun ApplyToAllowanceSelector(
                 ) {
                     Text(
                         text = stringResource(labelRes),
-                        style = UI.typo.nB2.style(fontWeight = FontWeight.Medium),
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium),
                     )
                 }
             }
@@ -737,7 +762,6 @@ private fun ApplyToAllowanceSelector(
     }
 }
 
-/** For Preview purpose **/
 private val testDateTime = LocalDateTime.of(2023, 4, 27, 0, 35)
     .toInstant(ZoneOffset.UTC)
 

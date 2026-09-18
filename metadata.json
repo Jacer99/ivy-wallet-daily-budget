@@ -1,0 +1,6 @@
+{
+  "name": "PocketMoney",
+  "description": "One number a day - money manager and dynamic daily budgeting app",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

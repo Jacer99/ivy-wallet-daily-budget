@@ -117,11 +117,11 @@ abstract class IvyWalletDesign : IvyDesign {
     override fun colors(theme: Theme, isDarkModeEnabled: Boolean): IvyColors {
         return when (theme) {
             Theme.LIGHT -> object : IvyColors {
-                override val pure = Color(0xFFFDFBFF)
-                override val pureInverse = Black
+                override val pure = Color(0xFFF4F3F8)
+                override val pureInverse = Color(0xFF111111)
                 override val gray = Gray
                 override val medium = MediumWhite
-                override val mediumInverse = MediumBlack
+                override val mediumInverse = Color(0xFF111111).copy(alpha = 0.45f)
 
                 override val primary = Color(0xFF7C4DFF)
                 override val primary1 = Color(0xFFE8DDFF)
@@ -140,11 +140,11 @@ abstract class IvyWalletDesign : IvyDesign {
             }
 
             Theme.DARK -> object : IvyColors {
-                override val pure = Color(0xFF1C1B1F)
-                override val pureInverse = White
+                override val pure = Color(0xFF0B0B14)
+                override val pureInverse = Color.White
                 override val gray = Gray
                 override val medium = MediumBlack
-                override val mediumInverse = MediumWhite
+                override val mediumInverse = Color.White.copy(alpha = 0.50f)
 
                 override val primary = Color(0xFF9D7BFF)
                 override val primary1 = Color(0xFF4B2FA0)
@@ -164,10 +164,10 @@ abstract class IvyWalletDesign : IvyDesign {
 
             Theme.AMOLED_DARK -> object : IvyColors {
                 override val pure = Color(0xFF000000)
-                override val pureInverse = White
+                override val pureInverse = Color.White
                 override val gray = Gray
                 override val medium = MediumBlack
-                override val mediumInverse = MediumWhite
+                override val mediumInverse = Color.White.copy(alpha = 0.50f)
 
                 override val primary = Color(0xFF9D7BFF)
                 override val primary1 = Color(0xFF4B2FA0)

@@ -4,8 +4,10 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,20 +31,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.system.isAppInDarkTheme
 import com.ivy.design.utils.thenIf
+import com.ivy.home.AddTransactionSpeedDial
 import com.ivy.legacy.data.model.MainTab
 import com.ivy.legacy.ivyWalletCtx
 import com.ivy.legacy.utils.clickableNoIndication
@@ -53,6 +63,8 @@ import com.ivy.legacy.utils.springBounceFast
 import com.ivy.legacy.utils.toDensityDp
 import com.ivy.legacy.utils.toDensityPx
 import com.ivy.ui.R
+import com.ivy.ui.component.glassSurface
+import com.ivy.ui.component.specularBorder
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.GradientIvy
@@ -70,7 +82,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 val TRN_BUTTON_CLICK_AREA_HEIGHT = 150.dp
-val FAB_BUTTON_SIZE = 56.dp
+val FAB_BUTTON_SIZE = 52.dp
 
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 @Composable
@@ -114,13 +126,33 @@ fun BoxWithConstraintsScope.BottomBar(
         animationSpec = springBounceFast()
     )
 
+    val isDark = isAppInDarkTheme()
+    val dockShape = RoundedCornerShape(28.dp)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
-            .background(pureBlur())
-            .alpha(1f - buttonsShownPercent)
             .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .then(
+                if (!isDark) {
+                    Modifier.shadow(
+                        elevation = 12.dp,
+                        shape = dockShape,
+                        ambientColor = Color.Black.copy(alpha = 0.05f),
+                        spotColor = Color.Black.copy(alpha = 0.08f)
+                    )
+                } else Modifier
+            )
+            .clip(dockShape)
+            .background(
+                if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.70f),
+                dockShape
+            )
+            .specularBorder(shape = dockShape, isDark = isDark, strokeWidth = 0.5.dp)
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .alpha(1f - buttonsShownPercent)
             .clickableNoIndication(rememberInteractionSource()) {
                 // consume click
             },
@@ -130,56 +162,61 @@ fun BoxWithConstraintsScope.BottomBar(
             icon = R.drawable.ic_home,
             name = stringResource(R.string.home),
             selected = tab == MainTab.HOME,
-            selectedColor = Ivy
+            selectedColor = if (isDark) Color(0xFF00F2FE) else Color(0xFFC2532F),
+            isDark = isDark
         ) {
             selectTab(MainTab.HOME)
         }
 
-        Spacer(Modifier.width(FAB_BUTTON_SIZE))
+        Spacer(Modifier.width(FAB_BUTTON_SIZE + 8.dp))
 
         Tab(
             icon = R.drawable.ic_accounts,
             name = stringResource(R.string.accounts),
             selected = tab == MainTab.ACCOUNTS,
-            selectedColor = Green
+            selectedColor = if (isDark) Color(0xFF10B981) else Color(0xFF2E6F40),
+            isDark = isDark
         ) {
             selectTab(MainTab.ACCOUNTS)
         }
     }
 
-    if (expandedBackgroundOffset < screenHeightDp) {
-        Spacer(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset(y = expandedBackgroundOffset)
-                .background(UI.colors.pure.copy(alpha = 0.95f))
-                .clickableNoIndication(rememberInteractionSource()) {
-                    // consume click, do nothing
-                }
-                .zIndex(100f)
-        )
-    }
+    AddTransactionSpeedDial(
+        visible = expanded,
+        onDismiss = { expanded = false },
+        onAddIncome = {
+            expanded = false
+            onAddIncome()
+        },
+        onAddExpense = {
+            expanded = false
+            onAddExpense()
+        },
+        onAddTransfer = {
+            expanded = false
+            onAddTransfer()
+        },
+        onAddPlannedPayment = {
+            expanded = false
+            onAddPlannedPayment()
+        },
+        isDark = isDark
+    )
 
     // ------------------------------------ BUTTONS--------------------------------------------------
     val fabStartX = ivyContext.screenWidth / 2 - FAB_BUTTON_SIZE.toDensityPx() / 2
     val fabStartY = ivyContext.screenHeight - navigationBarInset() -
-            30.dp.toDensityPx() - FAB_BUTTON_SIZE.toDensityPx()
-
-    TransactionButtons(
-        buttonsShownPercent = buttonsShownPercent,
-
-        fabStartX = fabStartX,
-        fabStartY = fabStartY,
-
-        onAddIncome = onAddIncome,
-        onAddExpense = onAddExpense,
-        onAddTransfer = onAddTransfer,
-        onAddPlannedPayment = onAddPlannedPayment
-    )
+            16.dp.toDensityPx() - FAB_BUTTON_SIZE.toDensityPx()
 
     var dragOffset by remember {
         mutableStateOf(Offset.Zero)
     }
+
+    val fabGlowColor = when (tab) {
+        MainTab.HOME -> if (isDark) Color(0xFF00F2FE) else Color(0xFFC2532F)
+        MainTab.ACCOUNTS -> if (isDark) Color(0xFF10B981) else Color(0xFF2E6F40)
+    }
+
     // + & x button
     IvyCircleButton(
         modifier = Modifier
@@ -193,6 +230,20 @@ fun BoxWithConstraintsScope.BottomBar(
                 }
             }
             .size(FAB_BUTTON_SIZE)
+            .alpha(1f - buttonsShownPercent)
+            .drawBehind {
+                if (!expanded) {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                fabGlowColor.copy(alpha = 0.50f),
+                                Color.Transparent
+                            ),
+                            radius = size.width * 1.1f
+                        )
+                    )
+                }
+            }
             .rotate(fabRotation)
             .zIndex(200f)
             .thenIf(tab == MainTab.HOME) {
@@ -241,11 +292,23 @@ fun BoxWithConstraintsScope.BottomBar(
         icon = R.drawable.ic_add,
         backgroundGradient = when (tab) {
             MainTab.HOME -> {
-                if (!expanded) GradientIvy else Gradient.solid(UI.colors.gray)
+                if (!expanded) {
+                    if (isDark) {
+                        Gradient(Color(0xFF00F2FE), Color(0xFF4FACFE))
+                    } else {
+                        Gradient(Color(0xFFE0663B), Color(0xFFC2532F))
+                    }
+                } else {
+                    Gradient.solid(UI.colors.gray)
+                }
             }
 
             MainTab.ACCOUNTS -> {
-                GradientGreen
+                if (isDark) {
+                    Gradient(Color(0xFF10B981), Color(0xFF059669))
+                } else {
+                    Gradient(Color(0xFF2E6F40), Color(0xFF1E4D2B))
+                }
             }
         },
         hasShadow = !expanded,
@@ -615,30 +678,47 @@ private fun RowScope.Tab(
     name: String,
     selected: Boolean,
     selectedColor: Color,
+    isDark: Boolean,
     onClick: () -> Unit,
 ) {
+    val pillBackground = if (selected) {
+        if (isDark) Color.White.copy(alpha = 0.12f) else Color.Black.copy(alpha = 0.08f)
+    } else {
+        Color.Transparent
+    }
+
     Row(
         modifier = Modifier
             .weight(1f)
-            .clip(UI.shapes.rFull)
+            .clip(RoundedCornerShape(24.dp))
+            .background(pillBackground, RoundedCornerShape(24.dp))
+            .thenIf(selected) {
+                border(
+                    1.dp,
+                    if (isDark) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.06f),
+                    RoundedCornerShape(24.dp)
+                )
+            }
             .clickable(onClick = onClick)
-            .padding(top = 12.dp, bottom = 16.dp)
+            .padding(vertical = 10.dp, horizontal = 12.dp)
             .testTag(name.lowercase()),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         IvyIcon(
             icon = icon,
-            tint = if (selected) selectedColor else UI.colors.pureInverse
+            tint = if (selected) selectedColor else (if (isDark) Color(0xFF94A3B8) else Color(0xFF78716C))
         )
 
         if (selected) {
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             Text(
                 text = name,
-                style = UI.typo.c.style(
+                style = TextStyle(
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.04.sp,
                     color = selectedColor
                 )
             )

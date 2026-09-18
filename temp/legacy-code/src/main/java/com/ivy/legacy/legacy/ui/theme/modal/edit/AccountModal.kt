@@ -1,13 +1,20 @@
 package com.ivy.wallet.ui.theme.modal.edit
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,12 +29,15 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
+import com.ivy.design.system.isAppInDarkTheme
 import com.ivy.domain.legacy.ui.IvyColorPicker
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.datamodel.Account
@@ -37,6 +47,8 @@ import com.ivy.legacy.utils.selectEndTextFieldValue
 import com.ivy.legacy.utils.toLowerCaseLocal
 import com.ivy.legacy.utils.toUpperCaseLocal
 import com.ivy.ui.R
+import com.ivy.ui.component.LiquidGlassCard
+import com.ivy.ui.component.specularBorder
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.domain.deprecated.logic.model.CreateAccountData
 import com.ivy.wallet.ui.theme.Gray
@@ -69,6 +81,7 @@ fun BoxWithConstraintsScope.AccountModal(
     onEditAccount: (Account, balance: Double) -> Unit,
     dismiss: () -> Unit,
 ) {
+    val isDark = isAppInDarkTheme()
     val account = modal?.account
     var nameTextFieldValue by remember(modal) {
         mutableStateOf(selectEndTextFieldValue(account?.name))
@@ -96,6 +109,7 @@ fun BoxWithConstraintsScope.AccountModal(
     }
 
     val forceNonZeroBalance = modal?.forceNonZeroBalance ?: false
+    val cardShape = remember { RoundedCornerShape(22.dp) }
 
     IvyModal(
         id = modal?.id,
@@ -133,9 +147,7 @@ fun BoxWithConstraintsScope.AccountModal(
 
         ModalTitle(
             text = if (modal?.account != null) {
-                stringResource(
-                    R.string.edit_account
-                )
+                stringResource(R.string.edit_account)
             } else {
                 stringResource(R.string.new_account)
             },
@@ -143,34 +155,55 @@ fun BoxWithConstraintsScope.AccountModal(
 
         Spacer(Modifier.height(24.dp))
 
-        IconNameRow(
-            hint = stringResource(R.string.account_name),
-            defaultIcon = R.drawable.ic_custom_account_m,
-            color = color,
-            icon = icon,
+        // LiquidGlassCard wrapping Account Form Inputs
+        LiquidGlassCard(
+            shape = cardShape,
+            isDark = isDark,
+            strokeWidth = 0.5.dp,
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
+                IconNameRow(
+                    hint = stringResource(R.string.account_name),
+                    defaultIcon = R.drawable.ic_custom_account_m,
+                    color = color,
+                    icon = icon,
 
-            autoFocusKeyboard = modal?.autoFocusKeyboard ?: true,
+                    autoFocusKeyboard = modal?.autoFocusKeyboard ?: true,
 
-            nameTextFieldValue = nameTextFieldValue,
-            setNameTextFieldValue = { nameTextFieldValue = it },
-            showChooseIconModal = {
-                chooseIconModalVisible = true
+                    nameTextFieldValue = nameTextFieldValue,
+                    setNameTextFieldValue = { nameTextFieldValue = it },
+                    showChooseIconModal = {
+                        chooseIconModalVisible = true
+                    }
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                IvyColorPicker(
+                    selectedColor = color,
+                    onColorSelected = { color = it }
+                )
             }
-        )
+        }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        IvyColorPicker(
-            selectedColor = color,
-            onColorSelected = { color = it }
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        ModalAmountSection(
-            Header = {
-                Spacer(Modifier.height(16.dp))
-
+        LiquidGlassCard(
+            shape = cardShape,
+            isDark = isDark,
+            strokeWidth = 0.5.dp,
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
                 AccountCurrency(
                     currencyCode = currencyCode
                 ) {
@@ -180,20 +213,23 @@ fun BoxWithConstraintsScope.AccountModal(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 IvyCheckboxWithText(
-                    modifier = Modifier
-                        .padding(start = 16.dp)
-                        .align(Alignment.Start),
+                    modifier = Modifier.align(Alignment.Start),
                     text = stringResource(R.string.include_account),
                     checked = includeInBalance
                 ) {
                     includeInBalance = it
                 }
-            },
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        ModalAmountSection(
             label = stringResource(R.string.enter_account_balance).uppercase(),
             currency = currencyCode,
             amount = amount,
-            amountPaddingTop = 40.dp,
-            amountPaddingBottom = 40.dp,
+            amountPaddingTop = 20.dp,
+            amountPaddingBottom = 20.dp,
         ) {
             amountModalVisible = true
         }
@@ -237,12 +273,6 @@ fun BoxWithConstraintsScope.AccountModal(
         dismiss = { currencyModalVisible = false }
     ) {
         currencyCode = it
-
-//        if (IvyCurrency.fromCode(it)?.isCrypto == true) {
-//            if (getCustomIconId(context = context, iconName = it, size = "m") != null) {
-//                icon = it
-//            }
-//        }
     }
 
     ChooseIconModal(
@@ -298,27 +328,31 @@ private fun save(
 @Composable
 private fun AccountCurrency(
     currencyCode: String,
-
     onClick: () -> Unit
 ) {
+    val isDark = isAppInDarkTheme()
+    val pillShape = remember { RoundedCornerShape(16.dp) }
+
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .background(UI.colors.medium, UI.shapes.r4)
-            .clip(UI.shapes.r4)
-            .clickable {
-                onClick()
-            }
-            .padding(vertical = 24.dp)
+            .fillMaxWidth()
+            .clip(pillShape)
+            .background(
+                if (isDark) Color.White.copy(alpha = 0.08f) else Color.White.copy(alpha = 0.60f),
+                pillShape
+            )
+            .specularBorder(pillShape, isDark, 0.5.dp)
+            .clickable { onClick() }
+            .padding(horizontal = 20.dp, vertical = 16.dp)
             .testTag("account_modal_currency"),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(Modifier.width(32.dp))
-
         Text(
             text = currencyCode.toUpperCaseLocal(),
-            style = UI.typo.b1.style(
-                fontWeight = FontWeight.ExtraBold
+            style = TextStyle(
+                fontSize = 15.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = UI.colors.pureInverse
             )
         )
 
@@ -327,13 +361,12 @@ private fun AccountCurrency(
         val currencyName = IvyCurrency.fromCode(currencyCode)?.name ?: ""
         Text(
             text = "-$currencyName".toLowerCaseLocal(),
-            style = UI.typo.b2.style(
+            style = TextStyle(
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Gray
+                color = UI.colors.mediumInverse
             )
         )
-
-        Spacer(Modifier.width(24.dp))
     }
 }
 
