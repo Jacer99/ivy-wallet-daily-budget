@@ -4,6 +4,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -28,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import com.ivy.base.legacy.Theme
 import com.ivy.base.legacy.Transaction
 import com.ivy.base.legacy.TransactionHistoryItem
+import com.ivy.design.l0_system.UI
+import com.ivy.ui.component.pocketMoneyBackground
 import com.ivy.base.legacy.stringRes
 import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeFormatter
@@ -104,9 +107,12 @@ fun BoxWithConstraintsScope.HomeUi(
 
     val baseCurrency = uiState.baseData.baseCurrency
 
+    val isDark = !UI.colors.isLight
+
     Column(
         modifier = modifier
             .fillMaxSize()
+            .pocketMoneyBackground(isDark)
             .systemBarsPadding()
             .verticalSwipeListener(
                 sensitivity = Constants.SWIPE_DOWN_THRESHOLD_OPEN_MORE_MENU,
@@ -138,20 +144,11 @@ fun BoxWithConstraintsScope.HomeUi(
             expanded = uiState.expanded,
             name = uiState.name,
             period = uiState.period,
-            currency = baseCurrency,
-            balance = uiState.balance.toDouble(),
-            hideBalance = uiState.hideBalance,
-
+            safeToSpend = uiState.safeToSpend,
             onShowMonthModal = {
                 choosePeriodModal = ChoosePeriodModalData(
                     period = uiState.period
                 )
-            },
-            onBalanceClick = {
-                onEvent(HomeEvent.BalanceClick)
-            },
-            onHiddenBalanceClick = {
-                onEvent(HomeEvent.HiddenBalanceClick)
             },
             onSelectNextMonth = {
                 onEvent(HomeEvent.SelectNextMonth)
@@ -347,7 +344,8 @@ fun HomeLazyColumn(
             .fillMaxSize()
             .nestedScroll(nestedScrollConnection)
             .testTag("home_lazy_column"),
-        state = listState
+        state = listState,
+        contentPadding = PaddingValues(bottom = 110.dp)
     ) {
         item {
             SafeToSpendCard(
@@ -458,6 +456,10 @@ private fun BoxWithConstraintsScope.PreviewHomeTab(isDark: Boolean = false) {
                     todayChargesMinorUnits = 23_000L,
                     tomorrowProjectionMinorUnits = 62_000L,
                     message = null,
+                    periodBudgetMinorUnits = 450_000L,
+                    periodSpentMinorUnits = 163_000L,
+                    periodAvailableMinorUnits = 187_000L,
+                    daysLeft = 5,
                 )
             ),
             onEvent = {}

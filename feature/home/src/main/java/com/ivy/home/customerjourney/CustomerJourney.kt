@@ -2,6 +2,7 @@ package com.ivy.home.customerjourney
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,31 +10,33 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.design.l0_system.UI
-import com.ivy.design.l0_system.style
 import com.ivy.domain.RootScreen
 import com.ivy.legacy.ivyWalletCtx
 import com.ivy.legacy.rootScreen
-import com.ivy.legacy.utils.drawColoredShadow
 import com.ivy.navigation.IvyPreview
 import com.ivy.navigation.navigation
 import com.ivy.ui.R
-import com.ivy.wallet.ui.theme.Gradient
-import com.ivy.wallet.ui.theme.components.IvyButton
+import com.ivy.ui.component.LiquidGlassCard
+import com.ivy.ui.component.specularBorder
 import com.ivy.wallet.ui.theme.components.IvyIcon
-import com.ivy.wallet.ui.theme.dynamicContrast
-import com.ivy.wallet.ui.theme.findContrastTextColor
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
@@ -77,85 +80,113 @@ fun CustomerJourneyCard(
     modifier: Modifier = Modifier,
     onCTA: () -> Unit,
 ) {
-    Column(
+    val isDark = isSystemInDarkTheme()
+    val tintColor = if (cardData.id == "adjust_balance") {
+        Color(0xFF7C4DFF)
+    } else {
+        cardData.background.startColor
+    }
+    val bgTint = tintColor.copy(alpha = if (isDark) 0.22f else 0.12f)
+
+    LiquidGlassCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .drawColoredShadow(cardData.background.startColor)
-            .background(cardData.background.asHorizontalBrush(), UI.shapes.r3)
-            .clip(UI.shapes.r3)
             .clickable {
                 onCTA()
-            }
+            },
+        shape = RoundedCornerShape(26.dp),
+        isDark = isDark,
+        fillColor = bgTint
     ) {
-        Spacer(Modifier.height(16.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 24.dp, end = 16.dp),
-                text = cardData.title,
-                style = UI.typo.b1.style(
-                    fontWeight = FontWeight.ExtraBold,
-                    color = findContrastTextColor(cardData.background.startColor)
-                )
-            )
-
-            if (cardData.hasDismiss) {
-                IvyIcon(
-                    modifier = Modifier
-                        .clickable {
-                            onDismiss()
-                        }
-                        .padding(8.dp), // enlarge click area
-                    icon = R.drawable.ic_dismiss,
-                    tint = cardData.background.startColor.dynamicContrast(),
-                    contentDescription = "prompt_dismiss",
-                )
-
-                Spacer(Modifier.width(20.dp))
-            }
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 24.dp, end = 32.dp),
-            text = cardData.description,
-            style = UI.typo.b2.style(
-                fontWeight = FontWeight.Medium,
-                color = findContrastTextColor(cardData.background.startColor)
-            )
-        )
-
-        Spacer(Modifier.height(32.dp))
-
-        if (cardData.cta != null) {
-            IvyButton(
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(horizontal = 20.dp)
-                    .testTag("cta_prompt_${cardData.id}"),
-                text = cardData.cta,
-                shadowAlpha = 0f,
-                iconStart = cardData.ctaIcon,
-                iconTint = cardData.background.startColor,
-                textStyle = UI.typo.b2.style(
-                    color = cardData.background.startColor,
-                    fontWeight = FontWeight.Bold
-                ),
-                padding = 8.dp,
-                backgroundGradient = Gradient.solid(findContrastTextColor(cardData.background.startColor))
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                onCTA()
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = cardData.title,
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = UI.colors.pureInverse
+                    )
+                )
+
+                if (cardData.hasDismiss) {
+                    IvyIcon(
+                        modifier = Modifier
+                            .clickable {
+                                onDismiss()
+                            }
+                            .padding(4.dp),
+                        icon = R.drawable.ic_dismiss,
+                        tint = UI.colors.mediumInverse,
+                        contentDescription = "prompt_dismiss",
+                    )
+                }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(10.dp))
+
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = cardData.description,
+                style = TextStyle(
+                    fontSize = 13.5.sp,
+                    lineHeight = 19.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = UI.colors.mediumInverse
+                )
+            )
+
+            if (cardData.cta != null) {
+                Spacer(Modifier.height(20.dp))
+
+                val buttonBg = if (isDark) {
+                    Color.White.copy(alpha = 0.14f)
+                } else {
+                    Color.White.copy(alpha = 0.70f)
+                }
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .clip(CircleShape)
+                        .background(buttonBg)
+                        .specularBorder(shape = CircleShape, isDark = isDark, strokeWidth = 0.5.dp)
+                        .clickable { onCTA() }
+                        .padding(horizontal = 18.dp, vertical = 10.dp)
+                        .testTag("cta_prompt_${cardData.id}"),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IvyIcon(
+                            modifier = Modifier.size(16.dp),
+                            icon = cardData.ctaIcon,
+                            tint = UI.colors.pureInverse
+                        )
+
+                        Spacer(Modifier.width(8.dp))
+
+                        Text(
+                            text = cardData.cta,
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = UI.colors.pureInverse
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 }

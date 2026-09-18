@@ -12,10 +12,16 @@ fun IvyMaterial3Theme(
     dark: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    MaterialTheme(
-        colorScheme = if (dark) ivyDarkColorScheme(isTrueBlack) else ivyLightColorScheme(),
-        content = content,
-    )
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalAppInDarkTheme provides dark
+    ) {
+        MaterialTheme(
+            colorScheme = if (dark) ivyDarkColorScheme(isTrueBlack) else ivyLightColorScheme(),
+            content = {
+                PocketMoneyTheme(isDark = dark, content = content)
+            },
+        )
+    }
 }
 
 private fun ivyLightColorScheme(): ColorScheme = ColorScheme(

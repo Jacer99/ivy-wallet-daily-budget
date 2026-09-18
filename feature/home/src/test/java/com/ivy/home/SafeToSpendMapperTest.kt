@@ -232,4 +232,50 @@ class SafeToSpendMapperTest {
 
         result.paydayLabel shouldBe "Left until payday · 5 days"
     }
+
+    @Test
+    fun `period summary fields are mapped from snapshot`() {
+        val result = mapToSafeToSpendCardState(
+            hasBudget = true,
+            snapshot = snapshot(
+                capacity = 450_000L,
+                periodSpentRaw = 163_000L,
+                periodReserved = 0L,
+                periodRemaining = 187_000L,
+                daysRemaining = 5,
+                openingAllowance = 80_400L,
+                todayCharges = 23_000L,
+                remainingAllowance = 57_400L,
+                tomorrowProjection = 62_000L,
+            ),
+        ).shouldBeInstanceOf<SafeToSpendCardState.Active>()
+
+        result.periodBudgetMinorUnits shouldBe 450_000L
+        result.periodSpentMinorUnits shouldBe 163_000L
+        result.periodAvailableMinorUnits shouldBe 187_000L
+        result.daysLeft shouldBe 5
+    }
+
+    @Test
+    fun `negative period remaining clamps available to zero`() {
+        val result = mapToSafeToSpendCardState(
+            hasBudget = true,
+            snapshot = snapshot(
+                capacity = 450_000L,
+                periodSpentRaw = 500_000L,
+                periodReserved = 0L,
+                periodRemaining = -50_000L,
+                daysRemaining = 3,
+                openingAllowance = 0L,
+                todayCharges = 50_000L,
+                remainingAllowance = -50_000L,
+                tomorrowProjection = 0L,
+            ),
+        ).shouldBeInstanceOf<SafeToSpendCardState.Active>()
+
+        result.periodBudgetMinorUnits shouldBe 450_000L
+        result.periodSpentMinorUnits shouldBe 500_000L
+        result.periodAvailableMinorUnits shouldBe 0L
+        result.daysLeft shouldBe 3
+    }
 }

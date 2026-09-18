@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.ivy.base.legacy.Theme
 import com.ivy.base.model.TransactionType
 import com.ivy.data.model.AllocationMode
+import com.ivy.domain.usecase.budget.BudgetPeriodType
 import com.ivy.data.model.Category
 import com.ivy.data.model.Tag
 import com.ivy.data.model.TagId
@@ -126,6 +127,7 @@ fun BoxWithConstraintsScope.EditTransactionScreen(screen: EditTransactionScreen)
         backgroundProcessing = uiState.backgroundProcessingStarted,
         customExchangeRateState = uiState.customExchangeRateState,
         hasBudget = uiState.hasBudget,
+        budgetPeriodType = uiState.budgetPeriodType,
 
         categories = uiState.categories,
         accounts = uiState.accounts,
@@ -248,6 +250,7 @@ private fun BoxWithConstraintsScope.UI(
     backgroundProcessing: Boolean = false,
     hasChanges: Boolean = false,
     hasBudget: Boolean = false,
+    budgetPeriodType: BudgetPeriodType? = null,
 
     ) {
     var chooseCategoryModalVisible by remember { mutableStateOf(false) }
@@ -365,6 +368,7 @@ private fun BoxWithConstraintsScope.UI(
             Spacer(Modifier.height(16.dp))
             ApplyToAllowanceSelector(
                 selected = allocationMode,
+                budgetPeriodType = budgetPeriodType,
                 onSelect = onAllocationModeChange,
             )
         }
@@ -680,6 +684,7 @@ private fun shouldFocusAmount(amount: Double) = amount == 0.0
 @Composable
 private fun ApplyToAllowanceSelector(
     selected: AllocationMode,
+    budgetPeriodType: BudgetPeriodType?,
     onSelect: (AllocationMode) -> Unit,
 ) {
     Column(modifier = Modifier.padding(horizontal = 24.dp)) {
@@ -693,11 +698,18 @@ private fun ApplyToAllowanceSelector(
 
         Spacer(Modifier.height(8.dp))
 
-        val options = listOf(
-            AllocationMode.TODAY to R.string.allocation_mode_today,
-            AllocationMode.WEEK to R.string.allocation_mode_week,
-            AllocationMode.MONTH to R.string.allocation_mode_month,
-        )
+        val options = if (budgetPeriodType is BudgetPeriodType.Weekly) {
+            listOf(
+                AllocationMode.TODAY to R.string.allocation_mode_today,
+                AllocationMode.WEEK to R.string.allocation_mode_week,
+            )
+        } else {
+            listOf(
+                AllocationMode.TODAY to R.string.allocation_mode_today,
+                AllocationMode.WEEK to R.string.allocation_mode_week,
+                AllocationMode.MONTH to R.string.allocation_mode_month,
+            )
+        }
 
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             options.forEachIndexed { index, (mode, labelRes) ->

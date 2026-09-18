@@ -316,7 +316,7 @@ private fun LazyItemScope.NoTransactionsEmptyState(
 
         IvyIcon(
             icon = R.drawable.ic_notransactions,
-            tint = Gray
+            tint = UI.colors.mediumInverse
         )
 
         Spacer(Modifier.height(24.dp))
@@ -324,7 +324,7 @@ private fun LazyItemScope.NoTransactionsEmptyState(
         Text(
             text = emptyStateTitle,
             style = UI.typo.b1.style(
-                color = Gray,
+                color = UI.colors.pureInverse,
                 fontWeight = FontWeight.ExtraBold
             )
         )
@@ -335,7 +335,7 @@ private fun LazyItemScope.NoTransactionsEmptyState(
             modifier = Modifier.padding(horizontal = 32.dp),
             text = emptyStateText,
             style = UI.typo.b2.style(
-                color = Gray,
+                color = UI.colors.mediumInverse,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )

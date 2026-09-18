@@ -511,4 +511,10 @@
     <string name="no_budget_message">Set a spending budget to see what’s safe to spend today.</string>
     <string name="calculating_allowance">Calculating allowance…</string>
     <string name="allowance_calculation_error">Could not calculate allowance.</string>
+
+    <!-- Task 27: Period summary -->
+    <string name="period_summary_budget">Budget</string>
+    <string name="period_summary_spent">Spent</string>
+    <string name="period_summary_available">Available</string>
+    <string name="period_summary_days_left">Days left</string>
 </resources>

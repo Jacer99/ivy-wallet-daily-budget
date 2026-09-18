@@ -93,7 +93,12 @@ class DynamicBudgetEngine @Inject constructor(
             if (daysFromTomorrow <= 0) {
                 null
             } else {
-                val chargesBeforeTomorrow = chargesBeforeToday + todayCharges
+                val effectiveTodayCharges = if (todayCharges < openingAllowance) {
+                    openingAllowance
+                } else {
+                    todayCharges
+                }
+                val chargesBeforeTomorrow = chargesBeforeToday + effectiveTodayCharges
                 val poolAtStartOfTomorrow = capacity - periodReserved - chargesBeforeTomorrow
                 val tomorrowOpening = poolAtStartOfTomorrow / daysFromTomorrow
                 val tomorrowCharges = allocationsMap[input.today.plusDays(1)] ?: 0L

@@ -19,6 +19,7 @@ import com.ivy.base.time.TimeProvider
 import com.ivy.data.db.dao.read.LoanDao
 import com.ivy.data.db.dao.read.SettingsDao
 import com.ivy.data.model.AllocationMode
+import com.ivy.domain.usecase.budget.BudgetPeriodType
 import com.ivy.domain.usecase.budget.DynamicBudgetConfigStore
 import com.ivy.data.model.Category
 import com.ivy.data.model.CategoryId
@@ -129,6 +130,7 @@ class EditTransactionViewModel @Inject constructor(
     private var amount by mutableDoubleStateOf(0.0)
     private var allocationMode by mutableStateOf(AllocationMode.TODAY)
     private var hasBudget by mutableStateOf(false)
+    private var budgetPeriodType by mutableStateOf<BudgetPeriodType?>(null)
     private var hasChanges by mutableStateOf(false)
     private var displayLoanHelper by mutableStateOf(EditTransactionDisplayLoan())
 
@@ -185,7 +187,9 @@ class EditTransactionViewModel @Inject constructor(
             )
 
             tags = tagList.await()
-            hasBudget = budgetConfig.await().budgetLimitMinorUnits > 0L
+            val config = budgetConfig.await()
+            hasBudget = config.budgetLimitMinorUnits > 0L
+            budgetPeriodType = if (hasBudget) config.periodType else null
             transactionAssociatedTags =
                 tagRepository.findByAssociatedId(AssociationId(loadedTransaction().id)).map(Tag::id)
                     .toImmutableList()
@@ -216,7 +220,8 @@ class EditTransactionViewModel @Inject constructor(
             tags = getTags(),
             transactionAssociatedTags = getTransactionAssociatedTags(),
             allocationMode = getAllocationMode(),
-            hasBudget = getHasBudget()
+            hasBudget = getHasBudget(),
+            budgetPeriodType = getBudgetPeriodType()
         )
     }
 
@@ -329,6 +334,11 @@ class EditTransactionViewModel @Inject constructor(
         return hasBudget
     }
 
+    @Composable
+    private fun getBudgetPeriodType(): BudgetPeriodType? {
+        return budgetPeriodType
+    }
+
     @Suppress("CyclomaticComplexMethod")
     override fun onEvent(event: EditTransactionViewEvent) {
         when (event) {
@@ -421,7 +431,12 @@ class EditTransactionViewModel @Inject constructor(
             categoryRepository.findById(CategoryId(it))
         }
         amount = transaction.amount.toDouble()
-        allocationMode = transaction.allocationMode.toAllocationModeOrToday()
+        val rawMode = transaction.allocationMode.toAllocationModeOrToday()
+        allocationMode = if (budgetPeriodType is BudgetPeriodType.Weekly && rawMode == AllocationMode.MONTH) {
+            AllocationMode.WEEK
+        } else {
+            rawMode
+        }
 
         updateCurrency(account = selectedAccount)
 
