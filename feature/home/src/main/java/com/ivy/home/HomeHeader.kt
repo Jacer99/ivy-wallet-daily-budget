@@ -56,11 +56,17 @@ import com.ivy.wallet.ui.theme.GradientGreen
 import com.ivy.wallet.ui.theme.Gray
 import com.ivy.wallet.ui.theme.Green
 import com.ivy.wallet.ui.theme.White
-import com.ivy.wallet.ui.theme.components.BalanceRowMini
 import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.components.IvyOutlinedButton
 import com.ivy.wallet.ui.theme.wallet.AmountCurrencyB1
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.math.absoluteValue
+
+private fun formatTndAmount(minorUnits: Long): String =
+    BigDecimal.valueOf(minorUnits, 3)
+        .setScale(2, RoundingMode.HALF_UP)
+        .toPlainString()
 
 @ExperimentalAnimationApi
 @Composable
@@ -69,12 +75,9 @@ internal fun HomeHeader(
     name: String,
     period: TimePeriod,
     currency: String,
-    balance: Double,
+    safeToSpend: SafeToSpendCardState,
     onShowMonthModal: () -> Unit,
-    onBalanceClick: () -> Unit,
     onSelectNextMonth: () -> Unit,
-    hideBalance: Boolean,
-    onHiddenBalanceClick: () -> Unit,
     onSelectPreviousMonth: () -> Unit,
 ) {
     Column {
@@ -93,12 +96,9 @@ internal fun HomeHeader(
             name = name,
             period = period,
             currency = currency,
-            balance = balance,
-            hideBalance = hideBalance,
+            safeToSpend = safeToSpend,
 
             onShowMonthModal = onShowMonthModal,
-            onBalanceClick = onBalanceClick,
-            onHiddenBalanceClick = onHiddenBalanceClick,
             onSelectNextMonth = onSelectNextMonth,
             onSelectPreviousMonth = onSelectPreviousMonth,
         )
@@ -120,12 +120,9 @@ private fun HeaderStickyRow(
     name: String,
     period: TimePeriod,
     currency: String,
-    balance: Double,
+    safeToSpend: SafeToSpendCardState,
     onShowMonthModal: () -> Unit,
-    onBalanceClick: () -> Unit,
     onSelectNextMonth: () -> Unit,
-    hideBalance: Boolean,
-    onHiddenBalanceClick: () -> Unit,
     onSelectPreviousMonth: () -> Unit,
 ) {
     Row(
@@ -159,23 +156,19 @@ private fun HeaderStickyRow(
                 maxLines = 1,
             )
 
-            // Balance mini row
-            if (percentExpanded < 1f) {
-                BalanceRowMini(
+            // Safe-to-Spend hero amount in collapsed scroll header
+            if (percentExpanded < 1f && safeToSpend is SafeToSpendCardState.Active) {
+                Text(
                     modifier = Modifier
-                        .alpha(alpha = 1f - percentExpanded)
-                        .clickableNoIndication(rememberInteractionSource()) {
-                            if (hideBalance) {
-                                onHiddenBalanceClick()
-                            } else {
-                                onBalanceClick()
-                            }
-                        },
-                    currency = currency,
-                    balance = balance,
-                    shortenBigNumbers = true,
-                    hiddenMode = hideBalance,
-                    doubleRowDisplay = true,
+                        .alpha(1f - percentExpanded)
+                        .testTag("home_sticky_safe_to_spend"),
+                    text = "${formatTndAmount(safeToSpend.remainingAllowanceMinorUnits)} $currency",
+                    style = UI.typo.b1.style(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = UI.colors.pureInverse,
+                    ),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
                 )
             }
         }

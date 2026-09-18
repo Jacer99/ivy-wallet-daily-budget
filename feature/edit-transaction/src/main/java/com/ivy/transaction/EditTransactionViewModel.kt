@@ -19,6 +19,7 @@ import com.ivy.base.time.TimeProvider
 import com.ivy.data.db.dao.read.LoanDao
 import com.ivy.data.db.dao.read.SettingsDao
 import com.ivy.data.model.AllocationMode
+import com.ivy.domain.usecase.budget.BudgetPeriodType
 import com.ivy.domain.usecase.budget.DynamicBudgetConfigStore
 import com.ivy.data.model.Category
 import com.ivy.data.model.CategoryId
@@ -129,6 +130,7 @@ class EditTransactionViewModel @Inject constructor(
     private var amount by mutableDoubleStateOf(0.0)
     private var allocationMode by mutableStateOf(AllocationMode.TODAY)
     private var hasBudget by mutableStateOf(false)
+    private var budgetPeriodType by mutableStateOf<BudgetPeriodType?>(null)
     private var hasChanges by mutableStateOf(false)
     private var displayLoanHelper by mutableStateOf(EditTransactionDisplayLoan())
 
@@ -185,7 +187,9 @@ class EditTransactionViewModel @Inject constructor(
             )
 
             tags = tagList.await()
-            hasBudget = budgetConfig.await().budgetLimitMinorUnits > 0L
+            val loadedBudgetConfig = budgetConfig.await()
+            hasBudget = loadedBudgetConfig.budgetLimitMinorUnits > 0L
+            budgetPeriodType = loadedBudgetConfig.periodType
             transactionAssociatedTags =
                 tagRepository.findByAssociatedId(AssociationId(loadedTransaction().id)).map(Tag::id)
                     .toImmutableList()
@@ -216,7 +220,8 @@ class EditTransactionViewModel @Inject constructor(
             tags = getTags(),
             transactionAssociatedTags = getTransactionAssociatedTags(),
             allocationMode = getAllocationMode(),
-            hasBudget = getHasBudget()
+            hasBudget = getHasBudget(),
+            budgetPeriodType = getBudgetPeriodType()
         )
     }
 
@@ -327,6 +332,11 @@ class EditTransactionViewModel @Inject constructor(
     @Composable
     private fun getHasBudget(): Boolean {
         return hasBudget
+    }
+
+    @Composable
+    private fun getBudgetPeriodType(): BudgetPeriodType? {
+        return budgetPeriodType
     }
 
     @Suppress("CyclomaticComplexMethod")

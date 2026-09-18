@@ -139,19 +139,12 @@ fun BoxWithConstraintsScope.HomeUi(
             name = uiState.name,
             period = uiState.period,
             currency = baseCurrency,
-            balance = uiState.balance.toDouble(),
-            hideBalance = uiState.hideBalance,
+            safeToSpend = uiState.safeToSpend,
 
             onShowMonthModal = {
                 choosePeriodModal = ChoosePeriodModalData(
                     period = uiState.period
                 )
-            },
-            onBalanceClick = {
-                onEvent(HomeEvent.BalanceClick)
-            },
-            onHiddenBalanceClick = {
-                onEvent(HomeEvent.HiddenBalanceClick)
             },
             onSelectNextMonth = {
                 onEvent(HomeEvent.SelectNextMonth)

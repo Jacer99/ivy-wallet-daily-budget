@@ -39,7 +39,7 @@ class DynamicBudgetEngineTest {
             openingAllowance = 10000L,
             todayCharges = 0L,
             remainingAllowance = 10000L,
-            tomorrowProjection = 11666L
+            tomorrowProjection = 10000L
         )
     }
 
@@ -118,7 +118,7 @@ class DynamicBudgetEngineTest {
         snapshot.openingAllowance shouldBe 13600L
         snapshot.todayCharges shouldBe 1000L
         snapshot.remainingAllowance shouldBe 12600L
-        snapshot.tomorrowProjection shouldBe 15750L
+        snapshot.tomorrowProjection shouldBe 12600L
     }
 
     @Test
@@ -143,7 +143,7 @@ class DynamicBudgetEngineTest {
         snapshot.openingAllowance shouldBe 7000L
         snapshot.todayCharges shouldBe 0L
         snapshot.remainingAllowance shouldBe 7000L
-        snapshot.tomorrowProjection shouldBe 8750L
+        snapshot.tomorrowProjection shouldBe 7000L
     }
 
     @Test
@@ -242,7 +242,7 @@ class DynamicBudgetEngineTest {
         snapshot.capacity shouldBe 100000L
         snapshot.daysRemaining shouldBe 7
         snapshot.openingAllowance shouldBe 14285L
-        snapshot.tomorrowProjection shouldBe 16666L
+        snapshot.tomorrowProjection shouldBe 14285L
         snapshot.periodRemaining shouldBe 100000L
     }
 
@@ -270,7 +270,32 @@ class DynamicBudgetEngineTest {
         snapshot.openingAllowance shouldBe 50000L
         snapshot.todayCharges shouldBe 1500L
         snapshot.remainingAllowance shouldBe 48500L
-        snapshot.tomorrowProjection shouldBe 97000L
+        snapshot.tomorrowProjection shouldBe 48500L
+    }
+
+    @Test
+    fun `tomorrow projection assumes today remaining safe allowance is fully utilized`() {
+        val scheduler = ExpenseAllocationScheduler()
+        val engine = DynamicBudgetEngine(scheduler)
+        val period = BudgetPeriod(LocalDate.parse("2026-09-17"), LocalDate.parse("2026-09-20"), BudgetPeriodType.Weekly)
+
+        val input = BudgetEngineInput(
+            period = period,
+            budgetLimit = 500000L,
+            includedIncome = 0L,
+            reservationsTotal = 0L,
+            expenses = listOf(
+                BudgetExpenseInput(LocalDate.parse("2026-09-17"), 200000L, AllocationMode.WEEK)
+            ),
+            today = LocalDate.parse("2026-09-17")
+        )
+
+        val snapshot = engine.calculate(input)
+
+        snapshot.openingAllowance shouldBe 125000L
+        snapshot.todayCharges shouldBe 50000L
+        snapshot.remainingAllowance shouldBe 75000L
+        snapshot.tomorrowProjection shouldBe 75000L
     }
 
     @Test(expected = IllegalArgumentException::class)

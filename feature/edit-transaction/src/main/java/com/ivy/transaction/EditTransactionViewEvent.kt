@@ -6,6 +6,7 @@ import com.ivy.data.model.AllocationMode
 import com.ivy.data.model.Category
 import com.ivy.data.model.Tag
 import com.ivy.data.model.TagId
+import com.ivy.domain.usecase.budget.BudgetPeriodType
 import com.ivy.legacy.data.EditTransactionDisplayLoan
 import com.ivy.legacy.datamodel.Account
 import com.ivy.wallet.domain.data.CustomExchangeRateState
@@ -39,6 +40,7 @@ data class EditTransactionViewState(
     val transactionAssociatedTags: ImmutableList<TagId>,
     val allocationMode: AllocationMode,
     val hasBudget: Boolean = false,
+    val budgetPeriodType: BudgetPeriodType? = null,
 )
 
 sealed interface EditTransactionViewEvent {
