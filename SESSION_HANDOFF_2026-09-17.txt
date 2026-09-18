@@ -2,639 +2,238 @@
 POCKETMONEY — MASTER HANDOFF — 2026-09-17 (end of day)
 ================================================================
 
-THIS FILE SUPERSEDES ALL EARLIER HANDOFFS.
+THIS FILE SUPERSEDES ALL EARLIER HANDOFFS[cite: 2].
 It is the single source of truth. If it conflicts with
-SESSION_HANDOFF_2026-09-14/15/17, THIS FILE WINS.
+SESSION_HANDOFF_2026-09-14/15, THIS FILE WINS[cite: 2].
 
 ================================================================
 0. TOP OF MIND FOR NEXT SESSION
 ================================================================
 
-1. Task A (payday indicator) is COMPLETE in Gemini's output but
-   likely NOT yet applied/committed. Verify with git status first.
+1. Sticky Header Fix (First item tomorrow):
+   When scrolling down on HomeScreen, the header collapses into
+   a sticky top bar that currently displays Ivy's total account
+   balance. Replace this with the Safe-to-Spend hero amount
+   (e.g., 57.40 TND). If no budget is configured or loading, hide
+   it / keep it blank. Do not expose overall balance on scroll.
 
-2. Next real task after that is #27 (period summary on Home).
-   See section 10 for the full ordered queue.
+2. Task 27 — Period summary on Home:
+   Below SafeToSpendCard, render:
+     Budget        450.00 TND
+     Spent         163.00 TND
+     Available     187.00 TND
+     Days left       5
+   (Reserved is intentionally omitted in v1).
 
-3. Reservations are OUT of v1. Explicitly confirmed. See §8.
+3. Task A (Payday indicator) & Task 25b (Icons/Splash) are COMMITTED.
+   Working tree is clean.
+
+4. Reservations are OUT of v1. Explicitly confirmed.
 
 ================================================================
 1. WHAT TO PASTE TO AI AT SESSION START
 ================================================================
 
-Paste this entire file.
+Paste this entire file[cite: 2].
 
-Then run and paste output:
+Then run and paste output[cite: 2]:
 
     cd "C:\Dev\Ivy-wallet"
-    git log --oneline -10
+    git log --oneline -5
     git status
 
-If task A is not committed, working tree will show:
-  - feature/home/src/main/java/com/ivy/home/SafeToSpendCard.kt
-  - feature/home/src/main/java/com/ivy/home/SafeToSpendMapper.kt
-  - feature/home/src/main/java/com/ivy/home/HomeViewModel.kt
-  - feature/home/src/test/java/com/ivy/home/SafeToSpendMapperTest.kt
-
-If working tree is clean, task A was already committed — verify
-by checking the top of git log for a "payday" commit.
+Working tree should be clean on branch development.
 
 ================================================================
-2. ENVIRONMENT — DO NOT ALTER
+2. ENVIRONMENT — DO NOT ALTER[cite: 2]
 ================================================================
 
-Product:        PocketMoney
-Tagline:        "One number a day."
-Fork of:        Ivy Wallet (GPL-3.0), archived 2024-11-05
-Local path:     C:\Dev\Ivy-wallet
-Branch:         development
-Baseline tag:   ivy-original-baseline
-Remotes:
-  origin   → https://github.com/Jacer99/ivy-wallet-daily-budget.git
-  upstream → https://github.com/Ivy-Apps/ivy-wallet.git (read-only)
+Product:        PocketMoney[cite: 2]
+Tagline:        "One number a day."[cite: 2]
+Fork of:        Ivy Wallet (GPL-3.0), archived 2024-11-05[cite: 2]
+Local path:     C:\Dev\Ivy-wallet[cite: 2]
+Branch:         development[cite: 2]
+Baseline tag:   ivy-original-baseline[cite: 2]
+Remotes[cite: 2]:
+  origin   → https://github.com/Jacer99/ivy-wallet-daily-budget.git[cite: 2]
+  upstream → https://github.com/Ivy-Apps/ivy-wallet.git (read-only)[cite: 2]
 
-Toolchain (frozen):
-  Gradle wrapper:     8.8
-  Gradle JDK:         17  (C:\Users\JACER\.jdks\jbr-17.0.14)
-  Kotlin:             2.0.20
-  AGP:                8.5.2
-  Android Studio:     2026.1.4
-  Emulator:           Pixel 8, API 37.1
-  Target phone:       Samsung Galaxy S25 Ultra (both users)
+Toolchain (frozen)[cite: 2]:
+  Gradle wrapper:     8.8[cite: 2]
+  Gradle JDK:         17  (C:\Users\JACER\.jdks\jbr-17.0.14)[cite: 2]
+  Kotlin:             2.0.20[cite: 2]
+  AGP:                8.5.2[cite: 2]
+  Android Studio:     2026.1.4[cite: 2]
+  Emulator:           Pixel 8, API 37.1[cite: 2]
+  Target phone:       Samsung Galaxy S25 Ultra (both users)[cite: 2]
 
-PowerShell: every fresh window starts in C:\Users\JACER.
-Always "cd C:\Dev\Ivy-wallet" first.
-
-================================================================
-3. GIT HISTORY — RECENT COMMITS (newest first)
-================================================================
-
-Verify exact SHAs with git log. Expected most recent:
-
-  <SHA>  Task 25b — Payday indicator on SafeToSpendCard
-         [MAY NOT BE COMMITTED YET — verify first]
-
-  b34def07  Replace clay with vibrant M3 palette + Quick access
-            and card tweaks
-
-  <SHA>  Personal touches: rebrand, love message, settings
-         cleanup, Banque de Tunisie
-
-  eed2b536  Add spending budget screen and quick actions to Home
-  61d91164  Add live reactivity to SafeToSpendCard via DataObserver
-  fa531291  Allow removing a configured budget
-  250641f3  Gate Apply-to-allowance selector on configured budget
-  af162fed  Polish Home hierarchy + Settings icon duplication
-  ...
-
-Full roadmap history is in section 10.
+PowerShell: every fresh window starts in C:\Users\JACER[cite: 2].
+Always "cd C:\Dev\Ivy-wallet" first[cite: 2].
 
 ================================================================
-4. WHAT LANDED BEFORE 2026-09-17 (summary)
+3. GIT HISTORY — VERIFIED COMMITS (newest first)
+================================================================
+
+ff82e136  Round SafeToSpendCard TND display to 2 decimals
+55ce29ef  Add payday indicator to SafeToSpendCard for Salary periods
+2ef1e165  Polish Home layout, Settings icons, remove disclaimer
+ebdfaeda  Replace launcher icon and splash logo with PocketMoney wallet
+b34def07  Replace clay with vibrant M3 palette + Quick access and card tweaks
+7a047853  Rebrand to PocketMoney: TND default, English-only, personal touches
+fa531291  Allow removing a configured budget
+250641f3  Gate Apply-to-allowance selector on configured budget (Task 16b)
+af162fed  Polish Home hierarchy and fix Settings icon duplication
+61d91164  Add live reactivity to SafeToSpendCard via DataObserver
+
+================================================================
+4. WHAT LANDED (summary)
 ================================================================
 
 Tasks 1–23 = COMPLETE (domain layer, migrations, backup,
     engine, safe-to-spend card, home wiring, reactivity,
     historical edit propagation, budget config screen,
     remove-budget feature, apply-to-allowance selector,
-    Home hierarchy polish, regression pass)
+    Home hierarchy polish, regression pass)[cite: 2]
 
-Task 24 = Rebrand to PocketMoney (COMMITTED)
-  - App name, TND default, English-only
-  - Onboarding currency step removed
-  - Settings: external Ivy rows removed; love message added
-  - Quick access: "Share PocketMoney" → "Spending budget"
-  - Export filename prefixes → PocketMoney*
-  - Revolut → Banque de Tunisie
-  - License credit corrected to GPL-3.0
+Task 24 = Rebrand to PocketMoney (COMMITTED)[cite: 2]
+  - App name, TND default, English-only[cite: 2]
+  - Onboarding currency step removed[cite: 2]
+  - Settings: external Ivy rows removed; love message added[cite: 2]
+  - Quick access: "Share PocketMoney" → "Spending budget"[cite: 2]
+  - Export filename prefixes → PocketMoney*[cite: 2]
+  - Revolut → Banque de Tunisie[cite: 2]
+  - License credit corrected to GPL-3.0[cite: 2]
 
-Task 25a = Vibrant M3 palette (COMMITTED)
-  - Primary accent: clay → vivid violet #7C4DFF (light) / #9D7BFF (dark)
-  - Secondary: teal #00BFA5
-  - Tertiary: coral #FF6E40
-  - Success: #00C853 / #5EE87F
-  - Error: #FF5252 / #FF8A8A
-  - Light bg: #FDFBFF; Dark bg: #1C1B1F; AMOLED: #000000
-  - Both M3 and legacy color systems updated
+Task 25a = Vibrant M3 palette (COMMITTED)[cite: 2]
+  - Primary accent: clay → vivid violet #7C4DFF (light) / #9D7BFF (dark)[cite: 2]
+  - Secondary: teal #00BFA5[cite: 2]
+  - Tertiary: coral #FF6E40[cite: 2]
+  - Success: #00C853 / #5EE87F[cite: 2]
+  - Error: #FF5252 / #FF8A8A[cite: 2]
+  - Light bg: #FDFBFF; Dark bg: #1C1B1F; AMOLED: #000000[cite: 2]
+  - Both M3 and legacy color systems updated[cite: 2]
 
-Task 25b = Launcher icon + splash logo (UNKNOWN STATUS — verify)
-  - User created a wallet logo (Nano Banana, transparent PNG)
-  - Image Asset wizard may or may not have been run
-  - OnboardingSplashLogin.kt painter reference may or may not
-    have been changed to pocketmoney_logo
-  - To verify: check app/src/main/res/mipmap-*/ic_launcher.webp
-    thumbnails in Android Studio — leaf or wallet?
-  - Also check OnboardingSplashLogin.kt for
-    "painterResource(id = R.drawable.pocketmoney_logo)"
+Task 25b = Launcher icon + splash logo (COMMITTED in ebdfaeda)
+  - PocketMoney wallet icon integrated into mipmap sets
+  - OnboardingSplashLogin.kt updated to pocketmoney_logo
 
-================================================================
-5. WHAT'S LIKELY UNCOMMITTED RIGHT NOW (Task A)
-================================================================
+Task A = Payday indicator (COMMITTED in 55ce29ef)
+  - SafeToSpendCardState.Active gains paydayLabel: String?
+  - mapToSafeToSpendCardState computes "Payday today",
+    "Left until payday · 1 day", or "Left until payday · N days"
+  - Card displays indicator under the tomorrow row
+  - SafeToSpendMapperTest has full branch coverage
 
-Task A = payday indicator on SafeToSpendCard
-
-Files touched by Gemini:
-  - feature/home/src/main/java/com/ivy/home/SafeToSpendCard.kt
-      Added `val paydayLabel: String? = null` to
-      SafeToSpendCardState.Active, and a Text block in
-      ActiveContent() that renders it below the tomorrow line
-      when non-null.
-  - feature/home/src/main/java/com/ivy/home/SafeToSpendMapper.kt
-      mapToSafeToSpendCardState() now takes
-      periodType: BudgetPeriodType? and today: LocalDate and
-      computes "Left until payday · N days" / "1 day" /
-      "Payday today" for Salary periods, null otherwise.
-  - feature/home/src/main/java/com/ivy/home/HomeViewModel.kt
-      loadSafeToSpend() passes periodType and today into the
-      mapper.
-  - feature/home/src/test/java/com/ivy/home/SafeToSpendMapperTest.kt
-      Four new tests covering non-Salary, payday-today,
-      1-day, and N-days.
-
-Gemini's output was reviewed and approved. It compiles and the
-logic is correct. If it hasn't been applied/committed yet, apply
-it now, run the tests, verify on device, and commit with:
-
-    git add -A
-    git commit -m "Add payday indicator to SafeToSpendCard for Salary periods
-
-    - SafeToSpendCardState.Active gains paydayLabel: String?
-    - mapToSafeToSpendCardState computes the label for Salary
-      periods only: 'Payday today' | 'Left until payday · 1 day'
-      | 'Left until payday · N days'
-    - HomeViewModel.loadSafeToSpend passes periodType and today
-    - Card renders the label below the tomorrow line when set
-    - 4 new mapper tests cover all branches"
-    git push origin development
-
-Verify on device: set a Salary budget with a payday, confirm the
-label renders under "Tomorrow: X TND".
+SafeToSpendCard formatting tweak (COMMITTED in ff82e136)
+  - TND display rounded to 2 decimals on SafeToSpendCard (HALF_UP).
+  - Engine precision remains exact Long minor units.
 
 ================================================================
-6. KEY ARCHITECTURAL FACTS
+5. HOME SCROLL STICKY HEADER REPLACEMENT (Next up)
 ================================================================
 
-Money:
-  - Engine + new entities: Long minor units (TND = 3 decimals)
-  - Ivy legacy: Double / BigDecimal
-  - Conversion only at mapper boundary via CurrencyMinorUnits
-  - NEVER Float, NEVER Double in new money fields
+Problem:
+  When the user scrolls down on HomeScreen, the collapsing toolbar
+  reveals Ivy's total net worth / account balance.
+  This conflicts with PocketMoney's "One number a day" core focus.
 
-Time:
-  - Instant → LocalDate via ZoneId parameter, never global
+Solution:
+  Replace the collapsed header balance with the Safe-to-Spend
+  hero number (e.g. 57.40 TND).
+  - If budget is active: show remaining daily allowance.
+  - If budget is missing / loading: keep it empty/clean.
+  - Never display overall account cash flow on scroll.
 
-Budget pipeline:
+Files to check:
+  - feature/home/src/main/java/com/ivy/home/HomeScreen.kt
+  - feature/home/src/main/java/com/ivy/home/HomeHeader.kt
+  - feature/home/src/main/java/com/ivy/home/HomeTopBar.kt
+
+================================================================
+6. KEY ARCHITECTURAL FACTS[cite: 2]
+================================================================
+
+Money[cite: 2]:
+  - Engine + new entities: Long minor units (TND = 3 decimals)[cite: 2]
+  - Ivy legacy: Double / BigDecimal[cite: 2]
+  - Conversion only at mapper boundary via CurrencyMinorUnits[cite: 2]
+  - NEVER Float, NEVER Double in new money fields[cite: 2]
+
+Time[cite: 2]:
+  - Instant → LocalDate via ZoneId parameter, never global[cite: 2]
+
+Budget pipeline[cite: 2]:
   RoomDynamicBudgetConfigStore → GetDynamicBudgetSnapshotUseCase
     → DynamicBudgetRepository → DynamicBudgetMapper →
     DynamicBudgetEngine → BudgetSnapshot → mapToSafeToSpendCardState
-    → SafeToSpendCardState → SafeToSpendCard composable
+    → SafeToSpendCardState → SafeToSpendCard composable[cite: 2]
 
-Reactivity:
-  - TransactionRepository posts DataWriteEvent.SaveTransactions
+Reactivity[cite: 2]:
+  - TransactionRepository posts DataWriteEvent.SaveTransactions[cite: 2]
   - HomeViewModel collects DataObserver.writeEvents via
-    collectLatest and re-runs reload()
-  - MutableSharedFlow buffered 16, DROP_OLDEST
-  - LaunchedEffect(Unit) in uiState() handles first paint
-
-State class shapes (for reference):
-  SafeToSpendCardState:
-    Loading | NoBudget | Active | Error
-  Active fields:
-    remainingAllowanceMinorUnits: Long
-    openingAllowanceMinorUnits: Long
-    todayChargesMinorUnits: Long
-    tomorrowProjectionMinorUnits: Long?
-    message: SafeToSpendMessage?
-    paydayLabel: String? (after Task A)
-
-  BudgetSnapshot fields:
-    periodStart, periodEnd, capacity, periodSpentRaw,
-    periodReserved, periodRemaining, daysRemaining,
-    openingAllowance, todayCharges, remainingAllowance,
-    tomorrowProjection
-
-  DynamicBudgetConfig fields:
-    id, periodType, budgetLimitMinorUnits, currencyCode,
-    includedAccountIds, includedCategoryIds,
-    includeIncomeInBudget
-
-  BudgetPeriodType (sealed):
-    Weekly | Monthly | Salary(payday: Int) | Custom(start, end)
+    collectLatest and re-runs reload()[cite: 2]
+  - MutableSharedFlow buffered 16, DROP_OLDEST[cite: 2]
+  - LaunchedEffect(Unit) in uiState() handles first paint[cite: 2]
 
 ================================================================
-7. LOCKED DECISIONS (do not revisit)
+7. LOCKED DECISIONS (do not revisit)[cite: 2]
 ================================================================
 
-D1. TND is the only currency in v1. No multi-currency.
-    Cross-currency transactions are filtered out by the mapper.
-
-D2. English-only. Non-English values-*/ directories were deleted.
-
-D3. No cloud, no accounts, no sharing in v1. Local-only.
-    Phase 2 handles Amina sharing.
-
-D4. No parallel transaction systems. Everything reuses Ivy.
-
-D5. Money is Long minor units in new code.
-
+D1. TND is the only currency in v1. No multi-currency[cite: 2].
+D2. English-only. Non-English values-*/ directories deleted[cite: 2].
+D3. No cloud, no accounts, no sharing in v1. Local-only[cite: 2].
+D4. No parallel transaction systems. Everything reuses Ivy[cite: 2].
+D5. Money is Long minor units in new code[cite: 2].
 D6. New entities use @SerialName, isSynced/isDeleted pattern,
-    KSerializerInstant for Instants (matches TagEntity).
-
-D7. No destructive migrations. Ever.
-
-D8. Reactivity via DataObserver.writeEvents, not manual refresh.
-
-D9. CLAY IS DEAD. Palette was replaced by vibrant M3 in Task 25a.
-    Do not reintroduce #C4783E.
-
+    KSerializerInstant for Instants[cite: 2].
+D7. No destructive migrations. Ever[cite: 2].
+D8. Reactivity via DataObserver.writeEvents, not manual refresh[cite: 2].
+D9. CLAY IS DEAD. Vibrant M3 palette active[cite: 2].
 D10. No red, no warning icons, no punitive colors on the
-     safe-to-spend card. Over-budget uses neutral messaging.
-
-D11. Disclaimer screen is UNREACHABLE (Task 24 fallout).
-     IvyNavGraph has `else -> {}` to satisfy exhaustive when.
-
-D12. RESERVATIONS ARE OUT OF V1. See §8.
-
-D13. No further DB migrations are expected before v1 ships.
-     Current version: 133.
+     safe-to-spend card[cite: 2].
+D11. Disclaimer screen is UNREACHABLE[cite: 2].
+D12. RESERVATIONS ARE OUT OF V1[cite: 2].
+D13. No further DB migrations expected before v1 ships (version: 133)[cite: 2].
 
 ================================================================
-8. RESERVATIONS — EXPLICITLY OUT OF V1
+8. RESERVATIONS — EXPLICITLY OUT OF V1[cite: 2]
 ================================================================
 
-The ReservationEntity + DAO + Migration 131→132 exist in the
-codebase, but they are DORMANT. Nothing reads from or writes to
-them in the running app.
-
-Reasoning: user decided v1 records only real, completed expenses.
-Reservations (planned/pre-committed spending that reduces
-allowance without debiting an account) are parked as a future
-feature.
-
-Consequences:
-  - The domain engine accepts reservationsTotal = 0L always
-  - SPECIFICATION.md §21 and §22 are rescoped to Phase 1.5
-  - Do NOT wire reservations in v1
-  - Do NOT add a UI to create/edit reservations
-  - Do NOT show "Reserved" in the period summary (see Task 27)
-    until reservations ship
-
-If the AI sees ReservationEntity in the codebase and suggests
-using it, that's out of scope. Politely decline.
+ReservationEntity + DAO + Migration 131→132 exist in code, but
+are DORMANT[cite: 2]. Nothing reads from or writes to them in the running app[cite: 2].
+Do NOT wire reservations in v1[cite: 2]. Do NOT show "Reserved" in period
+summary[cite: 2].
 
 ================================================================
-9. KNOWN NON-BLOCKING WARNINGS (leave alone)
+9. ROADMAP — CURRENT STATUS
 ================================================================
 
-These compile fine:
-  - HomeMoreMenu.kt: unused import com.ivy.legacy.Constants
-  - HomeMoreMenu.kt: unused val context = LocalContext.current
-  - HomeMoreMenu.kt: unused param onCurrencyClick
-  - RootScreen.kt / RootActivity.kt: shareIvyWallet() dead code
-  - RootViewModel.kt: legalRepo injected but unused (disclaimer removed)
-  - SettingsScreen.kt: unused AccountCardButton, SettingsUiTest
-  - HomeHeader.kt: CashFlowInfo still accepts balance/
-    hideBalance/onBalanceClick/onHiddenBalanceClick params
-    that are now unused (BalanceRow was removed from it)
-  - Deprecated legacy API warnings throughout (expected)
+COMPLETED:
+  ✅ Tasks 1–25a Core domain, DB, UI card, rebrand, palette[cite: 2]
+  ✅ Task 25b Launcher icon + splash logo (ebdfaeda)
+  ✅ Task A   Payday indicator on SafeToSpendCard (55ce29ef)
+  ✅ Polish   TND rounded to 2 decimals on SafeToSpendCard (ff82e136)
 
-Do NOT clean these up mid-feature. Save for a cleanup pass or
-skip entirely if v1 ships.
-
-================================================================
-10. ROADMAP — EVERYTHING, WITH EXPLICIT STATUS
-================================================================
-
-Legend:
-  ✅ shipped and committed
-  ⏳ in working tree, needs commit
-  ☐ NOT DONE — must ship for v1
-  ⏸ deferred to Phase 1.5 or later
+REMAINING FOR V1:
+  ☐ Home Scroll Header Fix: Replace collapsed balance with Safe-to-Spend
+  ☐ Task 27  Period summary on Home (Budget, Spent, Available, Days left)[cite: 2]
+  ☐ Task 28  "How is this calculated?" explanation UI[cite: 2]
+  ☐ Task 29  Income inclusion toggle in budget config[cite: 2]
+  ☐ Task 30  Device regression + accessibility pass[cite: 2]
+  ☐ Task 26  Safe-to-spend home-screen widget (Optional / non-blocking for v1)[cite: 2]
 
 ================================================================
-PHASE 1 — CORE (all done)
+10. HOW TO RESUME NEXT SESSION
 ================================================================
 
-  ✅ Task 1   BudgetPeriodResolver
-  ✅ Task 2   ExpenseAllocationScheduler
-  ✅ Task 3   DynamicBudgetEngine
-  ✅ Task 4   CurrencyMinorUnits
-  ✅ Task 5   DynamicBudgetConfig
-  ✅ Task 6   DynamicBudgetMapper
-  ✅ Task 7   End-to-end pipeline integration test
-  ✅ Task 8   DynamicBudgetRepository
-  ✅ Task 9   ConfigStore + UseCase + Hilt module
-  ✅ Task 10  DynamicBudgetConfigEntity + DAO + Migration 130→131
-  ✅ Task 11  Room-backed DynamicBudgetConfigStore
-  ✅ Task 12  Backup integration (config)
-  ✅ Task 13  ReservationEntity + DAO + Migration 131→132
-              (infrastructure only; see §8)
-  ✅ Task 14  DEFERRED — reservations not wired into v1
-  ✅ Task 15a AllocationMode moved to shared/data/model
-  ✅ Task 15b-1 allocationMode column + Migration 132→133
-  ✅ Task 15b-2 allocationMode wired through mappers
-  ✅ Task 16a  allocationMode in legacy Transaction model
-  ✅ Task 16b  Apply-to-allowance selector UI
-  ✅ Task 17   SafeToSpendCard composable
-  ✅ Task 17b  raw minor units refactor
-  ✅ Task 18   Home wiring
-  ✅ Task 19   Quick actions (Add expense / Add income on card)
-              → later removed in Task 24 fallout; FAB covers both
-  ✅ Task 19c  Budget config screen
-  ✅ Task 20   Reactivity via DataObserver.writeEvents
-  ✅ Task 21   Historical edit propagation (verified free)
-  ✅ Task 22   Home hierarchy polish + Settings icon fix
-  ✅ Task 23   Regression pass (declared done)
-  ✅ Task 24   Rebrand to PocketMoney
-  ✅ Task 25a  Vibrant M3 palette
-
-================================================================
-PHASE 1 — REMAINING FOR V1
-================================================================
-
-  ⏳ Task 25b  Payday indicator on SafeToSpendCard
-              Status: Gemini output complete, reviewed, correct.
-              Probably NOT yet applied/committed. See §5.
-              After commit, this task is DONE.
-
-  ☐ Task 26  Safe-to-spend home-screen widget
-             Scope: reuse Ivy's existing WalletBalanceWidget
-             pattern from widget/balance/. Change data source
-             from balance to safe-to-spend.
-             Key work:
-               - Cache safe-to-spend so widget can read it
-                 (SharedPrefs or DataStore — decide in recon)
-               - HomeViewModel writes cache on every
-                 loadSafeToSpend()
-               - Hook widget refresh into DataObserver.writeEvents
-               - Handle "no budget configured" state
-               - Handle daily midnight rollover (widget needs to
-                 refresh at 00:00 local)
-               - Widget preview image, provider XML, manifest receiver
-             Estimate: 1 full session.
-             Do NOT attempt in one prompt; do recon + design first,
-             get user approval on the plan, then implement.
-             Inspiration: user's original idea was "change balance
-             to safe-to-spend in the existing widget."
-
-  ☐ Task 27  Period summary on Home
-             Scope: below the SafeToSpendCard, show a compact
-             summary:
-               Budget        450.00 TND
-               Spent         163.00 TND
-               Available     187.00 TND
-               Days left       5
-             (Reserved is intentionally OMITTED until reservations
-             ship — see §8.)
-             Source data: BudgetSnapshot already has capacity,
-             periodSpentRaw, periodRemaining, daysRemaining.
-             Just needs UI. Reference SPECIFICATION.md §6 item 4
-             and §71.
-             Estimate: 2–3 hours.
-
-  ☐ Task 28  "How is this calculated?" explanation UI
-             Scope: tapping the hero number opens a bottom sheet
-             (or inline expansion) showing:
-               Opening          80.40 TND
-               Today's charges  -23.00 TND
-               Tomorrow        62.00 TND  (already shown on card)
-               ---
-               Safe to spend   57.40 TND
-             Reference SPECIFICATION.md §37, §70.
-             All values already exist in SafeToSpendCardState.Active
-             except per-mode breakdown (WEEK/MONTH shares). If that
-             breakdown is required, expose it from the mapper.
-             Estimate: half a day.
-
-  ☐ Task 29  Income inclusion toggle in budget config
-             Scope: DynamicBudgetConfigScreen gets a new
-             "Include income in budget" switch. Backed by the
-             existing `includeIncomeInBudget` field on
-             DynamicBudgetConfig.
-             No engine change needed — the config already flows
-             through. Just a UI toggle + event + state field.
-             Reference SPECIFICATION.md §10, §20, §42.
-             Estimate: 1 hour.
-
-  ☐ Task 30  Device regression + accessibility pass
-             Scope:
-               - Fresh install on S25 Ultra
-               - Onboarding → set budget → add expense → edit →
-                 delete → remove budget → re-add
-               - Salary period: verify "Left until payday · N days"
-               - Week / Month / Custom periods
-               - Light / Dark / AMOLED themes
-               - Backup export → wipe → import → verify config
-                 survives
-               - Accessibility: screen reader order, content
-                 descriptions, color-not-alone
-             Reference SPECIFICATION.md §94 (acceptance questions),
-             §64, §72.
-             Estimate: half a day to a full day.
-             This is the last task before v1 ships.
-
-================================================================
-DEFERRED — PHASE 1.5
-================================================================
-
-  ⏸ Reservations UI + engine wiring
-     See §8. Parked until v1 ships and user has lived with the
-     app for a while.
-
-================================================================
-DEFERRED — PHASE 2 (cloud + Amina)
-================================================================
-
-  ⏸ Firebase Spark sync
-     Firestore layout: workspaces/{workspaceId}/...
-     Sync source data only. Never sync the derived safe-to-spend
-     number.
-     Requires Migration 133→134 to add workspaceId.
-     Requires: auth, Firestore security rules, conflict resolution
-     (last-write-wins for v1).
-     Estimate: 1–2 weeks.
-
-================================================================
-DEFERRED — PHASE 3 (sinking funds)
-================================================================
-
-  ⏸ SinkingFundEntity for far-future expenses
-     Splits a large upcoming bill across N days of allowance.
-     New migration. New engine input dailySinkingContribution.
-     Do NOT start before Phase 1 is trusted.
-
-================================================================
-DEFERRED — PHASE 4 (loans with interest)
-================================================================
-
-  ⏸ LoanEntity amortization tracker
-     This is a TRACKER only. Never feeds the budget engine.
-     User's explicit rule: loan payments are PRE-COMMITTED and
-     come out before the discretionary pool.
-     Estimate: 2–3 weeks.
-
-================================================================
-11. WORKING WITH GEMINI — RULES
-================================================================
-
-Gemini in Android Studio is a code assistant. It CANNOT run
-shell, git, gradle, or process invocations. Attempts hang the
-session. Every prompt must include:
-
-  "Do NOT run any shell commands, git commands, gradle commands,
-   or process invocations."
-
-Gemini CANNOT:
-  - Copy or move binary files (PNGs, .webp)
-  - Run the Image Asset wizard (manual Android Studio tool)
-  - Persist files across a corrupted session (start fresh per task)
-
-Gemini CAN:
-  - Read any file in the repo
-  - Edit any file in the repo
-  - Grep and search
-
-Every prompt must end with:
-
-  "Do NOT claim 'Build finished successfully.' I run Gradle
-   locally. Reply inline only. Do NOT create plan or walkthrough
-   artifact files."
-
-Gemini quirks to watch for (learned this project):
-  - Claims "build succeeded" without running Gradle → ALWAYS
-    verify locally
-  - Writes `./gradlew assembleDebug` (macOS style) → user runs
-    `:app:assembleDebug` on Windows
-  - Sometimes invents shadow operators like Unit.thenInvokeAfter
-    → reject
-  - Sometimes uses `not in` instead of `!in`, `HALF_DOWN` instead
-    of `HALF_UP`, `verify` instead of `coVerify`
-  - Writes tests to the wrong source set occasionally
-    (src/main/java instead of src/test/java or src/androidTest/java)
-  - Adds unused wildcard imports → clean up
-
-Model rotation: start a fresh Gemini session per task to avoid
-thought_signature corruption.
-
-================================================================
-12. WORKFLOW — HOW TO RUN A TASK
-================================================================
-
-Standard loop that has been working:
-
-1. AI (in this chat) writes a detailed prompt for Gemini.
-2. User pastes prompt into Gemini in Android Studio.
-3. Gemini reads files, makes changes, reports inline.
-4. User pastes Gemini's full output back to the AI here.
-5. AI reviews: logic, imports, source set, Kotlin idioms,
-   financial correctness.
-6. AI approves or gives a fix diff.
-7. User applies, then runs:
-     .\gradlew :feature:home:assembleDebug    (or relevant module)
-     .\gradlew :app:assembleDebug
-     .\gradlew installDebug
-8. Green → commit + push.
-9. Red → paste failure output here → AI writes fix prompt.
-10. Verify on device → screenshot → commit.
-
-NEVER trust Gemini's self-check.
-
-================================================================
-13. ABSOLUTE PRIORITIES (PROJECT_RULES §17)
-================================================================
-
-  1. Financial correctness
-  2. Preservation of Ivy accounting
-  3. Data integrity
-  4. Deterministic calculations
-  5. User trust
-  6. Ivy UX consistency
-  7. Performance
-  8. Visual polish
-  9. Feature count
-
-Never sacrifice 1–5 for 8–9.
-
-================================================================
-14. NEVER TOUCH
-================================================================
-
-  - Package name: com.ivy
-  - IvyRoomDatabase class name, DB schema, migrations
-  - Backup format: IvyWalletCompleteData, @SerialName values
-  - LICENSE file
-  - README, NOTICE
-  - Existing Ivy copyright headers
-
-SAFE TO CHANGE:
-  - Any user-visible text
-  - Palette values
-  - Launcher icon, splash logo
-  - Layout of any screen
-  - Internal Kotlin code (respecting the architecture)
-
-================================================================
-15. HOW TO RESUME (step by step)
-================================================================
-
-1. Fresh PowerShell window:
-     cd "C:\Dev\Ivy-wallet"
-
-2. git status && git log --oneline -10
-
-3. If Task A (payday) is uncommitted:
-     .\gradlew :feature:home:testDebugUnitTest
-     .\gradlew :app:assembleDebug
-     .\gradlew installDebug
-   Verify on device with a Salary budget.
-   Commit + push.
-
-4. If Task A already committed:
-   Start next task.
-
-5. Open this chat and paste this file.
-
-6. Say: "Read the handoff. Task 25b is done. Next is Task 27
-   (period summary on Home). Write the recon and Gemini prompt."
-
-7. AI runs recon commands, gets output, writes prompt.
-
-8. Loop per §12.
-
-================================================================
-16. STATE AS OF 2026-09-17 END OF DAY
-================================================================
-
-HEAD: verify with git log.
-
-Working tree: possibly has Task A payday changes uncommitted.
-  Verify with git status.
-
-Build: last known :app:assembleDebug green.
-
-Emulator: all manual flows verified in Light, Dark, AMOLED.
-
-Icon/splash: unknown whether Task 25b was completed.
-  Verify by eyeballing app/src/main/res/mipmap-*/ic_launcher.webp
-  and OnboardingSplashLogin.kt.
-
-Handoff 2026-09-17 (the earlier one) is stale — this file is the
-authoritative version.
-
-================================================================
-17. WHAT "V1 DONE" MEANS
-================================================================
-
-v1 ships when:
-  ✅ Tasks 1–25b complete
-  ☐ Task 26 (widget) complete        — nice-to-have, not blocking
-  ☐ Task 27 (period summary) complete
-  ☐ Task 28 (calculation explanation) complete
-  ☐ Task 29 (income inclusion toggle) complete
-  ☐ Task 30 (regression + accessibility) complete
-
-Widget (Task 26) is user-requested but the user can decide to
-ship v1 without it if desired. Tasks 27–30 are the real v1 gate.
+1. cd "C:\Dev\Ivy-wallet"[cite: 2]
+2. git status && git log --oneline -5[cite: 2]
+3. Paste this handoff file to the AI[cite: 2].
+4. State: "Handoff loaded. Start with the Home Scroll Header Fix
+   (replace collapsed balance with Safe-to-Spend amount), then
+   we move directly into Task 27."
+5. AI will provide recon commands, review outputs, and write
+   the implementation prompt.
 
 ================================================================
 END OF HANDOFF
